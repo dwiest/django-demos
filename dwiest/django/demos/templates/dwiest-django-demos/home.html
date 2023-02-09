@@ -1,0 +1,29 @@
+<Html>
+<Head>
+  <Title>Django Demos</Title>
+  {% include "css.html" %}
+</Head>
+
+<Body>
+<Div align="center">
+
+{% block header %}
+{% with title='Django Demos' %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+<Table border="1" padding="2" width="480px">
+  <TR>
+    <TH colspan="2"><Div align="center">Django Demos</Div></TH>
+    </TR>
+  <TR>
+    <TD>Files</TD>
+    <TD><A href="{% url 'demos:file:index' %}">File upload/download</A></TD>
+    </TR>
+</Table>
+
+{% include "footer.html" %}
+</Div>
+</Body>
+</Html>

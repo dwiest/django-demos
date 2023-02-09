@@ -1,0 +1,88 @@
+<Html>
+<Head>
+  <Title>File Details</Title>
+<!--  {% include "css.html" %} -->
+<Style>
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 80%;
+  }
+.error-text{
+  color: #ffffff;
+  background-color: #ff0000;
+  }
+
+  th {
+    text-align: left;
+  }
+</Style>
+
+</Head>
+
+<Body>
+<Div align="center">
+
+{% block header %}
+{% with title='File Details' %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+<A href="{% url 'demos:file:index' %}"}>Index</A>
+
+<P>
+<Table class="table">
+  <Tr>
+    <Th>Filename</Th>
+    <Td><Input type="text" value="{{file.name}}"/></Td>
+    </Tr>
+  <Tr>
+    <Th>Content-Type</Th>
+    <Td>{{file.content_type}}</Td>
+    </Tr>
+  <Tr>
+    <Th>Size</Th>
+    <Td>{{file.size}}</Td>
+    </Tr>
+  <Tr>
+    <Th>Upload Date</Th>
+    <Td>{{file.created_at}}</Td>
+    </Tr>
+  <Tr>
+    <Th>Anti-virus Scan Results</Th>
+    <Td><i>in-progress</i></Td>
+    </Tr>
+  <Tr>
+    <Th>MD5 Checksum</Th>
+    <Td>00ac23b3521920e063257a15127d3e05</Td>
+    </Tr>
+  <Tr>
+    <Th>SHA256 Checksum</Th>
+    <Td>c23b23f845560bd7e84e0bdda77206b8eea74b566569ae0d59fce9280086ec11</Td>
+    </Tr>
+  <Tr>
+    <Th>Description</Th>
+    <Td><Textarea cols="72" rows="4">{{file.description}}</Textarea></Td>
+    </Tr>
+  <Tr>
+    <Th>Versioning Enabled</Th>
+    <Td><Input type="checkbox" {% if file.versioned %}checked{% endif %} onClick="return false;"/></Td>
+    </Tr>
+  <Tr>
+    <Th>File Version</Th>
+    <Td>1</Td>
+    </Tr>
+</Table>
+</P>
+
+<P>
+<Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
+<Button>Update</Button> | 
+</P>
+
+{% include "footer.html" %}
+</Div>
+</Body>
+</Html>

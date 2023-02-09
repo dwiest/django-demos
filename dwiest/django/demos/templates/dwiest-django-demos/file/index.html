@@ -1,0 +1,99 @@
+<Html>
+<Head>
+  <Title>File Demo</Title>
+<!--  {% include "css.html" %} -->
+<Style>
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 80%;
+  }
+.info{
+  color: #000000;
+  background-color: #00ff00;
+  }
+.error{
+  color: #ffffff;
+  background-color: #ff0000;
+  }
+.table {
+  color: #000000;
+  background-color: #ffffff;
+  border: 1px solid;
+  border-collapse: collapse;
+  width: 80%;
+  }
+table th {
+  color: #ffffff;
+  background-color: #000000;
+  text-align: left;
+  }
+</Style>
+</Style>
+
+</Head>
+
+<Body>
+<Div align="center">
+
+{% block header %}
+{% with title='File Demo' %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+{% for message in messages %}
+  <Div class="{{message.tags}}">{{message}}</Div>
+{% endfor %}
+
+{% for error in form.non_field_errors %}
+  <Div class="error-text">- {{error}} - </Div>
+{% endfor %}
+
+<P>
+<Table class="table">
+  <Tr>
+    <Th>Filename</Th>
+    <Th>Content-Type</Th>
+    <Th>Size</Th>
+    <Th>Upload Date</Th>
+    <Th>Scanned?</Th>
+    <Th>Action</Th>
+    </Tr>
+  <Tr>
+    <Td><A href="{% url 'demos:file:details' %}">Foo.txt</A></Td>
+    <Td>txt</Td>
+    <Td>1024kb</Td>
+    <Td>2/5/2023</Td>
+    <Td>No</Td>
+    <Td><Button>Delete</Button><Button status="disabled">Download</Button></Td>
+{% for file in files %}
+  <Tr>
+    <Td><A href="{% url 'demos:file:details' %}?path={{file.path}}">{{file.name}}</A></Td>
+    <Td>{{file.content_type}}</Td>
+    <Td>{{file.size}}</Td>
+    <Td>{{file.created_at}}</Td>
+    <Td>No</Td>
+    <Td>
+      <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button>
+      <Button><A href="{% url 'demos:file:download' %}?path={{file.path}}">Download</A></Button>
+      <Button><A href="{% url 'demos:file:open' %}?path={{file.path}}">Open</A></Button>
+      </Td>
+{% endfor %}
+</Table>
+</P>
+
+
+<P>
+<Form method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
+{% csrf_token %}
+  {{form.file}}
+  <Input type="submit" value="Upload"/>
+  </Form>
+</P>
+
+{% include "footer.html" %}
+</Div>
+</Body>
+</Html>

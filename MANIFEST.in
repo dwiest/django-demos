@@ -1,0 +1,4 @@
+include LICENSE
+include Readme.rst
+recursive-include docs *
+recursive-include dwiest/django/demos *
