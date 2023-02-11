@@ -3,27 +3,67 @@
   <Title>File Details</Title>
 <!--  {% include "css.html" %} -->
 <Style>
-.container {
+body {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 80%;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  margin: auto;
+  vertical-align: middle;
   }
-.error-text{
+.content {
+  flex: 1;
+  text-align: center;
+  vertical-align: middle;
+}
+.info{
+  color: #000000;
+  background-color: #00ff00;
+  }
+.error{
   color: #ffffff;
   background-color: #ff0000;
   }
-
-  th {
-    text-align: left;
+.table {
+  color: #000000;
+  background-color: #ffffff;
+  Xborder: 1px solid;
+  Xborder-collapse: collapse;
+  Xwidth: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  }
+.footer {
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 10px;
+  }
+table th {
+  text-align: left;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  Xfont-size: 1.5vw;
+  font-weight: bold;
+  }
+button {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
+  }
+form input {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
   }
 </Style>
-
 </Head>
 
 <Body>
-<Div align="center">
-
+<Div class="content">
 {% block header %}
 {% with title='File Details' %}
 {% include 'header.html' %}
@@ -32,11 +72,22 @@
 
 <A href="{% url 'demos:file:index' %}"}>Index</A>
 
+{% if messages %}
 <P>
+{% for message in messages %}
+  <Div class="{{message.tags}}">{{message}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+<P>
+<Form method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
+{% csrf_token %}
+<Input type="hidden" name="path" value="{{file.path}}"/>
 <Table class="table">
   <Tr>
     <Th>Filename</Th>
-    <Td><Input type="text" value="{{file.name}}"/></Td>
+    <Td>{{form.name}}</Td>
     </Tr>
   <Tr>
     <Th>Content-Type</Th>
@@ -44,11 +95,11 @@
     </Tr>
   <Tr>
     <Th>Size</Th>
-    <Td>{{file.size}}</Td>
+    <Td>{{file.human_readable_size}}</Td>
     </Tr>
   <Tr>
     <Th>Upload Date</Th>
-    <Td>{{file.created_at}}</Td>
+    <Td>{{file.created_at|date:"d/m/Y h:i:s A e"}}</Td>
     </Tr>
   <Tr>
     <Th>Anti-virus Scan Results</Th>
@@ -56,19 +107,19 @@
     </Tr>
   <Tr>
     <Th>MD5 Checksum</Th>
-    <Td>00ac23b3521920e063257a15127d3e05</Td>
+    <Td>{{file.md5_checksum}}</Td>
     </Tr>
   <Tr>
     <Th>SHA256 Checksum</Th>
-    <Td>c23b23f845560bd7e84e0bdda77206b8eea74b566569ae0d59fce9280086ec11</Td>
+    <Td>{{file.sha256_checksum}}</Td>
     </Tr>
   <Tr>
     <Th>Description</Th>
-    <Td><Textarea cols="72" rows="4">{{file.description}}</Textarea></Td>
+    <Td>{{form.description}}
     </Tr>
   <Tr>
     <Th>Versioning Enabled</Th>
-    <Td><Input type="checkbox" {% if file.versioned %}checked{% endif %} onClick="return false;"/></Td>
+    <Td>{{form.versioned}}</Td>
     </Tr>
   <Tr>
     <Th>File Version</Th>
@@ -78,11 +129,12 @@
 </P>
 
 <P>
-<Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
-<Button>Update</Button> | 
+<Span><Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button></Span>
+<Span><Input type="submit" value="Update"/></Span>
+</Form>
 </P>
-
-{% include "footer.html" %}
 </Div>
+
+<Div class="footer">{% include "footer.html" %}</Div>
 </Body>
 </Html>
