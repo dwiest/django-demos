@@ -12,7 +12,7 @@ class File(models.Model):
     User, on_delete=models.PROTECT)
 
   name = models.CharField(max_length=255)
-  path = models.CharField(max_length=32)
+  path = models.CharField(max_length=36)
 
   content_type = models.CharField(max_length=32)
 #  type = models.ForeignKey(
@@ -21,8 +21,10 @@ class File(models.Model):
   size = models.IntegerField() # bytes
   created_at = models.DateTimeField(auto_now_add=True)
   versioned = models.BooleanField(default=False)
-  description = models.TextField(null=True)
+  description = models.TextField(blank=True, null=True)
   downloadable = models.BooleanField(default=False)
+  md5_checksum = models.CharField(max_length=32)
+  sha256_checksum = models.CharField(max_length=64)
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args,**kwargs)
@@ -36,6 +38,20 @@ class File(models.Model):
   def generate_path(self):
     return uuid.uuid4()
 
+  def human_readable_size(self):
+    return format_bytes(self.size, 2)
+
+
+def format_bytes(size, precision):
+    # 2**10 = 1024
+    power = 2**10
+    n = 0
+    power_labels = {0 : '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+    while size > power:
+        size /= power
+        n += 1
+    size = round(size, precision)
+    return "{} {}B".format(size, power_labels[n])
 
 #class ContentType(models.Model):
 #''' content-types, e.g. text/plain, text/html, x-application/binary-data '''
