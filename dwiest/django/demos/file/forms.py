@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import pytz
 
 from django.contrib.auth.models import User
@@ -40,10 +41,16 @@ class FileUploadForm(forms.Form):
 
     try:
       print("writing to: " + model.path)
+      hash_md5 = hashlib.md5()
+      hash_sha256 = hashlib.sha256()
       #FIXME check that path doesn't already exist
       with open('/tmp/' + model.path, 'wb+') as output:
         for chunk in file.chunks():
+          hash_md5.update(chunk)
+          hash_sha256.update(chunk)
           output.write(chunk)
+      model.md5_checksum = hash_md5.hexdigest()
+      model.sha256_checksum = hash_sha256.hexdigest()
     except Exception as e:
       print(str(e))
       raise self.get_write_failed_error()
@@ -63,3 +70,15 @@ class FileUploadForm(forms.Form):
     return forms.ValidationError(
       self.error_messages['save_failed'],
       code='save_failed',)
+
+
+class FileDetailsForm(forms.ModelForm):
+  class Meta:
+    model = File
+    #fields = ['path','name','versioned','description']
+    #exclude = ['owner','content_type','size','created_at','downloadable','human_readable_size']
+    fields = ['name','versioned','description']
+    exclude = ['path', 'content_type','downloadable', 'created_at', 'size', 'owner']
+    widgets = {
+      'description': forms.Textarea(attrs={'cols':72, 'rows':4}),
+      }
