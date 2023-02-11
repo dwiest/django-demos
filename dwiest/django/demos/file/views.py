@@ -4,9 +4,10 @@ from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
+import os
 
 from ..conf import settings
-from .forms import FileUploadForm
+from .forms import FileUploadForm, FileDetailsForm
 from .models import File
 
 
@@ -73,16 +74,30 @@ class FileDetailView(TemplateView):
     if path:
       try:
         file = File.objects.get(owner=request.user, path=path)
+        form = FileDetailsForm(instance=file)
         self.response_dict['file'] = file
+        self.response_dict['form'] = form
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
         return HttpResponseRedirect(reverse(self.error_page))
     else:
       messages.error(request, 'A file path was not specified.')
-      return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
+      return HttpResponseRedirect(reverse(self.error_page))
 
     return render(request, self.template_name, self.response_dict)
+
+  def post(self, request, *args, **kwargs):
+    file = File.objects.get(owner=request.user, path=request.POST['path'])
+    self.response_dict['file'] = file
+    form = FileDetailsForm(instance=file, data=request.POST)
+    if form.is_valid():
+      form.save()
+      messages.info(request, "{} was successfully updated.".format(file.name))
+      query_string = "?path={}".format(file.path)
+      return HttpResponseRedirect(reverse(self.success_page) + query_string)
+    else:
+      return render(request, self.template_name, self.response_dict)
 
 
 class FileDeleteView(TemplateView):
@@ -107,8 +122,8 @@ class FileDeleteView(TemplateView):
     if path:
       try:
         file = File.objects.get(owner=request.user, path=path)
-        #file.delete()
-        # delete file here
+        os.remove('/tmp/' + file.path)
+        file.delete()
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
