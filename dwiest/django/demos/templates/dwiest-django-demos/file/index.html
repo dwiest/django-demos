@@ -3,12 +3,22 @@
   <Title>File Demo</Title>
 <!--  {% include "css.html" %} -->
 <Style>
-.container {
+html {
+  height: 100%;
+}
+
+body {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 80%;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  margin: auto;
   }
+.content {
+  flex: 1;
+  text-align: center;
+  vertical-align: middle;
+}
 .info{
   color: #000000;
   background-color: #00ff00;
@@ -22,12 +32,42 @@
   background-color: #ffffff;
   border: 1px solid;
   border-collapse: collapse;
-  width: 80%;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  }
+.footer {
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 10px;
   }
 table th {
   color: #ffffff;
   background-color: #000000;
   text-align: left;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.5vw;
+  font-weight: bold;
+  }
+table td {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
+  }
+button {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
+  }
+form input {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-size: 1.25vw;
   }
 </Style>
 </Style>
@@ -35,8 +75,8 @@ table th {
 </Head>
 
 <Body>
-<Div align="center">
 
+<Div class="content">
 {% block header %}
 {% with title='File Demo' %}
 {% include 'header.html' %}
@@ -61,19 +101,17 @@ table th {
     <Th>Scanned?</Th>
     <Th>Action</Th>
     </Tr>
+{% if not files %}
   <Tr>
-    <Td><A href="{% url 'demos:file:details' %}">Foo.txt</A></Td>
-    <Td>txt</Td>
-    <Td>1024kb</Td>
-    <Td>2/5/2023</Td>
-    <Td>No</Td>
-    <Td><Button>Delete</Button><Button status="disabled">Download</Button></Td>
+    <Td colspan="6" align="center">No files have been uploaded.</Td>
+    </Tr>
+{% else %}
 {% for file in files %}
   <Tr>
     <Td><A href="{% url 'demos:file:details' %}?path={{file.path}}">{{file.name}}</A></Td>
     <Td>{{file.content_type}}</Td>
-    <Td>{{file.size}}</Td>
-    <Td>{{file.created_at}}</Td>
+    <Td>{{file.human_readable_size}}</Td>
+    <Td>{{file.created_at|date:"d/m/Y h:i:s A e"}}</Td>
     <Td>No</Td>
     <Td>
       <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button>
@@ -81,6 +119,7 @@ table th {
       <Button><A href="{% url 'demos:file:open' %}?path={{file.path}}">Open</A></Button>
       </Td>
 {% endfor %}
+{% endif %}
 </Table>
 </P>
 
@@ -92,8 +131,8 @@ table th {
   <Input type="submit" value="Upload"/>
   </Form>
 </P>
-
-{% include "footer.html" %}
 </Div>
+
+<Div class="footer">{% include "footer.html" %}</Div>
 </Body>
 </Html>
