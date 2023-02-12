@@ -8,7 +8,7 @@ import os
 
 from ..conf import settings
 from .forms import FileUploadForm, FileDetailsForm
-from .models import File
+from .models import File, FileQuota, FileSummary
 
 
 home_page = 'file'
@@ -30,8 +30,22 @@ class FileIndexView(TemplateView):
   def get(self, request, *args, **kwargs):
     form = self.form_class()
     self.response_dict['form'] = form
+
+    summaries = FileSummary.objects.filter(owner=request.user)
+    if len(summaries) == 1:
+      self.response_dict['summary'] = summaries[0]
+    else:
+      messages.error(request, "Couldn't load file summary")
+
     files = File.objects.filter(owner=request.user)
     self.response_dict['files'] = files
+
+    quotas = FileQuota.objects.filter(id=1)
+    if len(quotas) == 1:
+      self.response_dict['quota'] = quotas[0]
+    else:
+      self.response_dict['quota'] = {max_files: 'n/a', max_filesize: 'n/a', max_total_filesize: 'n/a'}
+
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
@@ -40,15 +54,18 @@ class FileIndexView(TemplateView):
     if form.is_valid():
       try:
         form.save()
-        messages.info(request, "File uploaded successfully.")
+        messages.info(request, "{} was successfully uploaded.".format(form.cleaned_data['file'].name))
         return HttpResponseRedirect(reverse(self.success_page))
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
         return HttpResponseRedirect(reverse(self.error_page))
     else:
-      messages.error(request, "Form wasn't valid?")
-      return render(request, self.template_name, self.response_dict)
+      messages.error(request, "{} could not be uploaded.".format(form.cleaned_data['file'].name))
+      for error in form.errors['__all__']:
+        messages.error(request, error)
+      return HttpResponseRedirect(reverse(self.error_page))
+      #return render(request, self.template_name, self.response_dict)
 
 
 class FileDetailView(TemplateView):
@@ -122,7 +139,18 @@ class FileDeleteView(TemplateView):
     if path:
       try:
         file = File.objects.get(owner=request.user, path=path)
+        # update summary
+        summaries = FileSummary.objects.filter(owner=request.user)
+        if len(summaries) == 1:
+          summary = summaries[0]
+          summary.files -= 1
+          summary.size -= file.size
+          summary.save()
+        else:
+          pass # shouldn't happen!
+        # remove from filesystem
         os.remove('/tmp/' + file.path)
+        # remove file record
         file.delete()
       except Exception as e:
         print(str(e))
@@ -132,7 +160,7 @@ class FileDeleteView(TemplateView):
       messages.error(request, 'A file path was not specified.')
       return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
 
-    messages.info(request, "{} was deleted".format(file.name))
+    messages.warning(request, "{} was deleted".format(file.name))
     return HttpResponseRedirect(reverse(self.success_page), self.response_dict)
 
 
