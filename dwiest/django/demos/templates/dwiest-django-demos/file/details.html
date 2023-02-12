@@ -63,6 +63,7 @@ form input {
 </Head>
 
 <Body>
+{% load file.filters %}
 <Div class="content">
 {% block header %}
 {% with title='File Details' %}
@@ -95,7 +96,7 @@ form input {
     </Tr>
   <Tr>
     <Th>Size</Th>
-    <Td>{{file.human_readable_size}}</Td>
+    <Td>{{file.size|format_bytes:2}}</Td>
     </Tr>
   <Tr>
     <Th>Upload Date</Th>
