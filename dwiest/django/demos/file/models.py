@@ -38,20 +38,31 @@ class File(models.Model):
   def generate_path(self):
     return uuid.uuid4()
 
-  def human_readable_size(self):
-    return format_bytes(self.size, 2)
+
+class FileQuota(models.Model):
+  max_files = models.IntegerField()
+  max_filesize = models.IntegerField()
+  max_total_filesize = models.IntegerField()
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args,**kwargs)
+
+    if self.max_files <= 0 :
+      self.max_files = 'unlimited'
+
+    if self.max_filesize <= 0 :
+      self.max_filesize = 'unlimited'
+
+    if self.max_total_filesize <= 0 :
+      self.max_total_filesize = 'unlimited'
 
 
-def format_bytes(size, precision):
-    # 2**10 = 1024
-    power = 2**10
-    n = 0
-    power_labels = {0 : '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
-    while size > power:
-        size /= power
-        n += 1
-    size = round(size, precision)
-    return "{} {}B".format(size, power_labels[n])
+class FileSummary(models.Model):
+  owner = models.OneToOneField(
+    User, on_delete=models.PROTECT, primary_key=True)
+
+  files = models.IntegerField()
+  size = models.IntegerField()
 
 #class ContentType(models.Model):
 #''' content-types, e.g. text/plain, text/html, x-application/binary-data '''
