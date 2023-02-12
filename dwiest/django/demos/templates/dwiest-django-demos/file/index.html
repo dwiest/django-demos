@@ -27,6 +27,10 @@ body {
   color: #ffffff;
   background-color: #ff0000;
   }
+.warning{
+  color: #ffffff;
+  background-color: #ff00ff;
+  }
 .table {
   color: #000000;
   background-color: #ffffff;
@@ -69,12 +73,19 @@ form input {
   font-style: normal;
   font-size: 1.25vw;
   }
+.center {
+  text-align: center;
+  }
+.right {
+  text-align: right;
+  }
 </Style>
 </Style>
 
 </Head>
 
 <Body>
+{% load file.filters %}
 
 <Div class="content">
 {% block header %}
@@ -83,9 +94,13 @@ form input {
 {% endwith %}
 {% endblock %}
 
+{% if messages %}
+<P>
 {% for message in messages %}
   <Div class="{{message.tags}}">{{message}}</Div>
 {% endfor %}
+</P>
+{% endif %}
 
 {% for error in form.non_field_errors %}
   <Div class="error-text">- {{error}} - </Div>
@@ -96,10 +111,10 @@ form input {
   <Tr>
     <Th>Filename</Th>
     <Th>Content-Type</Th>
-    <Th>Size</Th>
-    <Th>Upload Date</Th>
+    <Th class="center">Size</Th>
+    <Th class="center">Upload Date</Th>
     <Th>Scanned?</Th>
-    <Th>Action</Th>
+    <Th class="center">Action</Th>
     </Tr>
 {% if not files %}
   <Tr>
@@ -110,19 +125,35 @@ form input {
   <Tr>
     <Td><A href="{% url 'demos:file:details' %}?path={{file.path}}">{{file.name}}</A></Td>
     <Td>{{file.content_type}}</Td>
-    <Td>{{file.human_readable_size}}</Td>
+    <Td>{{file.size|format_bytes:2}}</Td>
     <Td>{{file.created_at|date:"d/m/Y h:i:s A e"}}</Td>
     <Td>No</Td>
     <Td>
       <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button>
       <Button><A href="{% url 'demos:file:download' %}?path={{file.path}}">Download</A></Button>
-      <Button><A href="{% url 'demos:file:open' %}?path={{file.path}}">Open</A></Button>
+      <Button><A href="{% url 'demos:file:open' %}?path={{file.path}}" target="{{file.path}}">Open</A></Button>
       </Td>
 {% endfor %}
 {% endif %}
 </Table>
 </P>
 
+<Div align="center">
+<Table>
+  <Tr>
+    <Td align="right">Files:</Td>
+    <Td>{{summary.files}}/{{quota.max_files}}</Td>
+    </Tr>
+  <Tr>
+    <Td align="right">Max. file size:</Td>
+    <Td>{{quota.max_filesize|format_bytes:2}}</Td>
+    </Tr>
+  <Tr>
+    <Td align="right">Total file size:</Td>
+    <Td>{{summary.size|format_bytes:2}}/{{quota.max_total_filesize|format_bytes:2}}</Td>
+    </Tr>
+  </Table>
+</Div>
 
 <P>
 <Form method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
