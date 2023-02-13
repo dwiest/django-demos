@@ -1,0 +1,63 @@
+<Html>
+
+<Head>
+  <Title>{{page_name}}</Title>
+  <Style>
+{% include 'css.html' %}
+  </Head>
+
+<Body>
+
+{% block header %}
+{% with title=page_name %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+  <Div align="center">
+{% if messages %}
+<P>
+{% for message in messages %}
+      <Div class="error-text">{{message}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+{{error}}<BR/>
+{% endfor %}
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error-text">
+{{error}}<BR/>
+</Div>
+  {% endfor %}
+{% endfor %}
+{% endif %}
+
+<P>
+<Form method="post" action="{% url 'demos:selenium:home' %}">
+{% csrf_token %}
+  <Label for="url">URL:</Label>
+  <Input type="text" name="url" value="{{form.url.value}}"></Input>
+  <Input type="submit" name="submit" value="Get Screenshot"></Input>
+  <P>
+  <Label for="width">Width:</Label>
+  <Input type="text" name="width" value="{{form.width.value}}" size="1"/>
+  <Label for="Height">Height:</Label>
+  <Input type="text" name="height" value="{{form.height.value}}" size="1"/>
+</Form>
+
+{% load static %}
+<img border="1" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
+</Div>
+
+{% include 'footer.html' %}
+</Body>
+</Html>
