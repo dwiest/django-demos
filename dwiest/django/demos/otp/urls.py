@@ -1,4 +1,4 @@
-"""users URL Configuration
+"""OTP URL Configuration
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
 Examples:
@@ -12,22 +12,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from django.views.generic.base import TemplateView
+from django.urls import path
+from .views import OtpView
 
-app_name='demos'
+app_name='otp'
+
 urlpatterns = [
-  path('',
-    TemplateView.as_view(
-      template_name="dwiest-django-demos/home.html"), name='home'
-    ),
-  path('file/',
-    include('dwiest.django.demos.file.urls', namespace='file')),
-  path('otp/',
-    include('dwiest.django.demos.otp.urls', namespace='otp')),
-  path('qrcode/',
-    include('dwiest.django.demos.qrcode.urls', namespace='qrcode')),
-  path('selenium/',
-    include('dwiest.django.demos.selenium.urls', namespace='selenium')),
+  path('', OtpView.as_view(), name='home'),
 ]

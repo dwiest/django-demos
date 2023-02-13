@@ -1,0 +1,62 @@
+<Html>
+
+<Head>
+  <Title>{{page_name}}</Title>
+  {% include 'dwiest-django-demos/css.html' %}
+  </Head>
+
+<Body>
+
+{% block header %}
+{% with title=page_name %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+<Div class="content">
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+{{error}}<BR/>
+{% endfor %}
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error">
+{{error}}<BR/>
+</Div>
+  {% endfor %}
+{% endfor %}
+{% endif %}
+
+<H2>Time-based one-time password</H2>
+{% if otp %}
+<H3>{{otp}}</H3>
+{% endif %}
+
+{% if secret_key_image %}
+<P>
+<Img src="data:image/png;base64,{{secret_key_image}}"/><Br>
+{% endif %}
+
+<P>
+<Form method="post" action="{% url 'demos:otp:home' %}">
+{% csrf_token %}
+  <Label for="name">Name:</Label>
+  {{form.name}}
+  <Label for="issuer_name">Issuer:</Label>
+  {{form.issuer_name}}
+  <P>
+  <Label for="secret_key">Secret Key:</Label>
+  {{form.secret_key}}
+  <Input type="submit" name="submit" value="Get Password"></Input>
+</Form>
+
+</Div>
+
+<Div class="footer">{% include "footer.html" %}</Div>
+</Body>
+</Html>
