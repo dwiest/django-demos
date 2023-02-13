@@ -1,87 +1,30 @@
 <Html>
 <Head>
   <Title>File Demo</Title>
-<!--  {% include "css.html" %} -->
+{% include "dwiest-django-demos/css.html" %}
+{% include "dwiest-django-demos/django-messages-css.html" %}
+{% include "dwiest-django-demos/footer-css.html" %}
+{% include "dwiest-django-demos/file/css.html" %}
 <Style>
-html {
-  height: 100%;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  width: 100%;
-  margin: auto;
-  }
-.content {
-  flex: 1;
-  text-align: center;
-  vertical-align: middle;
-}
-.info{
-  color: #000000;
-  background-color: #00ff00;
-  }
-.error{
-  color: #ffffff;
-  background-color: #ff0000;
-  }
-.warning{
-  color: #ffffff;
-  background-color: #ff00ff;
-  }
-.table {
-  color: #000000;
-  background-color: #ffffff;
+table {
   border: 1px solid;
   border-collapse: collapse;
   width: 90%;
-  margin-left: auto;
-  margin-right: auto;
-  }
-.footer {
-  width: 100%;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  margin-left: auto;
-  margin-right: auto;
-  padding-bottom: 10px;
   }
 table th {
   color: #ffffff;
   background-color: #000000;
-  text-align: left;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
   font-size: 1.5vw;
-  font-weight: bold;
   }
 table td {
   font-family: Arial, Helvetica, sans-serif;
   font-style: normal;
   font-size: 1.25vw;
   }
-button {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  }
-form input {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  }
-.center {
-  text-align: center;
-  }
-.right {
-  text-align: right;
-  }
+.table-info {
+  border: none;
+}
 </Style>
-</Style>
-
 </Head>
 
 <Body>
@@ -139,7 +82,7 @@ form input {
 </P>
 
 <Div align="center">
-<Table>
+<Table class="table-info">
   <Tr>
     <Td align="right">Files:</Td>
     <Td>{{summary.files}}/{{quota.max_files}}</Td>

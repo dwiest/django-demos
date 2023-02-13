@@ -1,65 +1,10 @@
 <Html>
 <Head>
   <Title>File Details</Title>
-<!--  {% include "css.html" %} -->
-<Style>
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  width: 100%;
-  margin: auto;
-  vertical-align: middle;
-  }
-.content {
-  flex: 1;
-  text-align: center;
-  vertical-align: middle;
-}
-.info{
-  color: #000000;
-  background-color: #00ff00;
-  }
-.error{
-  color: #ffffff;
-  background-color: #ff0000;
-  }
-.table {
-  color: #000000;
-  background-color: #ffffff;
-  Xborder: 1px solid;
-  Xborder-collapse: collapse;
-  Xwidth: 90%;
-  margin-left: auto;
-  margin-right: auto;
-  }
-.footer {
-  width: 100%;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  margin-left: auto;
-  margin-right: auto;
-  padding-bottom: 10px;
-  }
-table th {
-  text-align: left;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  Xfont-size: 1.5vw;
-  font-weight: bold;
-  }
-button {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  }
-form input {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  }
-</Style>
+{% include "dwiest-django-demos/css.html" %}
+{% include "dwiest-django-demos/django-messages-css.html" %}
+{% include "dwiest-django-demos/footer-css.html" %}
+{% include "dwiest-django-demos/file/css.html" %}
 </Head>
 
 <Body>
