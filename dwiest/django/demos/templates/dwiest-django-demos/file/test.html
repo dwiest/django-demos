@@ -1,0 +1,51 @@
+<Html>
+<Head>
+  <Title>Video Test</Title>
+<!--  {% include "css.html" %} -->
+<Style>
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 80%;
+  }
+.info{
+  color: #000000;
+  background-color: #00ff00;
+  }
+.error{
+  color: #ffffff;
+  background-color: #ff0000;
+  }
+.table {
+  color: #000000;
+  background-color: #ffffff;
+  border: 1px solid;
+  border-collapse: collapse;
+  width: 80%;
+  }
+table th {
+  color: #ffffff;
+  background-color: #000000;
+  text-align: left;
+  }
+</Style>
+</Style>
+
+</Head>
+
+<Body>
+<Div align="center">
+
+{% block header %}
+{% with title='File Demo' %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+<Video autoplay="on" controls="on" loop="on" preload="auto" src="https://wiest.world/SimpsonsS8d1-1.mkv"/>
+
+{% include "footer.html" %}
+</Div>
+</Body>
+</Html>
