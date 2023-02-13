@@ -1,0 +1,53 @@
+<Html>
+
+<Head>
+  <Title>{{page_name}}</Title>
+  {% include 'dwiest-django-demos/css.html' %}
+  {% include 'dwiest-django-demos/django-messages-css.html' %}
+  {% include 'dwiest-django-demos/footer-css.html' %}
+  </Head>
+
+<Body>
+
+{% block header %}
+{% with title=page_name %}
+{% include 'header.html' %}
+{% endwith %}
+{% endblock %}
+
+<Div class="content">
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+{{error}}<BR/>
+{% endfor %}
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error">
+{{error}}<BR/>
+</Div>
+  {% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if qrcode %}
+<P>
+<Img src="data:image/png;base64,{{qrcode}}"/>
+{% endif %}
+<P>
+<Form method="post" action="{% url 'demos:qrcode:home' %}">
+{% csrf_token %}
+  <Label for="input_text">Text:</Label>
+  {{form.input_text}}
+  <Input type="submit" name="submit" value="Generate QR Code"></Input>
+</Form>
+
+</Div>
+
+<Div class="footer">{% include "footer.html" %}</Div>
+</Body>
+</Html>
