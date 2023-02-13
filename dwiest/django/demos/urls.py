@@ -26,6 +26,8 @@ urlpatterns = [
     include('dwiest.django.demos.file.urls', namespace='file')),
   path('otp/',
     include('dwiest.django.demos.otp.urls', namespace='otp')),
+  path('grecaptcha/',
+    include('dwiest.django.demos.grecaptcha.urls', namespace='grecaptcha')),
   path('qrcode/',
     include('dwiest.django.demos.qrcode.urls', namespace='qrcode')),
   path('selenium/',
