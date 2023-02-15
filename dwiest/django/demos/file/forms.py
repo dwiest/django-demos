@@ -82,7 +82,8 @@ class FileUploadForm(forms.Form):
       hash_md5 = hashlib.md5()
       hash_sha256 = hashlib.sha256()
       #FIXME check that path doesn't already exist
-      with open('/tmp/' + model.path, 'wb+') as output:
+      file_dir = settings.DEMOS_FILE_UPLOAD_DIR
+      with open(file_dir + '/' + model.path, 'wb+') as output:
         for chunk in file.chunks():
           hash_md5.update(chunk)
           hash_sha256.update(chunk)
@@ -91,6 +92,7 @@ class FileUploadForm(forms.Form):
       model.sha256_checksum = hash_sha256.hexdigest()
       self.summary.files += 1
       self.summary.size += file.size
+      self.file = model
     except Exception as e:
       print(str(e))
       raise self.get_write_failed_error()
