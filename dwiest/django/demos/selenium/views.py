@@ -4,11 +4,12 @@ from django.template.context import RequestContext
 from django.views.generic import FormView
 from django.views.generic.base import TemplateResponseMixin
 from .forms import SeleniumForm
+from ..conf import settings
 
 class SeleniumView(FormView, TemplateResponseMixin):
   form_class = SeleniumForm
   page_name = 'Selenium'
-  template_name = "dwiest-django-demos/selenium/index.html"
+  template_name = settings.DEMOS_SELENIUM_TEMPLATE
   success_url = '.'
 
   def __init__(self, *args, **kwargs):

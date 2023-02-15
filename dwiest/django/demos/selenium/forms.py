@@ -1,12 +1,27 @@
 from django import forms
 from selenium import webdriver
-from django.conf import settings
+from ..conf import settings
 
 
 class SeleniumForm(forms.Form):
-  url = forms.URLField(label='url',initial='')
-  width = forms.IntegerField(label='width', initial='1024', min_value=20, max_value=2048)
-  height = forms.IntegerField(label='height', initial='1024', min_value=20, max_value=3072)
+  url = forms.URLField(
+    label='url',
+    initial=settings.DEMOS_SELENIUM_INITIAL_URL,
+    )
+
+  width = forms.IntegerField(
+    label='width',
+    initial=settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL,
+    min_value=settings.DEMOS_SELENIUM_IMAGE_WIDTH_MIN,
+    max_value=settings.DEMOS_SELENIUM_IMAGE_WIDTH_MAX,
+    )
+
+  height = forms.IntegerField(
+    label='height',
+    initial=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL,
+    min_value=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_MIN,
+    max_value=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_MAX,
+    )
 
   def __init__(self, user, *args, **kwargs):
     self.user = user
@@ -14,16 +29,20 @@ class SeleniumForm(forms.Form):
 
     options.add_argument("--headless")
 
-    if hasattr(settings, 'SELENIUM_PROXY'):
-      options.add_argument("--proxy-server=" + settings.SELENIUM_PROXY)
+    if settings.DEMOS_SELENIUM_PROXY != None:
+      options.add_argument("--proxy-server=" + settings.DEMOS_SELENIUM_PROXY)
 
     self.options = options
-    self.browser = webdriver.Chrome('/usr/bin/chromedriver', chrome_options=options)
+
+    self.browser = webdriver.Chrome(
+      settings.DEMOS_SELENIUM_CHROME_DRIVER_PATH,
+      chrome_options=options,
+      )
 
     super(forms.Form, self).__init__(*args, **kwargs)
 
   def screenshot(self, *args, **kwargs):
     self.browser.set_window_size(self.cleaned_data['width'],self.cleaned_data['height'])
     self.browser.get(self.cleaned_data['url'])
-    self.browser.save_screenshot('/home/ec2-user/django-wiest.world/static/' + str(self.user) + '-screenie.png')
-    
+    screenshot_file = str(self.user) + '-screenie.png'
+    self.browser.save_screenshot(settings.DEMOS_SELENIUM_SCREENSHOT_DIR + '/' + screenshot_file)
