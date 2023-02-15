@@ -1,11 +1,11 @@
-from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import FormView
 from .forms import GRecaptchaForm
+from ..conf import settings
 
 class GRecaptchaView(FormView):
-  template_name = "dwiest-django-demos/grecaptcha/index.html"
+  template_name = settings.DEMOS_GOOGLE_RECAPTCHA_TEMPLATE
   success_url = '.'
   form_class = GRecaptchaForm
   page_name = 'Google reCAPTCHA'
@@ -14,7 +14,7 @@ class GRecaptchaView(FormView):
     self.response_dict = {
       'action': GRecaptchaForm.action,
       'page_name': self.page_name,
-      'site_key': settings.GOOGLE_RECAPTCHA_SITE_KEY
+      'site_key': settings.DEMOS_GOOGLE_RECAPTCHA_SITE_KEY
     }
 
     return super(FormView, self).__init__(*args, **kwargs)

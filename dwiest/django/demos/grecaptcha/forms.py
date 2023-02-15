@@ -1,14 +1,14 @@
 from django import forms
-from django.conf import settings
 from google.cloud import recaptchaenterprise_v1
+from ..conf import settings
 
 class GRecaptchaForm(forms.Form):
   action = 'form'
 
   def __init__(self, *args, **kwargs):
     self.risk_score = 0
-    self.project_id = settings.GOOGLE_RECAPTCHA_PROJECT_ID
-    self.site_key = settings.GOOGLE_RECAPTCHA_SITE_KEY
+    self.project_id = settings.DEMOS_GOOGLE_RECAPTCHA_PROJECT_ID
+    self.site_key = settings.DEMOS_GOOGLE_RECAPTCHA_SITE_KEY
 
     if len(args) > 0:
       self.recaptcha = args[0].get('g-recaptcha-response',None)
