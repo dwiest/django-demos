@@ -29,7 +29,7 @@ class FileIndexView(LoginRequiredMixin, TemplateView):
       'page_name': self.page_name,
       }
 
-  def get(self, request):
+  def get(self, request, *args, **kwargs):
     form = self.form_class()
     self.response_dict['form'] = form
 
@@ -50,7 +50,7 @@ class FileIndexView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, self.response_dict)
 
-  def post(self, request):
+  def post(self, request, *args, **kwargs):
     form = self.form_class(request.user, request.POST, request.FILES)
     self.response_dict['form'] = form
     if form.is_valid():
@@ -88,7 +88,7 @@ class FileDetailView(LoginRequiredMixin, TemplateView):
       }
 
 
-  def get(self, request):
+  def get(self, request, *args, **kwargs):
     path = request.GET.get('path')
 
     if path:
@@ -107,7 +107,7 @@ class FileDetailView(LoginRequiredMixin, TemplateView):
 
     return render(request, self.template_name, self.response_dict)
 
-  def post(self, request):
+  def post(self, request, *args, **kwargs):
     file = File.objects.get(owner=request.user, path=request.POST['path'])
     self.response_dict['file'] = file
     form = FileDetailsForm(instance=file, data=request.POST)
@@ -137,7 +137,7 @@ class FileDeleteView(LoginRequiredMixin, TemplateView):
       }
 
 
-  def get(self, request):
+  def get(self, request, *args, **kwargs):
     path = request.GET.get('path')
 
     if path:
@@ -178,7 +178,7 @@ class FileDownloadView(LoginRequiredMixin, TemplateView):
   success_page = 'demos:file:index'
   error_page = success_page
 
-  def get(self, request):
+  def get(self, request, *args, **kwargs):
     path = request.GET.get('path')
 
     if path:
@@ -208,7 +208,7 @@ class FileOpenView(LoginRequiredMixin, TemplateView):
   success_page = 'demos:file:index'
   error_page = success_page
 
-  def get(self, request):
+  def get(self, request, *args, **kwargs):
     path = request.GET.get('path')
 
     if path:
