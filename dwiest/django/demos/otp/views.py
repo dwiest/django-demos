@@ -4,11 +4,12 @@ from django.template.context import RequestContext
 from django.views.generic import FormView
 from django.views.generic.base import TemplateResponseMixin
 from .forms import OtpForm, get_qrcode
+from ..conf import settings
 
 class OtpView(FormView, TemplateResponseMixin):
   form_class = OtpForm
   page_name = 'OTP'
-  template_name = "dwiest-django-demos/otp/index.html"
+  template_name = settings.DEMOS_OTP_TEMPLATE
   success_url = '.'
 
   def __init__(self, *args, **kwargs):

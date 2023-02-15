@@ -1,28 +1,28 @@
 from django import forms
-from django.conf import settings
 import base64
 from io import BytesIO
 import pyotp
 import qrcode
+from ..conf import settings
 
 class OtpForm(forms.Form):
   secret_key = forms.CharField(
     label='secret_key',
     min_length="32",
     max_length="32",
-    initial='',
+    initial=settings.DEMOS_OTP_INITIAL_SECRET_KEY,
     required=False,
     widget=forms.TextInput(attrs={'size': '38'}))
 
   name = forms.CharField(
     label='name',
-    initial='user@wiest.world',
+    initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_NAME,
     required=False,
     widget=forms.TextInput(attrs={'size': '12'}))
 
   issuer_name = forms.CharField(
     label='issuer_name',
-    initial='wiest.world',
+    initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_ISSUER,
     required=False,
     widget=forms.TextInput(attrs={'size': '12'}))
 
@@ -45,15 +45,21 @@ class OtpForm(forms.Form):
 
 def get_qrcode(text):
   qr = qrcode.QRCode(
-    version=1,
-    error_correction=qrcode.constants.ERROR_CORRECT_H,
-    box_size=5,
-    border=4
+    version=settings.DEMOS_OTP_QRCODE_VERSION,
+    error_correction=settings.DEMOS_OTP_QRCODE_ERROR_CORRECTION,
+    box_size=settings.DEMOS_OTP_QRCODE_BOX_SIZE,
+    border=settings.DEMOS_OTP_QRCODE_BORDER
   )
+
   qr.add_data(text)
   qr.make(fit=True)
-  img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+
+  img = qr.make_image(
+    fill_color=settings.DEMOS_OTP_QRCODE_FILL_COLOR,
+    back_color=settings.DEMOS_OTP_QRCODE_BACKGROUND_COLOR
+    ).convert('RGB')
+
   stream = BytesIO()
-  img.save(stream, format="PNG")
+  img.save(stream, format=settings.DEMOS_OTP_QRCODE_FORMAT)
   encoded_img = base64.b64encode(stream.getvalue()).decode("utf-8")
   return encoded_img
