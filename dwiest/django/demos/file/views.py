@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -9,15 +10,16 @@ import os
 from ..conf import settings
 from .forms import FileUploadForm, FileDetailsForm
 from .models import File, FileQuota, FileSummary
+from .signals import *
 
 
 home_page = 'file'
 detail_page = 'file/details'
 
 
-class FileIndexView(TemplateView):
+class FileIndexView(LoginRequiredMixin, TemplateView):
   page_name = 'Files'
-  template_name = 'dwiest-django-demos/file/index.html'
+  template_name = settings.DEMOS_FILE_INDEX_TEMPLATE
   form_class = FileUploadForm
   success_page = 'demos:file:index'
   error_page = success_page
@@ -27,7 +29,7 @@ class FileIndexView(TemplateView):
       'page_name': self.page_name,
       }
 
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     form = self.form_class()
     self.response_dict['form'] = form
 
@@ -48,13 +50,14 @@ class FileIndexView(TemplateView):
 
     return render(request, self.template_name, self.response_dict)
 
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     form = self.form_class(request.user, request.POST, request.FILES)
     self.response_dict['form'] = form
     if form.is_valid():
       try:
         form.save()
         messages.info(request, "{} was successfully uploaded.".format(form.cleaned_data['file'].name))
+        file_uploaded.send(sender=request.user.__class__, request=request, id=form.file.id, name=form.file.name)
         return HttpResponseRedirect(reverse(self.success_page))
       except Exception as e:
         print(str(e))
@@ -68,13 +71,13 @@ class FileIndexView(TemplateView):
       #return render(request, self.template_name, self.response_dict)
 
 
-class FileDetailView(TemplateView):
+class FileDetailView(LoginRequiredMixin, TemplateView):
   '''
     Display the details of an uploaded file
   '''
 
   page_name = 'File Details'
-  template_name = 'dwiest-django-demos/file/details.html'
+  template_name = settings.DEMOS_FILE_DETAILS_TEMPLATE
   success_page = 'demos:file:details'
   error_page = 'demos:file:index'
 
@@ -85,7 +88,7 @@ class FileDetailView(TemplateView):
       }
 
 
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     path = request.GET.get('path')
 
     if path:
@@ -104,7 +107,7 @@ class FileDetailView(TemplateView):
 
     return render(request, self.template_name, self.response_dict)
 
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     file = File.objects.get(owner=request.user, path=request.POST['path'])
     self.response_dict['file'] = file
     form = FileDetailsForm(instance=file, data=request.POST)
@@ -112,12 +115,13 @@ class FileDetailView(TemplateView):
       form.save()
       messages.info(request, "{} was successfully updated.".format(file.name))
       query_string = "?path={}".format(file.path)
+      file_updated.send(sender=request.user.__class__, request=request, id=file.id, name=file.name)
       return HttpResponseRedirect(reverse(self.success_page) + query_string)
     else:
       return render(request, self.template_name, self.response_dict)
 
 
-class FileDeleteView(TemplateView):
+class FileDeleteView(LoginRequiredMixin, TemplateView):
   '''
     Deletes an uploaded file
   '''
@@ -133,7 +137,7 @@ class FileDeleteView(TemplateView):
       }
 
 
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     path = request.GET.get('path')
 
     if path:
@@ -151,7 +155,9 @@ class FileDeleteView(TemplateView):
         # remove from filesystem
         os.remove('/tmp/' + file.path)
         # remove file record
+        id = file.id # set to None after delete
         file.delete()
+        file_deleted.send(sender=request.user.__class__, request=request, id=id, name=file.name)
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
@@ -164,7 +170,7 @@ class FileDeleteView(TemplateView):
     return HttpResponseRedirect(reverse(self.success_page), self.response_dict)
 
 
-class FileDownloadView(TemplateView):
+class FileDownloadView(LoginRequiredMixin, TemplateView):
   '''
     Downloads an uploaded file
   '''
@@ -172,7 +178,7 @@ class FileDownloadView(TemplateView):
   success_page = 'demos:file:index'
   error_page = success_page
 
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     path = request.GET.get('path')
 
     if path:
@@ -194,7 +200,7 @@ class FileDownloadView(TemplateView):
     return response
 
 
-class FileOpenView(TemplateView):
+class FileOpenView(LoginRequiredMixin, TemplateView):
   '''
     Opens an uploaded file
   '''
@@ -202,7 +208,7 @@ class FileOpenView(TemplateView):
   success_page = 'demos:file:index'
   error_page = success_page
 
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     path = request.GET.get('path')
 
     if path:
