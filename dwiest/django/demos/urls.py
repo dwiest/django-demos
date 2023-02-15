@@ -13,13 +13,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import path, include
 from django.views.generic.base import TemplateView
+
+class myTemplateView(LoginRequiredMixin, TemplateView):
+  pass
 
 app_name='demos'
 urlpatterns = [
   path('',
-    TemplateView.as_view(
+    myTemplateView.as_view(
       template_name="dwiest-django-demos/home.html"), name='home'
     ),
   path('file/',
