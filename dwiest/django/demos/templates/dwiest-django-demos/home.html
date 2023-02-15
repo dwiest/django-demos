@@ -30,8 +30,8 @@ table td {
 <Body>
 <Div class="content">
 {% block header %}
-{% with title='Django Demos' %}
-{% include 'header.html' %}
+{% with title='Django Demos' breadcrumbs=False %}
+{% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 

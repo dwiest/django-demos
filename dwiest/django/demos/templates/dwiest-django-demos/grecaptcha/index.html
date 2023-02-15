@@ -18,8 +18,8 @@ function onSubmit(token) {
 <Body>
 
 {% block header %}
-{% with title=page_name %}
-{% include 'header.html' %}
+{% with title=page_name breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 

@@ -12,8 +12,8 @@
 {% load file.filters %}
 <Div class="content">
 {% block header %}
-{% with title='File Details' %}
-{% include 'header.html' %}
+{% with title='File Details' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 

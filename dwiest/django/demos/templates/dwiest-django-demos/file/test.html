@@ -39,8 +39,8 @@ table th {
 <Div align="center">
 
 {% block header %}
-{% with title='File Demo' %}
-{% include 'header.html' %}
+{% with title='File Demo' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
