@@ -35,6 +35,7 @@ class DemosAppConf(AppConf):
 
   ''' QR code demo settings '''
   QRCODE_INITIAL_TEXT = 'https://github.com/dwiest/django-demos/'
+  QRCODE_INPUT_SIZE = 40
   QRCODE_VERSION = 1
   QRCODE_ERROR_CORRECTION = constants.ERROR_CORRECT_H
   QRCODE_BOX_SIZE = 10
@@ -46,12 +47,13 @@ class DemosAppConf(AppConf):
 
   ''' Selenium demo settings '''
   SELENIUM_INITIAL_URL = 'https://github.com/dwiest/django-demos'
-  SELENIUM_IMAGE_HEIGHT_INITIAL = 1024
+  SELENIUM_IMAGE_HEIGHT_INITIAL = 640
   SELENIUM_IMAGE_HEIGHT_MIN = 20
   SELENIUM_IMAGE_HEIGHT_MAX =  3072
-  SELENIUM_IMAGE_WIDTH_INITIAL = 1024
+  SELENIUM_IMAGE_WIDTH_INITIAL = 1280
   SELENIUM_IMAGE_WIDTH_MIN = 20
   SELENIUM_IMAGE_WIDTH_MAX =  2048
+  SELENIUM_INPUT_SIZE = 40
   SELENIUM_PROXY = None
   SELENIUM_CHROME_DRIVER_PATH = '/usr/bin/chromedriver'
   SELENIUM_SCREENSHOT_DIR = '/tmp'
