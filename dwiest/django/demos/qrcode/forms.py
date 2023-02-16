@@ -8,6 +8,7 @@ class QrcodeForm(forms.Form):
   input_text = forms.CharField(
     label='input_text',
     initial=settings.DEMOS_QRCODE_INITIAL_TEXT,
+    widget=forms.TextInput(attrs={'size': settings.DEMOS_QRCODE_INPUT_SIZE}),
     )
 
   def get_qrcode(self):
