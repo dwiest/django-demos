@@ -2,12 +2,16 @@
 
 <Head>
   <Title>{{page_name}}</Title>
-  <Style>
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
 {% include 'dwiest-django-demos/css.html' %}
 {% include 'dwiest-django-demos/django-messages-css.html' %}
 {% include 'dwiest-django-demos/footer-css.html' %}
-
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <Style>
+img {
+  max-width: 80%;
+  height: auto;
+}
+  </Style>
   </Head>
 
 <Body>
@@ -18,7 +22,7 @@
 {% endwith %}
 {% endblock %}
 
-  <Div align="center">
+<Div class="content">
 {% if messages %}
 <P>
 {% for message in messages %}
@@ -49,19 +53,17 @@
 <Form method="post" action="{% url 'demos:selenium:home' %}">
 {% csrf_token %}
   <Label for="url">URL:</Label>
-  <Input type="text" name="url" value="{{form.url.value}}"></Input>
+  {{form.url}}
   <Input type="submit" name="submit" value="Get Screenshot"></Input>
   <P>
-  <Label for="width">Width:</Label>
-  <Input type="text" name="width" value="{{form.width.value}}" size="1"/>
-  <Label for="Height">Height:</Label>
-  <Input type="text" name="height" value="{{form.height.value}}" size="1"/>
+  {{form.width.label}}: {{form.width}}
+  {{form.height.label}}: {{form.height}}
 </Form>
 
 {% load static %}
 <img border="1" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
 </Div>
 
-{% include 'footer.html' %}
+<Div class="footer">{% include 'footer.html' %}</Div>
 </Body>
 </Html>
