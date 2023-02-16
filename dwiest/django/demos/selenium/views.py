@@ -21,17 +21,18 @@ class SeleniumView(FormView, TemplateResponseMixin):
 
 
   def get(self, request, *args, **kwargs):
-    print("SeleniumView.get()")
-    form = SeleniumForm(request.user)
+    width = request.GET.get('w', None)
+    height = request.GET.get('h', None)
+    form = SeleniumForm(request.user, width=width, height=height)
     self.response_dict['form'] = form
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
-    print("SeleniumView.post()")
-    form = SeleniumForm(request.user, request.POST)
+    form = SeleniumForm(request.user, data=request.POST)
     self.response_dict['form'] = form
     if form.is_valid():
       form.screenshot()
-      return HttpResponseRedirect(request.path)
+      query_string = '?w={}&h={}'.format(form.cleaned_data['width'], form.cleaned_data['height'])
+      return HttpResponseRedirect(request.path + query_string)
     else:
       return render(request, self.template_name, self.response_dict)
