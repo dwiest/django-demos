@@ -12,6 +12,9 @@ class DemosAppConf(AppConf):
 
   FILE_UPLOAD_DIR = '/tmp'
   FILE_INDEX_TEMPLATE = 'dwiest-django-demos/file/index.html'
+  FILE_INPUT_CLASS = 'file'
+  FILE_NAME_INPUT_CLASS = 'name-input'
+  FILE_DESCRIPTION_INPUT_CLASS = 'description-input'
   FILE_DETAILS_TEMPLATE = 'dwiest-django-demos/file/details.html'
 
   ''' Google reCAPTCHA demo settings '''
