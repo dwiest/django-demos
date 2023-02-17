@@ -5,9 +5,9 @@ from ..conf import settings
 
 class SeleniumForm(forms.Form):
   url = forms.URLField(
-    label='url',
+    label='URL',
     initial=settings.DEMOS_SELENIUM_INITIAL_URL,
-    widget=forms.TextInput(attrs={'size': settings.DEMOS_SELENIUM_INPUT_SIZE}),
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_SELENIUM_URL_CLASS}),
     )
 
   width = forms.IntegerField(
@@ -15,6 +15,7 @@ class SeleniumForm(forms.Form):
     initial=settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL,
     min_value=settings.DEMOS_SELENIUM_IMAGE_WIDTH_MIN,
     max_value=settings.DEMOS_SELENIUM_IMAGE_WIDTH_MAX,
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_SELENIUM_WIDTH_CLASS}),
     )
 
   height = forms.IntegerField(
@@ -22,6 +23,7 @@ class SeleniumForm(forms.Form):
     initial=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL,
     min_value=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_MIN,
     max_value=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_MAX,
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_SELENIUM_HEIGHT_CLASS}),
     )
 
   def __init__(self, user, width=None, height=None, *args, **kwargs):
