@@ -5,6 +5,7 @@
 {% include 'dwiest-django-demos/css.html' %}
 {% include 'dwiest-django-demos/django-messages-css.html' %}
 {% include 'dwiest-django-demos/footer-css.html' %}
+{% include 'dwiest-django-demos/grecaptcha/css.html' %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <script src="https://www.google.com/recaptcha/enterprise.js?render={{site_key}}"></script>
@@ -23,38 +24,40 @@ function onSubmit(token) {
 {% endwith %}
 {% endblock %}
 
-<Div class="content">
+<Div class="filler"></Div>
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
-{{error}}<BR/>
+<Div class="error">{{error}}</Div>
 {% endfor %}
+</P>
 {% endif %}
 
 {% if form.errors %}
 <P>
 {% for field in form %}
   {% for error in field.errors %}
-<Div class="error">
-{{error}}<BR/>
-</Div>
+<Div class="error">{{error}}</Div>
   {% endfor %}
 {% endfor %}
+</P>
 {% endif %}
 
 {% if request.session.risk_score %}
-<P>Your risk score is {{request.session.risk_score}}
+<Div class="risk-score">Your risk score is {{request.session.risk_score}}</Div>
 {% endif %}
 
-<P>
-<Form method="post" action="{% url 'demos:grecaptcha:home' %}" id="recaptcha-form">
+<Div class="filler"></Div>
+
+<Form class="grecaptcha" method="post" action="{% url 'demos:grecaptcha:home' %}" id="recaptcha-form">
 {% csrf_token %}
 <button class="g-recaptcha"
 data-sitekey="{{site_key}}"
 data-callback='onSubmit'
 data-action='{{action}}'>Get Risk Score</button>
 </Form>
-</Div>
+
+<Div class="filler"></Div>
 
 <Div class=="footer">{% include "footer.html" %}</Div>
 </Body>

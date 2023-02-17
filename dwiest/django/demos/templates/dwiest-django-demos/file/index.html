@@ -6,37 +6,18 @@
 {% include "dwiest-django-demos/footer-css.html" %}
 {% include "dwiest-django-demos/file/css.html" %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<Style>
-table {
-  border: 1px solid;
-  border-collapse: collapse;
-  width: 90%;
-  }
-table th {
-  color: #ffffff;
-  background-color: #000000;
-  font-size: 1.5vw;
-  }
-table td {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.25vw;
-  }
-.table-info {
-  border: none;
-}
-</Style>
 </Head>
 
 <Body>
 {% load file.filters %}
 
-<Div class="content">
 {% block header %}
-{% with title='File Demo' breadcrumbs=True %}
+{% with title='File Manager' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
+
+<Div class="filler"></Div>
 
 {% if messages %}
 <P>
@@ -47,22 +28,21 @@ table td {
 {% endif %}
 
 {% for error in form.non_field_errors %}
-  <Div class="error-text">- {{error}} - </Div>
+  <Div class="error">{{error}}</Div>
 {% endfor %}
 
-<P>
-<Table class="table">
+<Table class="index">
   <Tr>
     <Th>Filename</Th>
     <Th>Content-Type</Th>
-    <Th class="center">Size</Th>
-    <Th class="center">Upload Date</Th>
+    <Th>Size</Th>
+    <Th>Upload Date</Th>
     <Th>Scanned?</Th>
-    <Th class="center">Action</Th>
+    <Th>Action</Th>
     </Tr>
 {% if not files %}
   <Tr>
-    <Td colspan="6" align="center">No files have been uploaded.</Td>
+    <Td colspan="6">No files have been uploaded.</Td>
     </Tr>
 {% else %}
 {% for file in files %}
@@ -80,33 +60,33 @@ table td {
 {% endfor %}
 {% endif %}
 </Table>
-</P>
 
 <Div align="center">
-<Table class="table-info">
+<Table class="info">
   <Tr>
-    <Td align="right">Files:</Td>
+    <Th>Files:</Th>
     <Td>{{summary.files}}/{{quota.max_files}}</Td>
     </Tr>
   <Tr>
-    <Td align="right">Max. file size:</Td>
+    <Th>Max. file size:</Th>
     <Td>{{quota.max_filesize|format_bytes:2}}</Td>
     </Tr>
   <Tr>
-    <Td align="right">Total file size:</Td>
+    <Th>Total file size:</Th>
     <Td>{{summary.size|format_bytes:2}}/{{quota.max_total_filesize|format_bytes:2}}</Td>
     </Tr>
   </Table>
 </Div>
 
-<P>
-<Form method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
+<Div align="center">
+<Form class=file" method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
 {% csrf_token %}
   {{form.file}}
   <Input type="submit" value="Upload"/>
   </Form>
-</P>
 </Div>
+
+<Div class="filler"></Div>
 
 <Div class="footer">{% include "footer.html" %}</Div>
 </Body>

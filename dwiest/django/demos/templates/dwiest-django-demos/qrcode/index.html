@@ -5,50 +5,47 @@
   {% include 'dwiest-django-demos/css.html' %}
   {% include 'dwiest-django-demos/django-messages-css.html' %}
   {% include 'dwiest-django-demos/footer-css.html' %}
+  {% include 'dwiest-django-demos/qrcode/css.html' %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Head>
 
 <Body>
 
 {% block header %}
-{% with title=page_name breadcrumbs=True %}
+{% with title='QR Code Generator' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
-<Div class="content">
 {% if form.non_field_errors %}
-<P>
+<P align="center">
 {% for error in form.non_field_errors %}
-{{error}}<BR/>
+<Div>{{error}}</Div>
 {% endfor %}
+</P>
 {% endif %}
 
 {% if form.errors %}
-<P>
+<P align="center">
 {% for field in form %}
   {% for error in field.errors %}
-<Div class="error">
-{{error}}<BR/>
-</Div>
+<Div class="error">{{error}}</Div>
   {% endfor %}
 {% endfor %}
+</P>
 {% endif %}
 
+<Div class="filler"></Div>
 {% if qrcode %}
-<P>
-<Img src="data:image/png;base64,{{qrcode}}"/>
+<Img class="qrcode" src="data:image/png;base64,{{qrcode}}"/>
 {% endif %}
-<P>
-<Form method="post" action="{% url 'demos:qrcode:home' %}">
-{% csrf_token %}
-  <Label for="input_text">Text:</Label>
-  {{form.input_text}}
-  <Input type="submit" name="submit" value="Generate QR Code"></Input>
+<Div class="filler"></Div>
+
+<Form class="qrcode" method="post" action="{% url 'demos:qrcode:home' %}">
+  {% csrf_token %}
+  <Span style="white-space:nowrap;"><Span class="label">{{form.input_text.label}}:</Span> {{form.input_text}}</Span>
+  <Div><Input class="qrcode-button" type="submit" name="submit" value="Generate QR Code"></Input></Div>
 </Form>
-
-</Div>
-
 <Div class="footer">{% include "footer.html" %}</Div>
 </Body>
 </Html>

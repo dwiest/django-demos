@@ -10,14 +10,14 @@
 
 <Body>
 {% load file.filters %}
-<Div class="content">
+
 {% block header %}
-{% with title='File Details' breadcrumbs=True %}
+{% with title='File Manager' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
-<A href="{% url 'demos:file:index' %}"}>Index</A>
+<Div class="filler"></Div>
 
 {% if messages %}
 <P>
@@ -27,11 +27,7 @@
 </P>
 {% endif %}
 
-<P>
-<Form method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
-{% csrf_token %}
-<Input type="hidden" name="path" value="{{file.path}}"/>
-<Table class="table">
+<Table class="details">
   <Tr>
     <Th>Filename</Th>
     <Td>{{form.name}}</Td>
@@ -73,14 +69,19 @@
     <Td>1</Td>
     </Tr>
 </Table>
-</P>
 
-<P>
-<Span><Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button></Span>
-<Span><Input type="submit" value="Update"/></Span>
-</Form>
-</P>
+<Div align="center">
+<Form method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
+{% csrf_token %}
+<Input type="hidden" name="path" value="{{file.path}}"/>
+<Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
+<Input type="submit" value="Update"/>
 </Div>
+</Form>
+
+<Div class="filler"></Div>
+
+<Div align="center"><A href="{% url 'demos:file:index' %}"}>Back to File Index</A></Div>
 
 <Div class="footer">{% include "footer.html" %}</Div>
 </Body>

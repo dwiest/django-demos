@@ -6,12 +6,7 @@
 {% include 'dwiest-django-demos/css.html' %}
 {% include 'dwiest-django-demos/django-messages-css.html' %}
 {% include 'dwiest-django-demos/footer-css.html' %}
-  <Style>
-img {
-  max-width: 80%;
-  height: auto;
-}
-  </Style>
+{% include 'dwiest-django-demos/selenium/css.html' %}
   </Head>
 
 <Body>
@@ -22,11 +17,12 @@ img {
 {% endwith %}
 {% endblock %}
 
-<Div class="content">
+<Div class="filler"></Div>
+
 {% if messages %}
 <P>
 {% for message in messages %}
-      <Div class="error-text">{{message}}</Div>
+  <Div class="error">{{message}}</Div>
 {% endfor %}
 </P>
 {% endif %}
@@ -34,35 +30,34 @@ img {
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
-{{error}}<BR/>
+  <Div class="error">{{error}}</Div>
 {% endfor %}
+</P>
 {% endif %}
 
 {% if form.errors %}
 <P>
 {% for field in form %}
   {% for error in field.errors %}
-<Div class="error-text">
-{{error}}<BR/>
-</Div>
+  <Div class="error">{{error}}</Div>
   {% endfor %}
 {% endfor %}
+</P>
 {% endif %}
 
-<P>
-<Form method="post" action="{% url 'demos:selenium:home' %}">
+<Form class="selenium" method="post" action="{% url 'demos:selenium:home' %}">
 {% csrf_token %}
-  <Label for="url">URL:</Label>
-  {{form.url}}
-  <Input type="submit" name="submit" value="Get Screenshot"></Input>
-  <P>
-  {{form.width.label}}: {{form.width}}
-  {{form.height.label}}: {{form.height}}
+  <Div><Span class="selenium-url-label">{{form.url.label}}:</Span> {{form.url}}</Div>
+  <Div><Span class="selenium-width-label">{{form.width.label}}:</Span> {{form.width}} <Span class="selenium-height-label">{{form.height.label}}:</Span> {{form.height}}</Div>
+  <Input class="selenium-button" type="submit" name="submit" value="Get Screenshot"></Input>
 </Form>
 
 {% load static %}
-<img border="1" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
+<Div align="center">
+<img class="selenium" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
 </Div>
+
+<Div class="filler"></Div>
 
 <Div class="footer">{% include 'footer.html' %}</Div>
 </Body>

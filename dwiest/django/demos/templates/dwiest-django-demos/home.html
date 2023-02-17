@@ -5,60 +5,40 @@
 {% include "dwiest-django-demos/django-messages-css.html" %}
 {% include "dwiest-django-demos/footer-css.html" %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<Style>
-table {
-  align: middle;
-  Xborder: 1px solid;
-  width: 40%;
-  margin-left: auto;
-  margin-right: auto;
-  }
-table th {
-  color: #000000;
-  background-color: #ffffff;
-  font-size: 2vw;
-  text-align: left;
-  }
-table td {
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.5vw;
-  }
-</Style>
 </Head>
 
 <Body>
-<Div class="content">
 {% block header %}
 {% with title='Django Demos' breadcrumbs=False %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
-<P>
-<Table>
+<Div class="filler"></Div>
+
+<Table class="home">
   <Tr>
-    <Th>Files</Th>
-    <Td><A href="{% url 'demos:file:index' %}">File upload/download</A></Td>
+    <Th class="home">Files</Th>
+    <Td class="home"><A href="{% url 'demos:file:index' %}">File manager</A></Td>
     </Tr>
   <Tr>
-    <Th>Graphics</Th>
-    <Td><A href="{% url 'demos:qrcode:home' %}">QR code generator</A></Td>
+    <Th class="home">Graphics</Th>
+    <Td class="home"><A href="{% url 'demos:qrcode:home' %}">QR code generator</A></Td>
     </Tr>
   <Tr>
-    <Th>OTP</Th>
-    <Td><A href="{% url 'demos:otp:home' %}">Time-based one-time passwords</A></Td>
+    <Th class="home">OTP</Th>
+    <Td class="home"><A href="{% url 'demos:otp:home' %}">Time-based</A></Td>
     </Tr>
   <Tr>
-    <Th>Web</Th>
-    <Td>
+    <Th class="home">Web</Th>
+    <Td class="home">
       <A href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</A><Br/>
       <A href="{% url 'demos:selenium:home' %}">Selenium</A>
       </Td>
     </Tr>
 </Table>
-</P>
-</Div>
+
+<Div class="filler"></Div>
 
 <Div class="footer">{% include "footer.html" %}</Div>
 </Div>
