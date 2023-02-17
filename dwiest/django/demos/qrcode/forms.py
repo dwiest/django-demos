@@ -6,13 +6,12 @@ from ..conf import settings
 
 class QrcodeForm(forms.Form):
   input_text = forms.CharField(
-    label='input_text',
+    label='Text',
     initial=settings.DEMOS_QRCODE_INITIAL_TEXT,
-    widget=forms.TextInput(attrs={'size': settings.DEMOS_QRCODE_INPUT_SIZE}),
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_QRCODE_INPUT_CLASS}),
     )
 
   def get_qrcode(self):
-    #data = "https://wiest.world/"
     qr = qrcode.QRCode(
       version=settings.DEMOS_QRCODE_VERSION,
       error_correction=settings.DEMOS_QRCODE_ERROR_CORRECTION,
@@ -22,7 +21,6 @@ class QrcodeForm(forms.Form):
     qr.add_data(self.cleaned_data['input_text'])
     qr.make(fit=True)
     img = qr.make_image(fill_color=settings.DEMOS_QRCODE_FILL_COLOR, back_color=settings.DEMOS_QRCODE_BACKGROUND_COLOR).convert('RGB')
-    #img.save("static/qrcode.png")
     stream = BytesIO()
     img.save(stream, format=settings.DEMOS_QRCODE_FORMAT)
     encoded_img = base64.b64encode(stream.getvalue()).decode("utf-8")
