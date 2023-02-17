@@ -3,6 +3,7 @@
   <Title>File Demo</Title>
 {% include "dwiest-django-demos/css.html" %}
 {% include "dwiest-django-demos/django-messages-css.html" %}
+{% include "dwiest-django-demos/tooltips.css" %}
 {% include "dwiest-django-demos/footer-css.html" %}
 {% include "dwiest-django-demos/file/css.html" %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -33,7 +34,7 @@
 
 <Table class="index">
   <Tr>
-    <Th>Filename</Th>
+    <Th>Filename</Span></Th>
     <Th>Content-Type</Th>
     <Th>Size</Th>
     <Th>Upload Date</Th>
@@ -50,12 +51,12 @@
     <Td><A href="{% url 'demos:file:details' %}?path={{file.path}}">{{file.name}}</A></Td>
     <Td>{{file.content_type}}</Td>
     <Td>{{file.size|format_bytes:2}}</Td>
-    <Td>{{file.created_at|date:"d/m/Y h:i:s A e"}}</Td>
+    <Td><Div class="tooltip">{{file.created_at|date:"m/d/Y"}}<Span class="tooltiptext">{{file.created_at|date:"h:i:s A e"}}</Span></Div></Td>
     <Td>No</Td>
     <Td>
-      <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button>
-      <Button><A href="{% url 'demos:file:download' %}?path={{file.path}}">Download</A></Button>
-      <Button><A href="{% url 'demos:file:open' %}?path={{file.path}}" target="{{file.path}}">Open</A></Button>
+      <Button class="delete"><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button><Br/>
+      <Button class="download"><A href="{% url 'demos:file:download' %}?path={{file.path}}">Download</A></Button><Br/>
+      <Button class="open"><A href="{% url 'demos:file:open' %}?path={{file.path}}" target="{{file.path}}">Open</A></Button>
       </Td>
 {% endfor %}
 {% endif %}
@@ -79,10 +80,10 @@
 </Div>
 
 <Div align="center">
-<Form class=file" method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
+<Form class="file" method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
 {% csrf_token %}
   {{form.file}}
-  <Input type="submit" value="Upload"/>
+  <Input class="submit" type="submit" value="Upload"/>
   </Form>
 </Div>
 

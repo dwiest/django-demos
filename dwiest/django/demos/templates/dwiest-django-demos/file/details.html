@@ -71,7 +71,7 @@
 </Table>
 
 <Div align="center">
-<Form method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
+<Form class="details" method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
 {% csrf_token %}
 <Input type="hidden" name="path" value="{{file.path}}"/>
 <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
@@ -81,7 +81,7 @@
 
 <Div class="filler"></Div>
 
-<Div align="center"><A href="{% url 'demos:file:index' %}"}>Back to File Index</A></Div>
+<Div align="center"><A class="back-to-index" href="{% url 'demos:file:index' %}"}>Back to File Index</A></Div>
 
 <Div class="footer">{% include "footer.html" %}</Div>
 </Body>
