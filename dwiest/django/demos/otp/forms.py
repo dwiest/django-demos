@@ -7,24 +7,27 @@ from ..conf import settings
 
 class OtpForm(forms.Form):
   secret_key = forms.CharField(
-    label='secret_key',
+    label='Secret Key',
     min_length="32",
     max_length="32",
     initial=settings.DEMOS_OTP_INITIAL_SECRET_KEY,
     required=False,
-    widget=forms.TextInput(attrs={'size': '38'}))
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_SECRET_KEY_CLASS})
+    )
 
   name = forms.CharField(
-    label='name',
+    label='Name',
     initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_NAME,
     required=False,
-    widget=forms.TextInput(attrs={'size': '12'}))
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_QRCODE_PROVISIONING_NAME_CLASS})
+    )
 
   issuer_name = forms.CharField(
-    label='issuer_name',
+    label='Issuer',
     initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_ISSUER,
     required=False,
-    widget=forms.TextInput(attrs={'size': '12'}))
+    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_QRCODE_PROVISIONING_ISSUER_CLASS})
+    )
 
   def clean_secret_key(self):
     if self.cleaned_data['secret_key'] == '':
