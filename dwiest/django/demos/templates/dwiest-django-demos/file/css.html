@@ -36,7 +36,7 @@ table.details th {
 
 table.index {
   background-color: #ffffff;
-  border: 1px solid;
+  border: 0px solid;
   border-collapse: collapse;
   color: #000000;
   margin-left: auto;
@@ -53,23 +53,49 @@ table.index button {
 table.index button a {
   text-decoration: none;
   }
+table.index button a:hover {
+  background: lightgray;
+  }
+
+table.index button.delete {
+  border: 0px;
+  background: white;
+  }
 
 table.index button.delete a{
-  color: red;
+  color: black;
+  }
+
+table.index button.download {
+  border: 0px;
+  background: white;
   }
 
 table.index button.download a {
-  color: green;
+  color: black;
+  }
+
+table.index button.open {
+  border: 0px;
+  background: white;
   }
 
 table.index button.open a {
-  color: green;
+  color: black;
   }
 
 table.index td {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 1.25vw;
   font-style: normal;
+  }
+
+table.index td a {
+  text-decoration: none;
+  }
+
+table.index td a:hover {
+  background: lightgray;
   }
 
 table.index th {
@@ -119,7 +145,7 @@ form input {
   }
 
 form.details a {
-  color: red;
+  color: black;
   font-size: 3vw;
   text-decoration: none;
   }
@@ -129,7 +155,7 @@ form.details button {
   }
 
 form.details input {
-  color: green;
+  color: black;
   font-size: 3vw;
   margin-left: 5px;
   }
