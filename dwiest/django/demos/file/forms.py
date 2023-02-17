@@ -13,7 +13,9 @@ from .models import File, FileQuota, FileSummary
 
 
 class FileUploadForm(forms.Form):
-  file = forms.FileField()
+  file = forms.FileField(
+    widget=forms.ClearableFileInput(attrs={'class': settings.DEMOS_FILE_INPUT_CLASS}),
+    )
 #    widget=forms.ClearableFileInput(
 #      attrs={
 #        'multiple': True
@@ -133,10 +135,9 @@ class FileUploadForm(forms.Form):
 class FileDetailsForm(forms.ModelForm):
   class Meta:
     model = File
-    #fields = ['path','name','versioned','description']
-    #exclude = ['owner','content_type','size','created_at','downloadable','human_readable_size']
     fields = ['name','versioned','description']
     exclude = ['path', 'content_type','downloadable', 'created_at', 'size', 'owner']
     widgets = {
-      'description': forms.Textarea(attrs={'cols':72, 'rows':4}),
+      'name': forms.TextInput(attrs={'class': settings.DEMOS_FILE_NAME_INPUT_CLASS}),
+      'description': forms.Textarea(attrs={'class': settings.DEMOS_FILE_DESCRIPTION_INPUT_CLASS}),
       }
