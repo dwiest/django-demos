@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template.context import RequestContext
@@ -5,7 +6,7 @@ from django.views.generic import FormView
 from django.views.generic.base import TemplateResponseMixin
 from .forms import QrcodeForm
 
-class QrcodeView(FormView, TemplateResponseMixin):
+class QrcodeView(LoginRequiredMixin, FormView, TemplateResponseMixin):
   form_class = QrcodeForm
   page_name = 'QR Code'
   template_name = "dwiest-django-demos/qrcode/index.html"

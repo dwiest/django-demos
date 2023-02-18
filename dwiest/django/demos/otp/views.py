@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template.context import RequestContext
@@ -6,7 +7,7 @@ from django.views.generic.base import TemplateResponseMixin
 from .forms import OtpForm
 from ..conf import settings
 
-class OtpView(FormView, TemplateResponseMixin):
+class OtpView(LoginRequiredMixin, FormView, TemplateResponseMixin):
   form_class = OtpForm
   page_name = 'OTP'
   template_name = settings.DEMOS_OTP_TEMPLATE

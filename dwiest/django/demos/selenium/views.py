@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template.context import RequestContext
@@ -6,7 +7,7 @@ from django.views.generic.base import TemplateResponseMixin
 from .forms import SeleniumForm
 from ..conf import settings
 
-class SeleniumView(FormView, TemplateResponseMixin):
+class SeleniumView(LoginRequiredMixin, FormView, TemplateResponseMixin):
   form_class = SeleniumForm
   page_name = 'Selenium'
   template_name = settings.DEMOS_SELENIUM_TEMPLATE
@@ -15,6 +16,7 @@ class SeleniumView(FormView, TemplateResponseMixin):
   def __init__(self, *args, **kwargs):
     self.response_dict = {
       'page_name': self.page_name,
+      'static_url' : settings.STATIC_URL,
     }
 
     return super(FormView, self).__init__(*args, **kwargs)
