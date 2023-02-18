@@ -28,7 +28,7 @@ class QrcodeView(FormView, TemplateResponseMixin):
     form = QrcodeForm(data=request.POST)
     self.response_dict['form'] = form
     if form.is_valid():
-      self.response_dict['qrcode'] = form.get_qrcode()
+      form.process()
       return render(request, self.template_name, self.response_dict)
     else:
       return render(request, self.template_name, self.response_dict)
