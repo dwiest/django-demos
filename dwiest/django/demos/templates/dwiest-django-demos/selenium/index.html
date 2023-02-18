@@ -19,6 +19,13 @@
 
 <Div class="filler"></Div>
 
+{% load static %}
+<Div align="center">
+<img class="selenium" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
+</Div>
+
+<Div class="filler"></Div>
+
 {% if messages %}
 <P>
 {% for message in messages %}
@@ -51,13 +58,6 @@
   <Div><Span class="selenium-width-label">{{form.width.label}}:</Span> {{form.width}} <Span class="selenium-height-label">{{form.height.label}}:</Span> {{form.height}}</Div>
   <Input class="selenium-button" type="submit" name="submit" value="Get Screenshot"></Input>
 </Form>
-
-{% load static %}
-<Div align="center">
-<img class="selenium" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
-</Div>
-
-<Div class="filler"></Div>
 
 <Div class="footer">{% include 'footer.html' %}</Div>
 </Body>
