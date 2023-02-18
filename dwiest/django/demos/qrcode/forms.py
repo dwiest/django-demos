@@ -11,14 +11,25 @@ class QrcodeForm(forms.Form):
     widget=forms.TextInput(attrs={'class': settings.DEMOS_QRCODE_INPUT_CLASS}),
     )
 
-  def get_qrcode(self):
+  qrcode = None
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    text = self.fields['input_text'].initial
+    if text:
+      self.qrcode = self.get_qrcode(text)
+
+  def process(self):
+    self.qrcode = self.get_qrcode(self.cleaned_data['input_text'])
+
+  def get_qrcode(self, text):
     qr = qrcode.QRCode(
       version=settings.DEMOS_QRCODE_VERSION,
       error_correction=settings.DEMOS_QRCODE_ERROR_CORRECTION,
       box_size=settings.DEMOS_QRCODE_BOX_SIZE,
       border=settings.DEMOS_QRCODE_BORDER,
       )
-    qr.add_data(self.cleaned_data['input_text'])
+    qr.add_data(text)
     qr.make(fit=True)
     img = qr.make_image(fill_color=settings.DEMOS_QRCODE_FILL_COLOR, back_color=settings.DEMOS_QRCODE_BACKGROUND_COLOR).convert('RGB')
     stream = BytesIO()
