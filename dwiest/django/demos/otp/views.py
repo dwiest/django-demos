@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.template.context import RequestContext
 from django.views.generic import FormView
 from django.views.generic.base import TemplateResponseMixin
-from .forms import OtpForm, get_qrcode
+from .forms import OtpForm
 from ..conf import settings
 
 class OtpView(FormView, TemplateResponseMixin):
@@ -19,20 +19,16 @@ class OtpView(FormView, TemplateResponseMixin):
 
     return super(FormView, self).__init__(*args, **kwargs)
 
-
   def get(self, request, *args, **kwargs):
     form = OtpForm()
     self.response_dict['form'] = form
     return render(request, self.template_name, self.response_dict)
 
-
   def post(self, request, *args, **kwargs):
     form = OtpForm(data=request.POST)
     self.response_dict['form'] = form
     if form.is_valid():
-      self.response_dict['otp'] = form.get_otp()
-      uri = form.get_provisioning_uri()
-      self.response_dict['secret_key_image'] = get_qrcode(uri)
+      form.process()
       return render(request, self.template_name, self.response_dict)
     else:
       return render(request, self.template_name, self.response_dict)
