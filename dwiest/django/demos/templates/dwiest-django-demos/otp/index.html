@@ -17,11 +17,10 @@
 {% endwith %}
 {% endblock %}
 
-<Div class="filler"></Div>
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
-{{error}}<BR/>
+<Div class="error" align="center">{{error}}</Div>
 {% endfor %}
 </P>
 {% endif %}
@@ -30,24 +29,19 @@
 <P>
 {% for field in form %}
   {% for error in field.errors %}
-<Div class="error">
-{{error}}<BR/>
-</Div>
+<Div class="error" align="center">{{error}}</Div>
   {% endfor %}
 {% endfor %}
 </P>
 {% endif %}
-</Div>
 
-{% if secret_key_image %}
-<Img class="otp" src="data:image/png;base64,{{secret_key_image}}"/>
+{% if form.otp %}
+<Img class="otp" src="data:image/png;base64,{{form.qrcode}}"/>
 {% endif %}
 
 <Div class="filler"></Div>
 
-{% if otp %}
-<Div class="secret-value" align="center">{{otp}}</Div>
-{% endif %}
+<Div class="secret-value" align="center">{{form.otp}}</Div>
 
 <Div class="filler"></Div>
 
