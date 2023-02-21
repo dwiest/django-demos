@@ -8,6 +8,9 @@ class DemosAppConf(AppConf):
     from .files import signals
     pass
 
+  ''' Django page template settings '''
+  PAGE_FOOTER = 'dwiest-django-demos/footer.html'
+
   ''' File demo settings '''
 
   FILE_UPLOAD_DIR = '/tmp'
