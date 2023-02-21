@@ -4,17 +4,18 @@
 {% include "dwiest-django-demos/default.css" %}
 {% include "dwiest-django-demos/django-messages.css" %}
 {% include "dwiest-django-demos/footer.css" %}
+{% load tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </Head>
 
 <Body>
+<Div class="filler"></Div>
+
 {% block header %}
 {% with title='Django Demos' breadcrumbs=False %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
-
-<Div class="filler"></Div>
 
 <Table class="home">
   <Tr>
@@ -40,7 +41,7 @@
 
 <Div class="filler"></Div>
 
-<Div class="footer">{% include "dwiest-django-demos/footer.html" %}</Div>
+{% footer %}
 </Div>
 </Body>
 </Html>

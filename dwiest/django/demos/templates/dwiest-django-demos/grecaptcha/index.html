@@ -6,6 +6,7 @@
 {% include 'dwiest-django-demos/django-messages.css' %}
 {% include 'dwiest-django-demos/footer.css' %}
 {% include 'dwiest-django-demos/grecaptcha/grecaptcha.css' %}
+{% load tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <script src="https://www.google.com/recaptcha/enterprise.js?render={{site_key}}"></script>
@@ -18,13 +19,14 @@ function onSubmit(token) {
 
 <Body>
 
+<Div class="filler"></Div>
+
 {% block header %}
 {% with title=page_name breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
-<Div class="filler"></Div>
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
@@ -59,6 +61,6 @@ data-action='{{action}}'>Get Risk Score</button>
 
 <Div class="filler"></Div>
 
-<Div class="footer">{% include "dwiest-django-demos/footer.html" %}</Div>
+{% footer %}
 </Body>
 </Html>

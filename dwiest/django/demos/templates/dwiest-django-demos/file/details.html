@@ -5,19 +5,20 @@
 {% include "dwiest-django-demos/django-messages.css" %}
 {% include "dwiest-django-demos/footer.css" %}
 {% include "dwiest-django-demos/file/file.css" %}
+{% load file.filters %}
+{% load tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </Head>
 
 <Body>
-{% load file.filters %}
+
+<Div class="filler"></Div>
 
 {% block header %}
 {% with title='File Manager' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
-
-<Div class="filler"></Div>
 
 {% if messages %}
 <P>
@@ -83,6 +84,8 @@
 
 <Div align="center"><A class="back-to-index" href="{% url 'demos:file:index' %}"}>Back to File Index</A></Div>
 
-<Div class="footer">{% include "dwiest-django-demos/footer.html" %}</Div>
+<Div class="filler"></Div>
+
+{% footer %}
 </Body>
 </Html>

@@ -6,10 +6,13 @@
   {% include 'dwiest-django-demos/django-messages.css' %}
   {% include 'dwiest-django-demos/footer.css' %}
   {% include 'dwiest-django-demos/qrcode/qrcode.css' %}
+  {% load tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Head>
 
 <Body>
+
+<Div class="filler"></Div>
 
 {% block header %}
 {% with title='QR Code Generator' breadcrumbs=True %}
@@ -36,6 +39,7 @@
 {% endif %}
 
 <Div class="filler"></Div>
+
 {% if form.qrcode %}
 <Img class="qrcode" src="data:image/png;base64,{{form.qrcode}}"/>
 {% endif %}
@@ -46,6 +50,10 @@
   <Span style="white-space:nowrap;"><Span class="label">{{form.input_text.label}}:</Span> {{form.input_text}}</Span>
   <Div><Input class="qrcode-button" type="submit" name="submit" value="Generate QR Code"></Input></Div>
 </Form>
-<Div class="footer">{% include "dwiest-django-demos/footer.html" %}</Div>
+
+<Div class="filler"></Div>
+
+{% footer %}
+
 </Body>
 </Html>
