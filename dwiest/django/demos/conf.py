@@ -9,7 +9,7 @@ class DemosAppConf(AppConf):
     pass
 
   ''' Django page template settings '''
-  PAGE_FOOTER = 'dwiest-django-demos/footer.html'
+  PAGE_FOOTER = None
 
   ''' File demo settings '''
 
