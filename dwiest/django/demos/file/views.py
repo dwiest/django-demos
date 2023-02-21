@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -17,7 +16,7 @@ home_page = 'file'
 detail_page = 'file/details'
 
 
-class FileIndexView(LoginRequiredMixin, TemplateView):
+class FileIndexView(TemplateView):
   page_name = 'Files'
   template_name = settings.DEMOS_FILE_INDEX_TEMPLATE
   form_class = FileUploadForm
@@ -71,7 +70,7 @@ class FileIndexView(LoginRequiredMixin, TemplateView):
       #return render(request, self.template_name, self.response_dict)
 
 
-class FileDetailView(LoginRequiredMixin, TemplateView):
+class FileDetailView(TemplateView):
   '''
     Display the details of an uploaded file
   '''
@@ -121,7 +120,7 @@ class FileDetailView(LoginRequiredMixin, TemplateView):
       return render(request, self.template_name, self.response_dict)
 
 
-class FileDeleteView(LoginRequiredMixin, TemplateView):
+class FileDeleteView(TemplateView):
   '''
     Deletes an uploaded file
   '''
@@ -170,7 +169,7 @@ class FileDeleteView(LoginRequiredMixin, TemplateView):
     return HttpResponseRedirect(reverse(self.success_page), self.response_dict)
 
 
-class FileDownloadView(LoginRequiredMixin, TemplateView):
+class FileDownloadView(TemplateView):
   '''
     Downloads an uploaded file
   '''
@@ -200,7 +199,7 @@ class FileDownloadView(LoginRequiredMixin, TemplateView):
     return response
 
 
-class FileOpenView(LoginRequiredMixin, TemplateView):
+class FileOpenView(TemplateView):
   '''
     Opens an uploaded file
   '''

@@ -1,11 +1,10 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import FormView
 from .forms import GRecaptchaForm
 from ..conf import settings
 
-class GRecaptchaView(LoginRequiredMixin, FormView):
+class GRecaptchaView(FormView):
   template_name = settings.DEMOS_GOOGLE_RECAPTCHA_TEMPLATE
   success_url = '.'
   form_class = GRecaptchaForm
