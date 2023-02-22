@@ -19,7 +19,7 @@ class QrcodeView(FormView, TemplateResponseMixin):
     return super(FormView, self).__init__(*args, **kwargs)
 
   def get(self, request, *args, **kwargs):
-    form = QrcodeForm()
+    form = QrcodeForm(data=request.GET)
     self.response_dict['form'] = form
     return render(request, self.template_name, self.response_dict)
 
