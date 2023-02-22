@@ -68,5 +68,8 @@ class DemosAppConf(AppConf):
   SELENIUM_SCREENSHOT_DIR = '/tmp'
   SELENIUM_TEMPLATE = 'dwiest-django-demos/selenium/index.html'
   SELENIUM_HEIGHT_CLASS = 'selenium-height'
+  SELENIUM_HEIGHT_FIELD_LABEL = 'Height'
   SELENIUM_URL_CLASS = 'selenium-url'
+  SELENIUM_URL_FIELD_LABEL = 'URL'
   SELENIUM_WIDTH_CLASS = 'selenium-width'
+  SELENIUM_WIDTH_FIELD_LABEL = 'Width'
