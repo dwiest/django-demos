@@ -22,7 +22,7 @@
 <Div class="filler"></Div>
 
 <Div align="center">
-<img class="selenium" src="https://wiest.world/django/static/{{user.username}}-screenie.png?{% now "U" %}"/>
+<Img class="selenium" src="data:image/png;base64,{{form.image}}"/>
 </Div>
 
 <Div class="filler"></Div>
@@ -30,7 +30,7 @@
 {% if messages %}
 <P>
 {% for message in messages %}
-  <Div class="error">{{message}}</Div>
+  <Div class="error" align="center">{{message}}</Div>
 {% endfor %}
 </P>
 {% endif %}
@@ -38,7 +38,7 @@
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
-  <Div class="error">{{error}}</Div>
+  <Div class="error" align="center">{{error}}</Div>
 {% endfor %}
 </P>
 {% endif %}
@@ -47,14 +47,14 @@
 <P>
 {% for field in form %}
   {% for error in field.errors %}
-  <Div class="error">{{error}}</Div>
+  <Div class="error" align="center">{{error}}</Div>
   {% endfor %}
 {% endfor %}
 </P>
 {% endif %}
 
 <Form class="selenium" method="post" action="{% url 'demos:selenium:home' %}">
-{% csrf_token %}
+  {% csrf_token %}
   <Div><Span class="selenium-url-label">{{form.url.label}}:</Span> {{form.url}}</Div>
   <Div><Span class="selenium-width-label">{{form.width.label}}:</Span> {{form.width}} <Span class="selenium-height-label">{{form.height.label}}:</Span> {{form.height}}</Div>
   <Input class="selenium-button" type="submit" name="submit" value="Get Screenshot"></Input>
