@@ -53,6 +53,7 @@ class DemosAppConf(AppConf):
   QRCODE_BACKGROUND_COLOR = 'white'
   QRCODE_FORMAT = 'PNG'
   QRCODE_TEMPLATE = 'dwiest-django-demos/qrcode/index.html'
+  QRCODE_TEXT_INPUT_LABEL = 'Text'
 
   ''' Selenium demo settings '''
   SELENIUM_INITIAL_URL = 'https://github.com/dwiest/django-demos'
