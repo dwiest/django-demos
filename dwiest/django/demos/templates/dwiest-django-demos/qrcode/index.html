@@ -46,7 +46,7 @@
 
 <Form class="qrcode" method="post" action="{% url 'demos:qrcode:home' %}">
   {% csrf_token %}
-  <Span style="white-space:nowrap;"><Span class="label">{{form.input_text.label}}:</Span> {{form.input_text}}</Span>
+  <Span style="white-space:nowrap;"><Span class="label">{{form.text.label}}:</Span> {{form.text}}</Span>
   <Div><Input class="qrcode-button" type="submit" name="submit" value="Generate QR Code"></Input></Div>
 </Form>
 
