@@ -1,5 +1,7 @@
 from django import forms
-from enum import Enum
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from enum import Enum, auto
 from selenium import webdriver
 from ..conf import settings
 import base64
@@ -12,6 +14,17 @@ class SeleniumForm(forms.Form):
     URL = 'url',
     WIDTH = 'width',
 
+  class Errors(str, Enum):
+    SELENIUM_DRIVER = auto()
+    URL_INVALID = auto()
+    URL_MISSING_SCHEME = auto()
+
+  error_messages = {
+    Errors.SELENIUM_DRIVER: _(settings.DEMOS_SELENIUM_DRIVER_ERROR_MESSAGE),
+    Errors.URL_INVALID: _(settings.DEMOS_SELENIUM_URL_INVALID_ERROR_MESSAGE),
+    Errors.URL_MISSING_SCHEME: _(settings.DEMOS_SELENIUM_URL_MISSING_SCHEME_ERROR_MESSAGE),
+  }
+
   url = forms.URLField(
     label=settings.DEMOS_SELENIUM_URL_FIELD_LABEL,
     initial=settings.DEMOS_SELENIUM_INITIAL_URL,
@@ -20,6 +33,7 @@ class SeleniumForm(forms.Form):
         'class': settings.DEMOS_SELENIUM_URL_CLASS
         }
       ),
+    error_messages = settings.DEMOS_SELENIUM_URL_FIELD_ERROR_MESSAGES
     )
 
   width = forms.IntegerField(
@@ -32,6 +46,7 @@ class SeleniumForm(forms.Form):
         'class': settings.DEMOS_SELENIUM_WIDTH_CLASS
         }
       ),
+    error_messages = settings.DEMOS_SELENIUM_WIDTH_FIELD_ERROR_MESSAGES
     )
 
   height = forms.IntegerField(
@@ -44,13 +59,10 @@ class SeleniumForm(forms.Form):
         'class': settings.DEMOS_SELENIUM_HEIGHT_CLASS
         }
       ),
+    error_messages = settings.DEMOS_SELENIUM_HEIGHT_FIELD_ERROR_MESSAGES
     )
 
-  def __init__(self, user,
-    url=settings.DEMOS_SELENIUM_INITIAL_URL,
-    width=settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL,
-    height=settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL,
-    *args, **kwargs):
+  def __init__(self, user, *args, **kwargs):
 
     super(forms.Form, self).__init__(*args, **kwargs)
     self.user = user
@@ -59,7 +71,7 @@ class SeleniumForm(forms.Form):
 
     options.add_argument("--headless")
 
-    if settings.DEMOS_SELENIUM_PROXY != None:
+    if settings.DEMOS_SELENIUM_PROXY:
       options.add_argument("--proxy-server=" + settings.DEMOS_SELENIUM_PROXY)
 
     self.options = options
@@ -69,18 +81,44 @@ class SeleniumForm(forms.Form):
       chrome_options=options,
       )
 
-    if 'data' not in kwargs: # form not bound
-      self.fields[self.Fields.URL].initial = url
-      self.fields[self.Fields.WIDTH].initial = width
-      self.fields[self.Fields.HEIGHT].initial = height
+    if 'data' in kwargs: # form is bound
+      new_data = kwargs['data'].copy() # can't modify form data
 
-    self.image = self.screenshot(url, width, height)
+      if self.Fields.URL in kwargs['data']:
+        self.fields[self.Fields.URL].initial = kwargs['data'][self.Fields.URL]
+
+      else:
+        self.fields[self.Fields.URL].initial = settings.DEMOS_SELENIUM_INITIAL_URL
+        new_data[self.Fields.URL] = self.fields[self.Fields.URL].initial
+
+      if self.Fields.WIDTH in kwargs['data']:
+        self.fields[self.Fields.WIDTH].initial = kwargs['data'][self.Fields.WIDTH]
+
+      else:
+        self.fields[self.Fields.WIDTH].initial = settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL
+        new_data[self.Fields.WIDTH] = self.fields[self.Fields.WIDTH].initial
+
+      if self.Fields.HEIGHT in kwargs['data']:
+        self.fields[self.Fields.HEIGHT].initial = kwargs['data'][self.Fields.HEIGHT]
+
+      else:
+        self.fields[self.Fields.HEIGHT].initial = settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL
+        new_data[self.Fields.HEIGHT] = self.fields[self.Fields.HEIGHT].initial
+
+      self.data = new_data
 
   def process(self, *args, **kwargs):
-    self.image = self.screenshot(
-      self.cleaned_data[self.Fields.URL],
-      self.cleaned_data[self.Fields.WIDTH],
-      self.cleaned_data[self.Fields.HEIGHT])
+    try:
+      self.image = self.screenshot(
+        self.cleaned_data[self.Fields.URL],
+        self.cleaned_data[self.Fields.WIDTH],
+        self.cleaned_data[self.Fields.HEIGHT])
+
+    except Exception as e:
+      self.add_error(
+        forms.forms.NON_FIELD_ERRORS,
+        self.error_messages[self.Errors.SELENIUM_DRIVER]
+        )
 
   def screenshot(self, url, width, height, *args, **kwargs):
     self.browser.set_window_size(width, height)
