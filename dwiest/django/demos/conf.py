@@ -1,5 +1,6 @@
 from appconf import AppConf
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from qrcode import constants
 
 class DemosAppConf(AppConf):
@@ -56,7 +57,7 @@ class DemosAppConf(AppConf):
   QRCODE_TEXT_INPUT_LABEL = 'Text'
 
   ''' Selenium demo settings '''
-  SELENIUM_INITIAL_URL = 'https://github.com/dwiest/django-demos'
+  SELENIUM_INITIAL_URL = 'https://github.com/dwiest/django-demos/'
   SELENIUM_IMAGE_HEIGHT_INITIAL = 640
   SELENIUM_IMAGE_HEIGHT_MIN = 20
   SELENIUM_IMAGE_HEIGHT_MAX =  3072
@@ -69,8 +70,25 @@ class DemosAppConf(AppConf):
   SELENIUM_SCREENSHOT_DIR = '/tmp'
   SELENIUM_TEMPLATE = 'dwiest-django-demos/selenium/index.html'
   SELENIUM_HEIGHT_CLASS = 'selenium-height'
+  SELENIUM_HEIGHT_FIELD_ERROR_MESSAGES = {
+    'max_value': _('The image height must be less than or equal to %(limit_value)s.'),
+    'min_value': _('The image height must be greather than or equal to %(limit_value)s.'),
+    'required': _('An image height is required.'),
+    }
   SELENIUM_HEIGHT_FIELD_LABEL = 'Height'
   SELENIUM_URL_CLASS = 'selenium-url'
+  SELENIUM_URL_FIELD_ERROR_MESSAGES = {
+    'invalid': _('Please enter a valid URL.'),
+    'required': _('Please provide a URL.'),
+    }
   SELENIUM_URL_FIELD_LABEL = 'URL'
+  SELENIUM_URL_INVALID_ERROR_MESSAGE = 'The URL provided is not valid'
+  SELENIUM_URL_MISSING_SCHEME_ERROR_MESSAGE = 'The URL provided does not have a scheme, e.g. https://'
   SELENIUM_WIDTH_CLASS = 'selenium-width'
   SELENIUM_WIDTH_FIELD_LABEL = 'Width'
+  SELENIUM_WIDTH_FIELD_ERROR_MESSAGES = {
+    'max_value': _('The image width must be less than or equal to %(limit_value)s.'),
+    'min_value': _('The image width must be greather than or equal to %(limit_value)s.'),
+    'required': _('An image width is required.'),
+    }
+  SELENIUM_DRIVER_ERROR_MESSAGE = 'Selenium encountered an error while processing your request.'
