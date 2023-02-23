@@ -19,6 +19,8 @@
 {% endwith %}
 {% endblock %}
 
+<Div class="filler"></Div>
+
 {% if form.non_field_errors %}
 <P>
 {% for error in form.non_field_errors %}
@@ -40,8 +42,6 @@
 {% if form.otp %}
 <Img class="otp" src="data:image/png;base64,{{form.qrcode}}"/>
 {% endif %}
-
-<Div class="filler"></Div>
 
 <Div class="secret-value" align="center">{{form.otp}}</Div>
 
