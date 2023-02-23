@@ -9,7 +9,7 @@ class File(models.Model):
     A file that was uploaded and is possibly available for download.
   '''
   owner = models.ForeignKey(
-    User, on_delete=models.PROTECT)
+    User, on_delete=models.PROTECT, blank = True, null = True)
 
   name = models.CharField(max_length=255)
   path = models.CharField(max_length=36)
@@ -30,10 +30,8 @@ class File(models.Model):
     super().__init__(*args,**kwargs)
 
     if self.path == '': # not loaded from database
-      print("File not loaded from database")
       if kwargs.get('path', None) == None:
         self.path = str(self.generate_path())
-        print("no path in kwargs, generating a path:" + self.path)
 
   def generate_path(self):
     return uuid.uuid4()
@@ -59,7 +57,7 @@ class FileQuota(models.Model):
 
 class FileSummary(models.Model):
   owner = models.OneToOneField(
-    User, on_delete=models.PROTECT, primary_key=True)
+    User, on_delete=models.PROTECT, blank = True, null = True)
 
   files = models.IntegerField()
   size = models.IntegerField()
