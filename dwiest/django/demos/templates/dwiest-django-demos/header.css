@@ -1,52 +1,50 @@
 <Style>
+h1.header {
+  text-align: center;
+  }
+
+a.header {
+  text-align: center;
+  }
+
 @media only screen and (max-width: 600px) {
 h1.header {
   font-size: 6vw;
-  text-align: center;
   }
 a.header {
   font-size: 4vw;
-  text-align: center;
   }
 }
 @media only screen and (min-width: 600px) {
 h1.header {
   font-size: 5.4vw;
-  text-align: center;
   }
 a.header {
   font-size: 3.6vw;
-  text-align: center;
   }
 }
 @media only screen and (min-width: 768px) {
 h1.header {
   font-size: 4.9vw;
-  text-align: center;
   }
 a.header {
   font-size: 3.2vw;
-  text-align: center;
   }
 }
 @media only screen and (min-width: 992px) {
 h1.header {
   font-size: 4.4vw;
-  text-align: center;
   }
 a.header {
   font-size: 2.9vw;
-  text-align: center;
   }
 }
 @media only screen and (min-width: 1200px) {
 h1.header {
   font-size: 4vw;
-  text-align: center;
   }
 a.header {
   font-size: 2.6vw;
-  text-align: center;
   }
 }
 </Style>
