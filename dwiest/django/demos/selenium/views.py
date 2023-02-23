@@ -21,8 +21,10 @@ class SeleniumView(FormView, TemplateResponseMixin):
     return super(FormView, self).__init__(*args, **kwargs)
 
   def get(self, request, *args, **kwargs):
-    form = self.form_class(request.user)
+    form = self.form_class(request.user, data=request.GET)
     self.response_dict['form'] = form
+    if form.is_valid():
+      form.process()
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
