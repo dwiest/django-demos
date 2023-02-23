@@ -29,16 +29,27 @@ class FileIndexView(TemplateView):
       }
 
   def get(self, request, *args, **kwargs):
-    form = self.form_class()
+    form = self.form_class(request.user)
     self.response_dict['form'] = form
 
-    summaries = FileSummary.objects.filter(owner=request.user)
-    if len(summaries) == 1:
+    if request.user.id:
+      summaries = FileSummary.objects.filter(owner=request.user)
+    else:
+      summaries = FileSummary.objects.filter(owner=None)
+
+    if len(summaries) < 1: # first time uploader
+      self.response_dict['summary'] = FileSummary(files=0, size=0)
+    elif len(summaries) == 1:
       self.response_dict['summary'] = summaries[0]
     else:
-      messages.error(request, "Couldn't load file summary")
+      print("Too many summaries for {}, I found {}.  Using first result.".format(request.user, len(summaries)))
+      self.response_dict['summary'] = summaries[0]
 
-    files = File.objects.filter(owner=request.user)
+    if request.user.id:
+      files = File.objects.filter(owner=request.user)
+    else:
+      files = File.objects.filter(owner=None)
+
     self.response_dict['files'] = files
 
     quotas = FileQuota.objects.filter(id=1)
@@ -50,7 +61,7 @@ class FileIndexView(TemplateView):
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
-    form = self.form_class(request.user, request.POST, request.FILES)
+    form = self.form_class(request.user, data=request.POST, files=request.FILES)
     self.response_dict['form'] = form
     if form.is_valid():
       try:
@@ -67,7 +78,6 @@ class FileIndexView(TemplateView):
       for error in form.errors['__all__']:
         messages.error(request, error)
       return HttpResponseRedirect(reverse(self.error_page))
-      #return render(request, self.template_name, self.response_dict)
 
 
 class FileDetailView(TemplateView):
@@ -92,7 +102,10 @@ class FileDetailView(TemplateView):
 
     if path:
       try:
-        file = File.objects.get(owner=request.user, path=path)
+        if request.user and request.user.id:
+          file = File.objects.get(owner=request.user, path=path)
+        else:
+          file = File.objects.get(owner=None, path=path)
         form = FileDetailsForm(instance=file)
         self.response_dict['file'] = file
         self.response_dict['form'] = form
@@ -107,7 +120,11 @@ class FileDetailView(TemplateView):
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
-    file = File.objects.get(owner=request.user, path=request.POST['path'])
+    if request.user and request.user.id:
+      file = File.objects.get(owner=request.user, path=request.POST['path'])
+    else:
+      file = File.objects.get(owner=None, path=request.POST['path'])
+
     self.response_dict['file'] = file
     form = FileDetailsForm(instance=file, data=request.POST)
     if form.is_valid():
@@ -141,9 +158,15 @@ class FileDeleteView(TemplateView):
 
     if path:
       try:
-        file = File.objects.get(owner=request.user, path=path)
+        if request.user and request.user.id:
+          file = File.objects.get(owner=request.user, path=path)
+        else:
+          file = File.objects.get(owner=None, path=path)
         # update summary
-        summaries = FileSummary.objects.filter(owner=request.user)
+        if request.user and request.user.id:
+          summaries = FileSummary.objects.filter(owner=request.user)
+        else:
+          summaries = FileSummary.objects.filter(owner=None)
         if len(summaries) == 1:
           summary = summaries[0]
           summary.files -= 1
