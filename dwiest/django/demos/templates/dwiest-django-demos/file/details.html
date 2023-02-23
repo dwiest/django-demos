@@ -27,6 +27,9 @@
 </P>
 {% endif %}
 
+<Form class="details" method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
+{% csrf_token %}
+
 <Table class="details">
   <Tr>
     <Th>Filename</Th>
@@ -46,7 +49,7 @@
     </Tr>
   <Tr>
     <Th>Anti-virus Scan Results</Th>
-    <Td><i>in-progress</i></Td>
+    <Td><i>N/A</i></Td>
     </Tr>
   <Tr>
     <Th>MD5 Checksum</Th>
@@ -58,7 +61,7 @@
     </Tr>
   <Tr>
     <Th>Description</Th>
-    <Td>{{form.description}}
+    <Td>{{form.description}}</Td>
     </Tr>
   <Tr>
     <Th>Versioning Enabled</Th>
@@ -71,8 +74,6 @@
 </Table>
 
 <Div align="center">
-<Form class="details" method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
-{% csrf_token %}
 <Input type="hidden" name="path" value="{{file.path}}"/>
 <Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
 <Input type="submit" value="Update"/>
