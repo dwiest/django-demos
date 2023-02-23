@@ -21,11 +21,13 @@
 
 <Div class="filler"></Div>
 
+{% if form.image %}
 <Div align="center">
 <Img class="selenium" src="data:image/png;base64,{{form.image}}"/>
 </Div>
 
 <Div class="filler"></Div>
+{% endif %}
 
 {% if messages %}
 <P>
