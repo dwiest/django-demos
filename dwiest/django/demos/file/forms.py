@@ -36,7 +36,7 @@ class FileUploadForm(forms.Form):
       _("You will exceed your limit for total file size by {}."),
     }
 
-  def __init__(self, user=None, *args, **kwargs):
+  def __init__(self, user, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.user = user
 
@@ -47,12 +47,21 @@ class FileUploadForm(forms.Form):
     else:
       self.quota = None
 
-    # load file summary
-    summaries = FileSummary.objects.filter(owner=user)
-    if len(summaries) == 1:
+    # load or create file summary
+    if user.id: # logged in user
+      owner = user
+    else: # AnonymousUser
+      owner = None
+
+    summaries = FileSummary.objects.filter(owner=owner)
+
+    if len(summaries) < 1: # none found, create one
+      self.summary = FileSummary(owner=owner, files=0, size=0)
+    elif len(summaries) == 1: # match
       self.summary = summaries[0]
-    else:
-      self.summary = FileSummary(owner=user, files=0, size=0)
+    else: # shouldn't happen!
+      print("Too many summaries for {}, found {}. Using first result.".format(user, len(summaries)))
+      self.summary = summaries[0]
 
   def clean(self):
     if self.quota:
@@ -77,7 +86,10 @@ class FileUploadForm(forms.Form):
   def save(self):
     file = self.cleaned_data.get('file')
 
-    model = File(owner=self.user, name=file.name, content_type=file.content_type, size=file.size, versioned=False, downloadable=False)
+    if self.user and self.user.id:
+      model = File(owner=self.user, name=file.name, content_type=file.content_type, size=file.size, versioned=False, downloadable=False)
+    else:
+      model = File(owner=None, name=file.name, content_type=file.content_type, size=file.size, versioned=False, downloadable=False)
 
     try:
       print("writing to: " + model.path)
@@ -136,7 +148,6 @@ class FileDetailsForm(forms.ModelForm):
   class Meta:
     model = File
     fields = ['name','versioned','description']
-    exclude = ['path', 'content_type','downloadable', 'created_at', 'size', 'owner']
     widgets = {
       'name': forms.TextInput(attrs={'class': settings.DEMOS_FILE_NAME_INPUT_CLASS}),
       'description': forms.Textarea(attrs={'class': settings.DEMOS_FILE_DESCRIPTION_INPUT_CLASS}),
