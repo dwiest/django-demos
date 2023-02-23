@@ -20,6 +20,8 @@
 {% endwith %}
 {% endblock %}
 
+<Div class="filler"></Div>
+
 {% if messages %}
 <P>
 {% for message in messages %}
@@ -78,6 +80,8 @@
     </Tr>
   </Table>
 </Div>
+
+<Div class="filler"></Div>
 
 <Div align="center">
 <Form class="file" method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
