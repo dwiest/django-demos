@@ -1,40 +1,47 @@
 import datetime
-import hashlib
-import pytz
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django import forms
 from django.utils.translation import ugettext, ugettext_lazy as _
-
+from enum import Enum, auto
+import hashlib
+import pytz
 from ..conf import settings
 from ..templatetags.file import filters
 from .models import File, FileQuota, FileSummary
 
-
 class FileUploadForm(forms.Form):
-  file = forms.FileField(
-    widget=forms.ClearableFileInput(attrs={'class': settings.DEMOS_FILE_INPUT_CLASS}),
-    )
-#    widget=forms.ClearableFileInput(
-#      attrs={
-#        'multiple': True
-#        }
-#      )
-#    )
+
+  class Errors(str, Enum):
+    SAVE_FAILED = auto()
+    WRITE_FAILED = auto()
+    TOO_MANY_FILES = auto()
+    SIZE_TOO_LARGE = auto()
+    TOTAL_SIZE_TOO_LARGE = auto()
+
+  class Fields(str, Enum):
+    FILE = 'file'
 
   error_messages = {
-    'save_failed':
-      _("Couldn't update database."),
-    'write_failed':
-      _("Couldn't write file."),
-    'too_many_files':
-      _("You have reached your limit for file uploads."),
-    'filesize_too_large':
-      _("File size exceeds the maximum allowed by {}."),
-    'total_filesize_too_large':
-      _("You will exceed your limit for total file size by {}."),
+    Errors.SAVE_FAILED:
+      _(settings.DEMOS_FILE_SAVE_FAILED_ERROR),
+    Errors.WRITE_FAILED:
+      _(settings.DEMOS_FILE_WRITE_FAILED_ERROR),
+    Errors.TOO_MANY_FILES:
+      _(settings.DEMOS_FILE_TOO_MANY_FILES_ERROR),
+    Errors.SIZE_TOO_LARGE:
+      _(settings.DEMOS_FILE_SIZE_TOO_LARGE_ERROR),
+    Errors.TOTAL_SIZE_TOO_LARGE:
+      _(settings.DEMOS_FILE_TOTAL_SIZE_TOO_LARGE_ERROR),
     }
+
+  file = forms.FileField(
+    widget = forms.ClearableFileInput(
+      attrs={
+        'class': settings.DEMOS_FILE_INPUT_CLASS
+        }
+      ),
+    )
 
   def __init__(self, user, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -65,7 +72,7 @@ class FileUploadForm(forms.Form):
 
   def clean(self):
     if self.quota:
-      file = self.cleaned_data.get('file')
+      file = self.cleaned_data.get(self.Fields.FILE)
 
       # check that not over number of file quota
       if self.summary.files >= self.quota.max_files:
@@ -84,12 +91,20 @@ class FileUploadForm(forms.Form):
     return super().clean()
 
   def save(self):
-    file = self.cleaned_data.get('file')
+    file = self.cleaned_data.get(self.Fields.FILE)
 
     if self.user and self.user.id:
-      model = File(owner=self.user, name=file.name, content_type=file.content_type, size=file.size, versioned=False, downloadable=False)
+      owner = self.user
     else:
-      model = File(owner=None, name=file.name, content_type=file.content_type, size=file.size, versioned=False, downloadable=False)
+      owner = None
+
+    model = File(
+      owner=owner,
+      name=file.name,
+      content_type=file.content_type,
+      size=file.size,
+      versioned=False,
+      downloadable=False)
 
     try:
       print("writing to: " + model.path)
@@ -97,16 +112,19 @@ class FileUploadForm(forms.Form):
       hash_sha256 = hashlib.sha256()
       #FIXME check that path doesn't already exist
       file_dir = settings.DEMOS_FILE_UPLOAD_DIR
+
       with open(file_dir + '/' + model.path, 'wb+') as output:
         for chunk in file.chunks():
           hash_md5.update(chunk)
           hash_sha256.update(chunk)
           output.write(chunk)
+
       model.md5_checksum = hash_md5.hexdigest()
       model.sha256_checksum = hash_sha256.hexdigest()
       self.summary.files += 1
       self.summary.size += file.size
       self.file = model
+
     except Exception as e:
       print(str(e))
       raise self.get_write_failed_error()
@@ -114,34 +132,45 @@ class FileUploadForm(forms.Form):
     try:
       model.save()
       self.summary.save()
+
     except Exception as e:
       print(str(e))
       raise self.get_save_failed_error()
 
-  def get_save_failed_error(self):
+  @classmethod
+  def get_save_failed_error(cls):
     return forms.ValidationError(
-      self.error_messages['save_failed'],
-      code='save_failed',)
+      cls.error_messages[cls.Errors.SAVE_FAILED],
+      code=cls.Errors.SAVE_FAILED
+      )
 
-  def get_write_failed_error(self):
+  @classmethod
+  def get_write_failed_error(cls):
     return forms.ValidationError(
-      self.error_messages['save_failed'],
-      code='save_failed',)
+      cls.error_messages[cls.Errors.WRITE_FAILED],
+      code=cls.Errors.WRITE_FAILED
+      )
 
-  def get_file_quota_error(self):
+  @classmethod
+  def get_file_quota_error(cls):
     return forms.ValidationError(
-      self.error_messages['too_many_files'],
-      code='too_many_files',)
+      cls.error_messages[cls.Errors.TOO_MANY_FILES],
+      code=cls.Errors.TOO_MANY_FILES
+      )
 
-  def get_filesize_quota_error(self, bytes):
+  @classmethod
+  def get_filesize_quota_error(cls, bytes):
     return forms.ValidationError(
-      self.error_messages['filesize_too_large'].format(filters.format_bytes(bytes,2)),
-      code='filesize_too_large',)
+      cls.error_messages[cls.Errors.SIZE_TOO_LARGE].format(filters.format_bytes(bytes,2)),
+      code=cls.Errors.SIZE_TOO_LARGE
+      )
 
-  def get_total_filesize_quota_error(self, bytes):
+  @classmethod
+  def get_total_filesize_quota_error(cls, bytes):
     return forms.ValidationError(
-      self.error_messages['total_filesize_too_large'].format(filters.format_bytes(bytes,2)),
-      code='total_filesize_too_large',)
+      cls.error_messages[self.Errors.TOTAL_SIZE_TOO_LARGE].format(filters.format_bytes(bytes,2)),
+      code=self.Errors.TOTAL_SIZE_TOO_LARGE
+      )
 
 
 class FileDetailsForm(forms.ModelForm):
