@@ -7,7 +7,7 @@ from enum import Enum, auto
 import hashlib
 import pytz
 from ..conf import settings
-from ..templatetags.file import filters
+from ..templatetags.dwiest_django_demos.file import filters
 from .models import File, FileQuota, FileSummary
 
 class FileUploadForm(forms.Form):
