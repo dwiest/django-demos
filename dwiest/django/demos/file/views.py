@@ -12,11 +12,6 @@ from .forms import FileUploadForm, FileDetailsForm
 from .models import File, FileQuota, FileSummary
 from .signals import *
 
-
-home_page = 'file'
-detail_page = 'file/details'
-
-
 class FileIndexView(TemplateView):
 
   class ResponseDict(str, Enum):
