@@ -44,6 +44,7 @@ class DemosAppConf(AppConf):
   OTP_TEMPLATE = 'dwiest-django-demos/otp/index.html'
 
   ''' QR code demo settings '''
+  QRCODE_TEMPLATE = 'dwiest-django-demos/qrcode/index.html'
   QRCODE_INITIAL_TEXT = 'https://github.com/dwiest/django-demos/'
   QRCODE_INPUT_CLASS = 'qrcode-input'
   QRCODE_VERSION = 1
