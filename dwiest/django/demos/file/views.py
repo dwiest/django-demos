@@ -4,6 +4,7 @@ from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import FormView, TemplateView
+from enum import Enum
 import os
 
 from ..conf import settings
@@ -17,6 +18,13 @@ detail_page = 'file/details'
 
 
 class FileIndexView(TemplateView):
+
+  class ResponseDict(str, Enum):
+    FILES = 'files'
+    FORM = 'form'
+    QUOTA = 'quota'
+    SUMMARY = 'summary'
+
   template_name = settings.DEMOS_FILE_INDEX_TEMPLATE
   form_class = FileUploadForm
   success_page = 'demos:file:index'
@@ -27,7 +35,7 @@ class FileIndexView(TemplateView):
 
   def get(self, request, *args, **kwargs):
     form = self.form_class(request.user)
-    self.response_dict['form'] = form
+    self.response_dict[self.ResponseDict.FORM] = form
 
     if request.user.id:
       summaries = FileSummary.objects.filter(owner=request.user)
@@ -35,31 +43,35 @@ class FileIndexView(TemplateView):
       summaries = FileSummary.objects.filter(owner=None)
 
     if len(summaries) < 1: # first time uploader
-      self.response_dict['summary'] = FileSummary(files=0, size=0)
+      self.response_dict[self.ResponseDict.SUMMARY] = FileSummary(files=0, size=0)
     elif len(summaries) == 1:
-      self.response_dict['summary'] = summaries[0]
+      self.response_dict[self.ResponseDict.SUMMARY] = summaries[0]
     else:
-      print("Too many summaries for {}, I found {}.  Using first result.".format(request.user, len(summaries)))
-      self.response_dict['summary'] = summaries[0]
+      print("Too many summaries for {}, found {}.  Using first result.".format(request.user, len(summaries)))
+      self.response_dict[self.ResponseDict.SUMMARY] = summaries[0]
 
     if request.user.id:
       files = File.objects.filter(owner=request.user)
     else:
       files = File.objects.filter(owner=None)
 
-    self.response_dict['files'] = files
+    self.response_dict[self.ResponseDict.FILES] = files
 
     quotas = FileQuota.objects.filter(id=1)
     if len(quotas) == 1:
-      self.response_dict['quota'] = quotas[0]
+      self.response_dict[self.ResponseDict.QUOTA] = quotas[0]
     else:
-      self.response_dict['quota'] = {max_files: 'n/a', max_filesize: 'n/a', max_total_filesize: 'n/a'}
+      self.response_dict[self.ResponseDict.QUOTA] = {
+        max_files: 'n/a',
+        max_filesize: 'n/a',
+        max_total_filesize: 'n/a'
+        }
 
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
     form = self.form_class(request.user, data=request.POST, files=request.FILES)
-    self.response_dict['form'] = form
+    self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       try:
         form.save()
@@ -72,7 +84,7 @@ class FileIndexView(TemplateView):
         return HttpResponseRedirect(reverse(self.error_page))
     else:
       messages.error(request, "{} could not be uploaded.".format(form.cleaned_data['file'].name))
-      for error in form.errors['__all__']:
+      for error in form.errors[forms.form.NON_FIELD_ERRORS]:
         messages.error(request, error)
       return HttpResponseRedirect(reverse(self.error_page))
 
@@ -82,10 +94,13 @@ class FileDetailView(TemplateView):
     Display the details of an uploaded file
   '''
 
+  class ResponseDict(str, Enum):
+    FILE = 'file'
+    FORM = 'form'
+
   template_name = settings.DEMOS_FILE_DETAILS_TEMPLATE
   success_page = 'demos:file:details'
   error_page = 'demos:file:index'
-
 
   def __init__(self, *args, **kwargs):
     self.response_dict = {}
@@ -101,8 +116,8 @@ class FileDetailView(TemplateView):
         else:
           file = File.objects.get(owner=None, path=path)
         form = FileDetailsForm(instance=file)
-        self.response_dict['file'] = file
-        self.response_dict['form'] = form
+        self.response_dict[self.ResponseDict.FILE] = file
+        self.response_dict[self.ResponseDict.FORM] = form
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
@@ -119,7 +134,7 @@ class FileDetailView(TemplateView):
     else:
       file = File.objects.get(owner=None, path=request.POST['path'])
 
-    self.response_dict['file'] = file
+    self.response_dict[self.ResponseDict.FILE] = file
     form = FileDetailsForm(instance=file, data=request.POST)
     if form.is_valid():
       form.save()
@@ -166,7 +181,7 @@ class FileDeleteView(TemplateView):
         else:
           pass # shouldn't happen!
         # remove from filesystem
-        os.remove('/tmp/' + file.path)
+        os.remove(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path)
         # remove file record
         id = file.id # set to None after delete
         file.delete()
@@ -205,7 +220,7 @@ class FileDownloadView(TemplateView):
       messages.error(request, 'A file path was not specified.')
       return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
 
-    content = open("/tmp/" + file.path, 'rb')
+    content = open(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path, 'rb')
     response = FileResponse(content)
     response['Content-Type'] = file.content_type
     response['Content-Length'] = file.size
@@ -235,7 +250,7 @@ class FileOpenView(TemplateView):
       messages.error(request, 'A file path was not specified.')
       return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
 
-    content = open("/tmp/" + file.path, "rb")
+    content = open(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path, "rb")
     response = FileResponse(content, filename=file.name)
     response['Content-Type'] = file.content_type
     response['Content-Length'] = file.size
