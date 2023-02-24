@@ -20,6 +20,11 @@ class DemosAppConf(AppConf):
   FILE_NAME_INPUT_CLASS = 'name-input'
   FILE_DESCRIPTION_INPUT_CLASS = 'description-input'
   FILE_DETAILS_TEMPLATE = 'dwiest-django-demos/file/details.html'
+  FILE_SAVE_FAILED_ERROR = "Couldn't update database."
+  FILE_WRITE_FAILED_ERROR = "Couldn't write file."
+  FILE_TOO_MANY_FILES_ERROR = 'You have reached your limit for file uploads.'
+  FILE_SIZE_TOO_LARGE_ERROR = 'File size exceeds the maximum allowed by {}.'
+  FILE_TOTAL_SIZE_TOO_LARGE_ERROR = 'You will exceed your limit for total file size by {}.'
 
   ''' Google reCAPTCHA demo settings '''
 
