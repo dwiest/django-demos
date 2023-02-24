@@ -14,11 +14,9 @@ class QrcodeView(FormView, TemplateResponseMixin):
 
   form_class = QrcodeForm
   template_name = settings.DEMOS_QRCODE_TEMPLATE
-  success_url = '.'
 
   def __init__(self, *args, **kwargs):
     self.response_dict = {}
-
     return super(FormView, self).__init__(*args, **kwargs)
 
   def get(self, request, *args, **kwargs):
@@ -26,12 +24,9 @@ class QrcodeView(FormView, TemplateResponseMixin):
     self.response_dict[self.ResponseDict.FORM] = form
     return render(request, self.template_name, self.response_dict)
 
-
   def post(self, request, *args, **kwargs):
     form = QrcodeForm(data=request.POST)
     self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       form.process()
-      return render(request, self.template_name, self.response_dict)
-    else:
-      return render(request, self.template_name, self.response_dict)
+    return render(request, self.template_name, self.response_dict)
