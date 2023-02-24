@@ -31,13 +31,11 @@ class QrcodeForm(forms.Form):
         new_data = kwargs['data'].copy()
         new_data[self.Fields.TEXT] = text
         self.data = new_data
-
       else:
         text = kwargs['data'][self.Fields.TEXT]
 
     if text:
       self.qrcode = self.get_qrcode(text)
-
     else:
       self.qrcode = None
 
