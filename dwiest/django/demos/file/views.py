@@ -17,16 +17,13 @@ detail_page = 'file/details'
 
 
 class FileIndexView(TemplateView):
-  page_name = 'Files'
   template_name = settings.DEMOS_FILE_INDEX_TEMPLATE
   form_class = FileUploadForm
   success_page = 'demos:file:index'
   error_page = success_page
 
   def __init__(self, *args, **kwargs):
-    self.response_dict = {
-      'page_name': self.page_name,
-      }
+    self.response_dict = {}
 
   def get(self, request, *args, **kwargs):
     form = self.form_class(request.user)
@@ -85,16 +82,13 @@ class FileDetailView(TemplateView):
     Display the details of an uploaded file
   '''
 
-  page_name = 'File Details'
   template_name = settings.DEMOS_FILE_DETAILS_TEMPLATE
   success_page = 'demos:file:details'
   error_page = 'demos:file:index'
 
 
   def __init__(self, *args, **kwargs):
-    self.response_dict = {
-      'page_name': self.page_name,
-      }
+    self.response_dict = {}
 
 
   def get(self, request, *args, **kwargs):
@@ -142,15 +136,12 @@ class FileDeleteView(TemplateView):
     Deletes an uploaded file
   '''
 
-  page_name = 'Delete File'
   success_page = 'demos:file:index'
   error_page = 'demos:file:details'
 
 
   def __init__(self, *args, **kwargs):
-    self.response_dict = {
-      'page_name': self.page_name,
-      }
+    self.response_dict = {}
 
 
   def get(self, request, *args, **kwargs):

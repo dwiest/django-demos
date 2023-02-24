@@ -8,14 +8,11 @@ from ..conf import settings
 
 class OtpView(FormView, TemplateResponseMixin):
   form_class = OtpForm
-  page_name = 'OTP'
   template_name = settings.DEMOS_OTP_TEMPLATE
   success_url = '.'
 
   def __init__(self, *args, **kwargs):
-    self.response_dict = {
-      'page_name': self.page_name,
-    }
+    self.response_dict = {}
 
     return super(FormView, self).__init__(*args, **kwargs)
 

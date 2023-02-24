@@ -1,7 +1,7 @@
 <Html>
 
 <Head>
-  <Title>{{page_name}}</Title>
+  <Title>Google reCAPTCHA</Title>
 {% include 'dwiest-django-demos/default.css' %}
 {% include 'dwiest-django-demos/django-messages.css' %}
 {% include 'dwiest-django-demos/grecaptcha/grecaptcha.css' %}
@@ -21,7 +21,7 @@ function onSubmit(token) {
 <Div class="filler"></Div>
 
 {% block header %}
-{% with title=page_name breadcrumbs=True %}
+{% with title='Google reCAPTCHA' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}

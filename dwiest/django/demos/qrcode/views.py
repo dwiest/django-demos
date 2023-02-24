@@ -7,14 +7,11 @@ from .forms import QrcodeForm
 
 class QrcodeView(FormView, TemplateResponseMixin):
   form_class = QrcodeForm
-  page_name = 'QR Code'
   template_name = "dwiest-django-demos/qrcode/index.html"
   success_url = '.'
 
   def __init__(self, *args, **kwargs):
-    self.response_dict = {
-      'page_name': self.page_name,
-    }
+    self.response_dict = {}
 
     return super(FormView, self).__init__(*args, **kwargs)
 
