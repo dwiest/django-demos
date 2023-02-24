@@ -3,11 +3,17 @@ from django.shortcuts import render
 from django.template.context import RequestContext
 from django.views.generic import FormView
 from django.views.generic.base import TemplateResponseMixin
+from enum import Enum
 from .forms import QrcodeForm
+from ..conf import settings
 
 class QrcodeView(FormView, TemplateResponseMixin):
+
+  class ResponseDict(str, Enum):
+    FORM = 'form'
+
   form_class = QrcodeForm
-  template_name = "dwiest-django-demos/qrcode/index.html"
+  template_name = settings.DEMOS_QRCODE_TEMPLATE
   success_url = '.'
 
   def __init__(self, *args, **kwargs):
@@ -17,13 +23,13 @@ class QrcodeView(FormView, TemplateResponseMixin):
 
   def get(self, request, *args, **kwargs):
     form = QrcodeForm(data=request.GET)
-    self.response_dict['form'] = form
+    self.response_dict[self.ResponseDict.FORM] = form
     return render(request, self.template_name, self.response_dict)
 
 
   def post(self, request, *args, **kwargs):
     form = QrcodeForm(data=request.POST)
-    self.response_dict['form'] = form
+    self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       form.process()
       return render(request, self.template_name, self.response_dict)
