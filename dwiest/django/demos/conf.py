@@ -28,11 +28,11 @@ class DemosAppConf(AppConf):
   GOOGLE_RECAPTCHA_TEMPLATE = 'dwiest-django-demos/grecaptcha/index.html'
 
   ''' One-time password demo settings '''
-  OTP_INITIAL_SECRET_KEY = ''
-  OTP_QRCODE_PROVISIONING_NAME = ''
-  OTP_QRCODE_PROVISIONING_NAME_CLASS = 'provisioning-name'
-  OTP_QRCODE_PROVISIONING_ISSUER = ''
-  OTP_QRCODE_PROVISIONING_ISSUER_CLASS = 'provisioning-issuer'
+  OTP_SECRET_KEY = ''
+  OTP_QRCODE_NAME = ''
+  OTP_QRCODE_NAME_CLASS = 'provisioning-name'
+  OTP_QRCODE_ISSUER = ''
+  OTP_QRCODE_ISSUER_CLASS = 'provisioning-issuer'
   OTP_QRCODE_VERSION = 1
   OTP_QRCODE_ERROR_CORRECTION = constants.ERROR_CORRECT_H
   OTP_QRCODE_BOX_SIZE = 5
@@ -42,6 +42,11 @@ class DemosAppConf(AppConf):
   OTP_QRCODE_FORMAT = 'PNG'
   OTP_SECRET_KEY_CLASS = 'secret-key'
   OTP_TEMPLATE = 'dwiest-django-demos/otp/index.html'
+  OTP_SECRET_KEY_LABEL = 'Secret Key'
+  OTP_SECRET_KEY_LENGTH = 32
+  OTP_NAME_LABEL = 'Name'
+  OTP_ISSUER_LABEL = 'Issuer'
+  OTP_SECRET_KEY_INVALID_ERROR = 'The secret key is invalid, it must be 32 characters long.'
 
   ''' QR code demo settings '''
   QRCODE_TEMPLATE = 'dwiest-django-demos/qrcode/index.html'
