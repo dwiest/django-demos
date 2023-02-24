@@ -2,92 +2,114 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 import base64
+from enum import Enum, auto
 from io import BytesIO
 import pyotp
 import qrcode
 from ..conf import settings
 
 class OtpForm(forms.Form):
+
+  class Fields(str, Enum):
+    ISSUER= 'issuer'
+    NAME = 'name'
+    SECRET_KEY = 'secret_key'
+
+  class Errors(str, Enum):
+    SECRET_KEY_INVALID = auto()
+
+  error_messages = {
+    Errors.SECRET_KEY_INVALID:
+      _(settings.DEMOS_OTP_SECRET_KEY_INVALID_ERROR),
+  }
+
+  form_field_defaults = {
+    Fields.ISSUER: settings.DEMOS_OTP_QRCODE_ISSUER,
+    Fields.NAME: settings.DEMOS_OTP_QRCODE_NAME,
+    Fields.SECRET_KEY: settings.DEMOS_OTP_SECRET_KEY,
+  }
+
   secret_key = forms.CharField(
-    label='Secret Key',
-    min_length="32",
-    max_length="32",
-    initial=settings.DEMOS_OTP_INITIAL_SECRET_KEY,
+    label=settings.DEMOS_OTP_SECRET_KEY_LABEL,
+    min_length=settings.DEMOS_OTP_SECRET_KEY_LENGTH,
+    max_length=settings.DEMOS_OTP_SECRET_KEY_LENGTH,
+    initial=settings.DEMOS_OTP_SECRET_KEY,
     required=False,
-    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_SECRET_KEY_CLASS})
+    widget=forms.TextInput(
+      attrs={
+        'class': settings.DEMOS_OTP_SECRET_KEY_CLASS
+        }
+      )
     )
 
   name = forms.CharField(
-    label='Name',
-    initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_NAME,
+    label=settings.DEMOS_OTP_NAME_LABEL,
+    initial=settings.DEMOS_OTP_QRCODE_NAME,
     required=False,
-    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_QRCODE_PROVISIONING_NAME_CLASS})
+    widget=forms.TextInput(
+      attrs={
+        'class': settings.DEMOS_OTP_QRCODE_NAME_CLASS
+        }
+      )
     )
 
-  issuer_name = forms.CharField(
-    label='Issuer',
-    initial=settings.DEMOS_OTP_QRCODE_PROVISIONING_ISSUER,
+  issuer = forms.CharField(
+    label=settings.DEMOS_OTP_ISSUER_LABEL,
+    initial=settings.DEMOS_OTP_QRCODE_ISSUER,
     required=False,
-    widget=forms.TextInput(attrs={'class': settings.DEMOS_OTP_QRCODE_PROVISIONING_ISSUER_CLASS})
+    widget=forms.TextInput(
+      attrs={
+        'class': settings.DEMOS_OTP_QRCODE_ISSUER_CLASS
+        }
+      )
     )
-
-  error_messages = {
-    'invalid_secret_key':
-      _('The secret key is invalid, it must be 32 characters long.')
-  }
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
 
-    if 'data' not in kwargs: # form not bound
-      secret_key = self.fields['secret_key'].initial
+    if 'data' in kwargs: # form is bound
+      new_data = kwargs['data'].copy() # can't modify form data
 
-      if not secret_key:
-        secret_key = OtpForm.get_secret_key()
-        self.fields['secret_key'].initial = secret_key
+      for field, default_value in self.form_field_defaults.items():
+        if field in kwargs['data']:
+          self.fields[field].initial = kwargs['data'][field]
+        else:
+          self.fields[field].initial = default_value
+          new_data[field] = default_value
 
-      self.secret_key = secret_key
-      self.otp = OtpForm.get_otp(secret_key)
+      # auto-generate a secret key if one is not set
+      if not self.fields[self.Fields.SECRET_KEY].initial:
+        new_data[self.Fields.SECRET_KEY] = OtpForm.get_secret_key()
 
-      self.provisioning_uri = OtpForm.get_provisioning_uri(
-        self.secret_key,
-        self.fields['name'].initial,
-        self.fields['issuer_name'].initial)
-
-      self.qrcode = OtpForm.get_qrcode(self.provisioning_uri)
+      self.data = new_data
 
   def clean_secret_key(self):
+    secret_key = self.cleaned_data[self.Fields.SECRET_KEY]
 
-    if not self.cleaned_data['secret_key']:
-      secret_key = OtpForm.get_secret_key()
-      new_data = self.data.copy()
-      new_data['secret_key'] = secret_key
-      self.data = new_data
+    if len(secret_key) != settings.DEMOS_OTP_SECRET_KEY_LENGTH:
+        raise OtpForm.get_invalid_secret_key_error()
+    else:
       return secret_key
 
-    elif len(self.cleaned_data['secret_key']) != 32:
-        raise OtpForm.get_invalid_secret_key_error()
-
-    else:
-      return self.cleaned_data['secret_key']
-
   def process(self):
-    self.secret_key = self.cleaned_data['secret_key']
-    name = self.cleaned_data['name']
-    issuer_name = self.cleaned_data['issuer_name']
-    self.otp = OtpForm.get_otp(self.secret_key)
-    self.provisioning_uri = OtpForm.get_provisioning_uri(self.secret_key, name, issuer_name)
-    self.qrcode = OtpForm.get_qrcode(self.provisioning_uri)
+    self.otp = OtpForm.get_otp(self.cleaned_data[self.Fields.SECRET_KEY])
+
+    provisioning_uri = OtpForm.get_provisioning_uri(
+      self.cleaned_data[self.Fields.SECRET_KEY],
+      self.cleaned_data[self.Fields.NAME],
+      self.cleaned_data[self.Fields.ISSUER])
+
+    self.qrcode = OtpForm.get_qrcode(provisioning_uri)
 
   @classmethod
   def get_invalid_secret_key_error(cls):
     return ValidationError(
-      cls.error_messages['invalid_secret_key'],
-      code = 'invalid_secret_key')
+      cls.error_messages[cls.Errors.SECRET_KEY_INVALID],
+      code = cls.Errors.SECRET_KEY_INVALID)
 
   @classmethod
-  def get_provisioning_uri(cls, secret_key, name, issuer_name):
-    return pyotp.TOTP(secret_key).provisioning_uri(name=name, issuer_name=issuer_name)
+  def get_provisioning_uri(cls, secret_key, name, issuer):
+    return pyotp.TOTP(secret_key).provisioning_uri(name=name, issuer_name=issuer)
 
   @classmethod
   def get_secret_key(cls):
