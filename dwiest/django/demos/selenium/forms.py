@@ -81,29 +81,21 @@ class SeleniumForm(forms.Form):
       chrome_options=options,
       )
 
+    form_field_defaults = {
+      self.Fields.URL: settings.DEMOS_SELENIUM_INITIAL_URL,
+      self.Fields.WIDTH: settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL,
+      self.Fields.HEIGHT: settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL,
+    }
+
     if 'data' in kwargs: # form is bound
       new_data = kwargs['data'].copy() # can't modify form data
 
-      if self.Fields.URL in kwargs['data']:
-        self.fields[self.Fields.URL].initial = kwargs['data'][self.Fields.URL]
-
-      else:
-        self.fields[self.Fields.URL].initial = settings.DEMOS_SELENIUM_INITIAL_URL
-        new_data[self.Fields.URL] = self.fields[self.Fields.URL].initial
-
-      if self.Fields.WIDTH in kwargs['data']:
-        self.fields[self.Fields.WIDTH].initial = kwargs['data'][self.Fields.WIDTH]
-
-      else:
-        self.fields[self.Fields.WIDTH].initial = settings.DEMOS_SELENIUM_IMAGE_WIDTH_INITIAL
-        new_data[self.Fields.WIDTH] = self.fields[self.Fields.WIDTH].initial
-
-      if self.Fields.HEIGHT in kwargs['data']:
-        self.fields[self.Fields.HEIGHT].initial = kwargs['data'][self.Fields.HEIGHT]
-
-      else:
-        self.fields[self.Fields.HEIGHT].initial = settings.DEMOS_SELENIUM_IMAGE_HEIGHT_INITIAL
-        new_data[self.Fields.HEIGHT] = self.fields[self.Fields.HEIGHT].initial
+      for field, default_value in form_field_defaults.items():
+        if field in kwargs['data']:
+          self.fields[field].initial = kwargs['data'][field]
+        else:
+          self.fields[field].initial = default_value
+          new_data[field] = default_value
 
       self.data = new_data
 
