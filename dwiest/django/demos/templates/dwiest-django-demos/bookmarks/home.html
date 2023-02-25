@@ -1,0 +1,65 @@
+<Html>
+
+<Head>
+  <Title>Bookmarks</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div class="filler"></Div>
+
+{% block header %}
+{% with title='Bookmarks' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+
+{% if bookmarks %}
+<Ol>
+{% for bookmark in bookmarks %}
+<Li><A href="{{bookmark.url}}">{{bookmark.url}}</A></Li>
+{% endfor %}
+</Ol>
+{% endif %}
+
+<Div class="filler"></Div>
+
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+<Div class="error" align="center">{{error}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error" align="center">{{error}}</Div>
+  {% endfor %}
+{% endfor %}
+</P>
+{% endif %}
+
+<Div class="filler"></Div>
+
+<Form class="bookmarks" method="post" action="{% url 'demos:bookmarks:add' %}">
+{% csrf_token %}
+  <Table class="bookmarks">
+    <Tr>
+      <Th>{{form.url.label}}:</Th>
+      <Td>{{form.url}}</Td>
+      </Tr>
+    </Table>
+    <Div align="center"><Input class="bookmarks-button" type="submit" name="submit" value="Add Bookmark"></Input></Div>
+</Form>
+
+{% footer %}
+</Body>
+</Html>
