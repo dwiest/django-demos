@@ -12,6 +12,12 @@ class DemosAppConf(AppConf):
   ''' Django page template settings '''
   PAGE_FOOTER = None
 
+  ''' Booksmarks demo settings '''
+  BOOKMARKS_URL_DEFAULT = None
+  BOOKMARKS_URL_LABEL = 'URL'
+  BOOKMARKS_URL_CLASS = 'url'
+  BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
+
   ''' File demo settings '''
 
   FILE_UPLOAD_DIR = '/tmp'
