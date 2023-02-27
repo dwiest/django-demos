@@ -13,10 +13,20 @@ class DemosAppConf(AppConf):
   PAGE_FOOTER = None
 
   ''' Booksmarks demo settings '''
+  BOOKMARKS_ARTICLE_DATE_CLASS = 'article-date'
+  BOOKMARKS_BOOKMARK_TEMPLATE = 'dwiest-django-demos/bookmarks/bookmark.html'
+  BOOKMARKS_CREATED_AT_CLASS = 'created-at'
+  BOOKMARKS_CREATED_AT_LABEL = 'Created'
+  BOOKMARKS_DESCRIPTION_CLASS = 'description'
+  BOOKMARKS_DESCRIPTION_LABEL = 'Description'
+  BOOKMARKS_LAST_MODIFIED_CLASS = 'last-modified'
+  BOOKMARKS_LAST_MODIFIED_LABEL = 'Last Modified'
+  BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
+  BOOKMARKS_TITLE_CLASS = 'title'
+  BOOKMARKS_TITLE_LABEL = 'Title'
   BOOKMARKS_URL_DEFAULT = None
   BOOKMARKS_URL_LABEL = 'URL'
   BOOKMARKS_URL_CLASS = 'url'
-  BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
 
   ''' File demo settings '''
 
