@@ -22,7 +22,7 @@
 {% if bookmarks %}
 <Ol>
 {% for bookmark in bookmarks %}
-<Li><A href="{{bookmark.url}}">{{bookmark.url}}</A></Li>
+<Li><A href="{{bookmark.url}}" target="_">{{bookmark.title|default:bookmark.url}}</A> <A class="edit" href="{% url 'demos:bookmarks:bookmark' %}?id={{bookmark.id}}">edit</A></Li>
 {% endfor %}
 </Ol>
 {% endif %}
