@@ -1,7 +1,44 @@
 <Style>
-form.bookmarks {
-  padding-top: 10px;
-}
+li a {
+  text-decoration: none;
+  color: black;
+  }
+
+li a:hover {
+  background: lightgray;
+  }
+
+li a.edit {
+  text-decoration: none;
+  color: white;
+  background: white;
+  }
+
+li a.edit:hover {
+  background: lightgray;
+  color: black;
+  }
+
+form.bookmark {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  background: lightgray;
+  }
+
+form.bookmark td {
+  width: 100%;
+  }
+
+form.bookmark input.title {
+  color: red;
+  width: 100%;
+  }
+
+form.bookmark input.url{
+  color: black;
+  width: 100%;
+  }
 
 @media only screen and (max-width: 600px) {
 }
