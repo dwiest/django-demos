@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BookmarksView, AddBookmarkView
+from .views import *
 
 app_name = 'bookmarks'
 
@@ -7,5 +7,7 @@ urlpatterns = [
   path('',
     BookmarksView.as_view(), name='home'),
   path('add',
-    AddBookmarkView.as_view(), name='add'),
+    QuickAddBookmarkView.as_view(), name='add'),
+  path('bookmark',
+    BookmarkView.as_view(), name='bookmark'),
 ]
