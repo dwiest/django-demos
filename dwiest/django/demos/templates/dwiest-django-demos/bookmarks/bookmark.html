@@ -1,0 +1,84 @@
+<Html>
+
+<Head>
+  <Title>Add/Edit Bookmark</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div class="filler"></Div>
+
+{% block header %}
+{% with title='Add/Edit Bookmark' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+
+<Div class="filler"></Div>
+
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+<Div class="error" align="center">{{error}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error" align="center">{{error}}</Div>
+  {% endfor %}
+{% endfor %}
+</P>
+{% endif %}
+
+<Div class="filler"></Div>
+
+<Form class="bookmark" method="post" action="{% url 'demos:bookmarks:bookmark' %}">
+{% csrf_token %}
+  <Input type="hidden" name="id" value="{{form.instance.id}}"/>
+  <Table>
+    <Tr>
+      <Th>{{form.title.label}}:</Th>
+      <Td>{{form.title}}</Td>
+      </Tr>
+    <Tr>
+      <Th>{{form.url.label}}:</Th>
+      <Td>{{form.url}} <A href="{{form.url.value}}" target="_">open</A></Td>
+      </Tr>
+    <Tr>
+      <Th>{{form.description.label}}:</Th>
+      <Td>{{form.description}}</Td>
+      </Tr>
+    <Tr>
+      <Th>{{form.article_date.label}}:</Th>
+      <Td>{{form.article_date}}</Td>
+      </Tr>
+    <Tr>
+      <Th>Created{{form.created_at.label}}:</Th>
+      <Td>{{form.instance.created_at}}</Td>
+      </Tr>
+    <Tr>
+      <Th>Last Modified{{form.last_modified.label}}:</Th>
+      <Td>{{form.instance.last_modified}}</Td>
+      </Tr>
+    </Table>
+    <Div align="center"><Input class="bookmark-button" type="submit" name="submit" value="Add/Edit Bookmark"></Input></Div>
+</Form>
+
+<Div class="filler"></Div>
+
+<A href="{% url 'demos:bookmarks:home' %}" style="text-align:center">Back To Bookmarks</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>
