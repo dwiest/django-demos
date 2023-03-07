@@ -3,6 +3,9 @@ from django.db import models
 
 
 class Bookmark(models.Model):
+  class Meta:
+    ordering = ['-article_date']
+
   owner = models.ForeignKey(
     User,
     on_delete=models.PROTECT,
@@ -33,6 +36,15 @@ class Bookmark(models.Model):
     editable=False,
     )
 
+  '''
+    article_date should be a DateField, but this causes problems
+    with SQLite as a backend since the value it returns includes a time.
+
+    return Database.Cursor.execute(self, query, params)
+      File "/usr/lib64/python3.7/sqlite3/dbapi2.py", line 64, in convert_date
+          return datetime.date(*map(int, val.split(b"-")))
+          ValueError: invalid literal for int() with base 10: b'05 00:00:00'
+  '''
   article_date = models.DateTimeField(
     blank=True,
     null=True,
