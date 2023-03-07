@@ -37,7 +37,88 @@ form.bookmark input.title {
 
 form.bookmark input.url{
   color: black;
-  width: 100%;
+  width: 70vw;
+  }
+
+form.bookmarks {
+  margin-left: auto;
+  margin-right: auto;
+  width: 98vw;
+  Xbackground: lightgray;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  }
+
+table.bookmarks {
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+table.bookmarks tr {
+  Xpadding-bottom: 10px;
+  }
+
+table.bookmarks td {
+  Xbackground: darkgray;
+  }
+
+form.bookmarks input.url {
+  background: lightblue;
+  width: 60vw;
+  }
+
+form.bookmarks input.button {
+  background: white;
+  margin-right: 5px;
+  }
+
+form.bookmarks input.date {
+  background: white;
+  margin-right: 5px;
+  }
+
+div.pagination {
+  color: blue;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+div.undated {
+  text-align: left;
+  color: orange;
+  font-size: 16pt;
+  margin-top: 20px;
+  }
+
+div.year {
+  text-align: center;
+  color: red;
+  font-size: 32pt;
+  }
+
+div.month {
+  text-align: center;
+  color: green;
+  background: lightgray;
+  font-size: 24pt;
+  Xmargin-left: auto;
+  Xmargin-right: auto;
+  }
+
+div.day {
+  text-align: left;
+  color: black;
+  font-size: 16pt;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  }
+
+.new-week {
+  text-align: left;
+  width = 80%;
+  color: red;
   }
 
 @media only screen and (max-width: 600px) {
