@@ -1,0 +1,10 @@
+<Form class="bookmarks" method="post" action="{% url 'demos:bookmarks:add' %}">
+{% csrf_token %}
+  <Table class="bookmarks">
+    <Tr>
+      <Th><Input class="button" type="submit" name="submit" value="Add Bookmark"></Input></Th>
+      <Td>{{form.date}}</Td>
+      <Td>{{form.url}}</Td>
+      </Tr>
+    </Table>
+</Form>

@@ -1,3 +1,4 @@
+<!doctype html>
 <Html>
 
 <Head>
@@ -11,54 +12,58 @@
 
 <Body>
 
-<Div class="filler"></Div>
-
 {% block header %}
 {% with title='Bookmarks' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
 
-{% if bookmarks %}
-<Ol>
-{% for bookmark in bookmarks %}
-<Li><A href="{{bookmark.url}}" target="_">{{bookmark.title|default:bookmark.url}}</A> <A class="edit" href="{% url 'demos:bookmarks:bookmark' %}?id={{bookmark.id}}">edit</A></Li>
-{% endfor %}
-</Ol>
-{% endif %}
-
-<Div class="filler"></Div>
-
-{% if form.non_field_errors %}
-<P>
-{% for error in form.non_field_errors %}
-<Div class="error" align="center">{{error}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.errors %}
-<P>
-{% for field in form %}
-  {% for error in field.errors %}
-<Div class="error" align="center">{{error}}</Div>
-  {% endfor %}
-{% endfor %}
-</P>
-{% endif %}
-
-<Div class="filler"></Div>
-
-<Form class="bookmarks" method="post" action="{% url 'demos:bookmarks:add' %}">
-{% csrf_token %}
-  <Table class="bookmarks">
-    <Tr>
-      <Th>{{form.url.label}}:</Th>
-      <Td>{{form.url}}</Td>
+<Div align="right">
+<Form action="{% url 'demos:bookmarks:home' %}" method="GET">
+<Table>
+  <Tr>
+    <Th><Input type="submit" value="Filter:"/></Th>
+    <Td>
+      {% for choice in filter.filter %}
+      {{choice.tag}}{{choice.choice_label}}</Input>
+      {% if choice.tag == 'date' %}
+        <Select name="month">
+          <Option value="">-</Option>
+	  <Option value="1">January</Option>
+	  <Option value="2">February</Option>
+	  <Option value="3">March</Option>
+	  <Option value="4">April</Option>
+	  <Option value="5">May</Option>
+	  <Option value="6">June</Option>
+	  <Option value="7">July</Option>
+	  <Option value="8">August</Option>
+	  <Option value="9">September</Option>
+	  <Option value="10">October</Option>
+	  <Option value="11">November</Option>
+	  <Option value="12">December</Option>
+	  </Select>
+        <Select name="year">
+          <Option value="2023">2023</Option>
+	  <Option value="2022">2022</Option>
+	  </Select>
+      {% endif %}
+      </Br>
+      {% endfor %}
+      </Td>
       </Tr>
     </Table>
-    <Div align="center"><Input class="bookmarks-button" type="submit" name="submit" value="Add Bookmark"></Input></Div>
 </Form>
+</Div>
+
+{% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/bookmarks.html' %}
+
+<Div class="filler"></Div>
+
+{% include 'dwiest-django-demos/bookmarks/paginator.html' %}
 
 {% footer %}
 </Body>
