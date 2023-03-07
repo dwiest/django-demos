@@ -1,36 +1,106 @@
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, reverse
 from django.template.context import RequestContext
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, ListView
 from django.views.generic.base import TemplateResponseMixin
 from enum import Enum
 from .forms import *
 from .models import Bookmark
 from ..conf import settings
 
-class BookmarksView(TemplateView):
+class BookmarksView(ListView):
 
   class ResponseDict(str, Enum):
     BOOKMARKS = 'bookmarks'
+    FILTER = 'filter'
     FORM = 'form'
+    DAYS = 'days'
+    MONTHS = 'months'
+    YEARS = 'years'
 
   form_class = QuickBookmarkForm
+  paginate_by = 40
   template_name = settings.DEMOS_BOOKMARKS_TEMPLATE
 
-  def __init__(self, *args, **kwargs):
-    self.response_dict = {}
-    return super(TemplateView, self).__init__(*args, **kwargs)
+#  def __init__(self, *args, **kwargs):
+#    self.response_dict = {}
+#    return super(TemplateView, self).__init__(*args, **kwargs)
 
-  def get(self, request, *args, **kwargs):
-    form = self.form_class()
-    if request.user and request.user.id:
-      bookmarks = Bookmark.objects.filter(owner=request.user)
+  def setup(self, request, *args, **kwargs):
+    super().setup(request, *args, **kwargs)
+
+    if request.user.id:
+      self.user = request.user
     else:
-      bookmarks = Bookmark.objects.filter(owner=None)
-    self.response_dict[self.ResponseDict.BOOKMARKS] = bookmarks
-    self.response_dict[self.ResponseDict.FORM] = form 
-    return render(request, self.template_name, self.response_dict)
+      self.user = None
+
+
+    if request.session.get('bookmarks_filter'):
+      print("filter present")
+      if request.GET.get('filter'):
+        bff = BookmarkFilterForm(data=request.GET)
+      else:
+        f = request.session['bookmarks_filter']
+        new_data = request.GET.copy()
+        new_data['filter'] = f
+        bff = BookmarkFilterForm(data=new_data)
+    else:
+      bff = BookmarkFilterForm(data=request.GET)
+
+    self.filter = bff
+
+    if self.filter.is_valid():
+      filter = self.filter.cleaned_data['filter']
+      print(filter)
+      if filter == 'undated':
+        self.filter_q = Q(article_date=None)
+        request.session['bookmarks_filter'] = 'undated'
+
+      elif filter == 'untitled':
+        self.filter_q = Q(title='')
+        request.session['bookmarks_filter'] = 'untitled'
+
+      elif filter == 'date':
+        print("{}, {}".format(request.GET.get('month'), request.GET.get('year')))
+        request.session['bookmarks_filter'] = 'date'
+
+      elif filter == 'none':
+        request.session['bookmarks_filter'] = 'none'
+
+  def get_template_names(self):
+    return [self.template_name]
+
+  def get_queryset(self):
+    if self.user:
+      owner_q = Q(owner=self.user)
+    else:
+      owner_q = Q(owner=self.none)
+
+    if hasattr(self, 'filter_q'):
+      return Bookmark.objects.filter(owner_q, self.filter_q)
+    else:
+      return Bookmark.objects.filter(owner_q)
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context[self.ResponseDict.FORM] = self.form_class()
+    context[self.ResponseDict.BOOKMARKS] = self.get_queryset()
+    context[self.ResponseDict.FILTER] = self.filter
+
+    return context
+
+
+#  def get(self, request, *args, **kwargs):
+#    form = self.form_class()
+#    if request.user and request.user.id:
+#      bookmarks = Bookmark.objects.filter(owner=request.user)
+#    else:
+#      bookmarks = Bookmark.objects.filter(owner=None)
+#    self.response_dict[self.ResponseDict.BOOKMARKS] = bookmarks
+#    self.response_dict[self.ResponseDict.FORM] = form
+#    return render(request, self.template_name, self.response_dict)
 
 
 class QuickAddBookmarkView(FormView, TemplateResponseMixin):
@@ -45,7 +115,10 @@ class QuickAddBookmarkView(FormView, TemplateResponseMixin):
     return super(FormView, self).__init__(*args, **kwargs)
 
   def post(self, request, *args, **kwargs):
-    form = self.form_class(data=request.POST)
+    if request.user and request.user.id:
+      form = self.form_class(owner=request.user, data=request.POST)
+    else:
+      form = self.form_class(owner=None, data=request.POST)
     self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       form.process()
