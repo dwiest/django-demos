@@ -46,6 +46,9 @@ class BookmarksView(ListView):
         f = request.session['bookmarks_filter']
         new_data = request.GET.copy()
         new_data['filter'] = f
+        if f == 'date':
+          new_data['month'] = request.session.get('bookmarks_filter_month')
+          new_data['year'] = request.session.get('bookmarks_filter_year')
         bff = BookmarkFilterForm(data=new_data)
     else:
       bff = BookmarkFilterForm(data=request.GET)
@@ -55,6 +58,7 @@ class BookmarksView(ListView):
     if self.filter.is_valid():
       filter = self.filter.cleaned_data['filter']
       print(filter)
+
       if filter == 'undated':
         self.filter_q = Q(article_date=None)
         request.session['bookmarks_filter'] = 'undated'
@@ -64,18 +68,24 @@ class BookmarksView(ListView):
         request.session['bookmarks_filter'] = 'untitled'
 
       elif filter == 'date':
-        month = request.GET.get('month')
-        year = request.GET.get('year')
-        if month:
+        month = self.filter.cleaned_data['month']
+        year = self.filter.cleaned_data['year']
+        request.session['bookmarks_filter_month'] = month
+        request.session['bookmarks_filter_year'] = year
+
+        if month and int(month) > 0:
           start_dt = datetime(int(year), int(month), 1)
           if month == 12:
             end_dt = datetime(int(year) + 1, 1, 1)
           else:
             end_dt = datetime(int(year), int(month) + 1, 1)
+
         else:
           start_dt = datetime(int(year), 1, 1)
           end_dt = datetime(int(year) + 1, 1, 1)
+
         self.filter_q = Q(article_date__gte=start_dt) & Q(article_date__lt=end_dt)
+
         request.session['bookmarks_filter'] = 'date'
 
       elif filter == 'none':
