@@ -25,8 +25,8 @@
     <Th><Input type="submit" value="Filter:"/></Th>
     <Td>
       {% for choice in filter.filter %}
-      {{choice.tag}}{{choice.choice_label}}</Input>
-      {% if choice.tag == 'date' %}
+      {{choice.tag}}</Input>
+      {% if choice.choice_label == 'date' %}
         <Select name="month">
           <Option value="">-</Option>
 	  <Option value="1">January</Option>
@@ -46,6 +46,8 @@
           <Option value="2023">2023</Option>
 	  <Option value="2022">2022</Option>
 	  </Select>
+      {% else %}
+      {{choice.choice_label}}
       {% endif %}
       </Br>
       {% endfor %}
