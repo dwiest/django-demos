@@ -6,6 +6,7 @@ from django.template.context import RequestContext
 from django.views.generic import FormView, TemplateView, ListView
 from django.views.generic.base import TemplateResponseMixin
 from enum import Enum
+from datetime import datetime
 from .forms import *
 from .models import Bookmark
 from ..conf import settings
@@ -63,7 +64,18 @@ class BookmarksView(ListView):
         request.session['bookmarks_filter'] = 'untitled'
 
       elif filter == 'date':
-        print("{}, {}".format(request.GET.get('month'), request.GET.get('year')))
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        if month:
+          start_dt = datetime(int(year), int(month), 1)
+          if month == 12:
+            end_dt = datetime(int(year) + 1, 1, 1)
+          else:
+            end_dt = datetime(int(year), int(month) + 1, 1)
+        else:
+          start_dt = datetime(int(year), 1, 1)
+          end_dt = datetime(int(year) + 1, 1, 1)
+        self.filter_q = Q(article_date__gte=start_dt) & Q(article_date__lt=end_dt)
         request.session['bookmarks_filter'] = 'date'
 
       elif filter == 'none':
