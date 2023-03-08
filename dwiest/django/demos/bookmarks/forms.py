@@ -1,5 +1,6 @@
 from datetime import date
 from django import forms
+from django.db import connection
 from django.forms import widgets
 from enum import Enum
 from ..conf import settings
@@ -181,18 +182,22 @@ class BookmarkFilterForm(forms.Form):
     label=None,
     initial=None,
     required=False,
-    widget=widgets.Select(
-      choices=[
-        (2023, '2023'),
-        (2022, '2022'),
-        ]
-      ),
     )
 
   def __init__(self, filter=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     if filter:
       print("filter is {}".format(filter))
+
+    with connection.cursor() as cursor:
+      cursor.execute("select distinct strftime('%Y',article_date) as year from demos_bookmark where article_date is not null order by year desc;")
+      rows = cursor.fetchall()
+      print(rows)
+      years = []
+      for row in rows:
+        years.append((int(row[0]),row[0]))
+      print(years)
+      self.fields['year'].widget = widgets.Select(choices=years)
 
    # url = self.fields[self.Fields.URL].initial
 
