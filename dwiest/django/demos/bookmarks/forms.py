@@ -154,14 +154,45 @@ class BookmarkFilterForm(forms.Form):
       ),
     )
 
+  month = forms.IntegerField(
+    label=None,
+    initial=None,
+    required=False,
+    widget=widgets.Select(
+      choices=[
+        (0, '-'),
+        (1, 'January'),
+        (2, 'February'),
+        (3, 'March'),
+        (4, 'April'),
+        (5, 'May'),
+        (6, 'June'),
+        (7, 'July'),
+        (8, 'August'),
+        (9, 'September'),
+        (10, 'October'),
+        (11, 'November'),
+        (12, 'December'),
+        ],
+      ),
+    )
+
+  year = forms.IntegerField(
+    label=None,
+    initial=None,
+    required=False,
+    widget=widgets.Select(
+      choices=[
+        (2023, '2023'),
+        (2022, '2022'),
+        ]
+      ),
+    )
+
   def __init__(self, filter=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    self.fields['filter'].initial = 'date'
-    self.fields['filter'].value = 'date'
     if filter:
       print("filter is {}".format(filter))
-    print("initial {}".format(self.fields['filter'].initial))
-    print("value {}".format(self.fields['filter'].value))
 
    # url = self.fields[self.Fields.URL].initial
 
