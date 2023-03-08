@@ -146,7 +146,7 @@ class BookmarkFilterForm(forms.Form):
         ('none', 'None'),
         ('undated', 'Undated'),
         ('untitled', 'Untitled'),
-        ('date', '')
+        ('date', 'date')
         ],
       attrs={
         'class': None,
