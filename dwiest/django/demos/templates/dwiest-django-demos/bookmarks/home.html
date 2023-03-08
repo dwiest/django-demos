@@ -27,25 +27,8 @@
       {% for choice in filter.filter %}
       {{choice.tag}}</Input>
       {% if choice.choice_label == 'date' %}
-        <Select name="month">
-          <Option value="">-</Option>
-	  <Option value="1">January</Option>
-	  <Option value="2">February</Option>
-	  <Option value="3">March</Option>
-	  <Option value="4">April</Option>
-	  <Option value="5">May</Option>
-	  <Option value="6">June</Option>
-	  <Option value="7">July</Option>
-	  <Option value="8">August</Option>
-	  <Option value="9">September</Option>
-	  <Option value="10">October</Option>
-	  <Option value="11">November</Option>
-	  <Option value="12">December</Option>
-	  </Select>
-        <Select name="year">
-          <Option value="2023">2023</Option>
-	  <Option value="2022">2022</Option>
-	  </Select>
+        {{filter.month}}
+	{{filter.year}}
       {% else %}
       {{choice.choice_label}}
       {% endif %}
