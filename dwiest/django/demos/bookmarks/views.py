@@ -38,12 +38,26 @@ class BookmarksView(ListView):
     else:
       self.user = None
 
-    if request.GET.get('term'):
-      self.search = BookmarkSearchForm(owner=self.user, data=request.GET)
+    term = request.GET.get('term')
+    if term:
+      print("term was specified")
+      self.search = BookmarkSearchForm(data=request.GET)
+      if self.search.is_valid():
+        self.search_q = self.search.getQ()
+        request.session['bookmarks_search'] = self.search.cleaned_data.get('term')
+    elif term == None and request.session.get('bookmarks_search'):
+      print("term was retrieved from session")
+      term = request.session['bookmarks_search']
+      new_data = request.GET.copy()
+      new_data['term'] = term
+      self.search = BookmarkSearchForm(data=new_data)
       if self.search.is_valid():
         self.search_q = self.search.getQ()
     else:
-      self.search = BookmarkSearchForm(owner=self.user)
+      print("removing bookmarks_search")
+      request.session.delete('bookmarks_search')
+      request.session.modified = True
+      self.search = BookmarkSearchForm()
 
     if request.session.get('bookmarks_filter'):
       print("filter present")
