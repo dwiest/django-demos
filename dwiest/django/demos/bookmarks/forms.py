@@ -1,6 +1,7 @@
 from datetime import date
 from django import forms
 from django.db import connection
+from django.db.models import Q
 from django.forms import widgets
 from enum import Enum
 from ..conf import settings
@@ -211,3 +212,34 @@ class BookmarkFilterForm(forms.Form):
 
   def process(self):
     pass
+
+
+class BookmarkSearchForm(forms.Form):
+
+  class Fields(str, Enum):
+    TERM = 'term'
+
+  class Errors(str, Enum):
+    pass
+
+  error_messages = {}
+
+  field_defaults = {
+    Fields.TERM: None,
+  }
+
+  term = forms.CharField(
+    label=None,
+    initial=None,
+    required=False,
+    widget=forms.TextInput(
+      attrs={
+        'class': None,
+        }
+      ),
+    )
+
+  def getQ(self):
+    return Q(
+      title__contains=self.cleaned_data.get('term'),
+      )
