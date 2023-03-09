@@ -19,6 +19,7 @@ class BookmarksView(ListView):
     FORM = 'form'
     DAYS = 'days'
     MONTHS = 'months'
+    SEARCH = 'search'
     YEARS = 'years'
 
   form_class = QuickBookmarkForm
@@ -37,6 +38,12 @@ class BookmarksView(ListView):
     else:
       self.user = None
 
+    if request.GET.get('term'):
+      self.search = BookmarkSearchForm(owner=self.user, data=request.GET)
+      if self.search.is_valid():
+        self.search_q = self.search.getQ()
+    else:
+      self.search = BookmarkSearchForm(owner=self.user)
 
     if request.session.get('bookmarks_filter'):
       print("filter present")
@@ -100,16 +107,22 @@ class BookmarksView(ListView):
     else:
       owner_q = Q(owner=self.none)
 
+    bookmarks = Bookmark.objects.filter(owner_q)
+
+    if hasattr(self, 'search_q'):
+      bookmarks = bookmarks.filter(self.search_q)
+
     if hasattr(self, 'filter_q'):
-      return Bookmark.objects.filter(owner_q, self.filter_q)
-    else:
-      return Bookmark.objects.filter(owner_q)
+      bookmarks = bookmarks.filter(self.filter_q)
+
+    return bookmarks
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context[self.ResponseDict.FORM] = self.form_class()
     context[self.ResponseDict.BOOKMARKS] = self.get_queryset()
     context[self.ResponseDict.FILTER] = self.filter
+    context[self.ResponseDict.SEARCH] = self.search
 
     return context
 
