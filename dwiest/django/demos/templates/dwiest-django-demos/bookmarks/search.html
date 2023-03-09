@@ -1,0 +1,8 @@
+<Form class="search" method="GET" action="{% url 'demos:bookmarks:home' %}">
+  <Table class="search">
+    <Tr>
+      <Th><Input class="button" type="submit" value="Search"></Input></Th>
+      <Td>{{search.term}}</Td>
+      </Tr>
+    </Table>
+</Form>
