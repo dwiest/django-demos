@@ -1,0 +1,7 @@
+{% if messages %}
+<P>
+{% for message in messages %}
+  <Div class="{{message.tags}}">{{message}}</Div>
+{% endfor %}
+</P>
+{% endif %}
