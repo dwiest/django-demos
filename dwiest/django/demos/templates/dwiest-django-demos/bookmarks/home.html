@@ -18,27 +18,9 @@
 {% endwith %}
 {% endblock %}
 
-<Div align="right">
-<Form action="{% url 'demos:bookmarks:home' %}" method="GET">
-<Table>
-  <Tr>
-    <Th><Input type="submit" value="Filter:"/></Th>
-    <Td>
-      {% for choice in filter.filter %}
-      {{choice.tag}}</Input>
-      {% if choice.choice_label == 'date' %}
-        {{filter.month}}
-	{{filter.year}}
-      {% else %}
-      {{choice.choice_label}}
-      {% endif %}
-      </Br>
-      {% endfor %}
-      </Td>
-      </Tr>
-    </Table>
-</Form>
-</Div>
+{% include 'dwiest-django-demos/bookmarks/filter.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
 
 {% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
 
