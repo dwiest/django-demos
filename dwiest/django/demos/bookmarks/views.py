@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, reverse
@@ -38,6 +39,9 @@ class BookmarksView(ListView):
     else:
       self.user = None
 
+    # quick add failed
+    self.url = request.GET.get('url')
+
     term = request.GET.get('term')
     if term:
       print("term was specified")
@@ -53,10 +57,11 @@ class BookmarksView(ListView):
       self.search = BookmarkSearchForm(data=new_data)
       if self.search.is_valid():
         self.search_q = self.search.getQ()
-    else:
+    elif request.session.get('bookmarks_search'):
       print("removing bookmarks_search")
-      request.session.delete('bookmarks_search')
-      request.session.modified = True
+      del request.session['bookmarks_search']
+      self.search = BookmarkSearchForm()
+    else:
       self.search = BookmarkSearchForm()
 
     if request.session.get('bookmarks_filter'):
@@ -133,7 +138,10 @@ class BookmarksView(ListView):
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
-    context[self.ResponseDict.FORM] = self.form_class()
+    if self.url:
+      context[self.ResponseDict.FORM] = self.form_class(data={'url':self.url})
+    else:
+      context[self.ResponseDict.FORM] = self.form_class()
     context[self.ResponseDict.BOOKMARKS] = self.get_queryset()
     context[self.ResponseDict.FILTER] = self.filter
     context[self.ResponseDict.SEARCH] = self.search
@@ -171,7 +179,13 @@ class QuickAddBookmarkView(FormView, TemplateResponseMixin):
     self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       form.process()
-      form.save()
+      try:
+        form.save()
+      except ValidationError as e:
+        messages.error(request, e.message)
+       # return render(request, BookmarksView.template_name, self.response_dict)
+        return HttpResponseRedirect(reverse('demos:bookmarks:home') + '?url={}'.format(form.cleaned_data['url']))
+
     return HttpResponseRedirect(reverse('demos:bookmarks:home'))
 
 
