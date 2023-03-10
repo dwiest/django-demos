@@ -1,8 +1,11 @@
 <Form class="search" method="GET" action="{% url 'demos:bookmarks:home' %}">
-  <Table class="search">
-    <Tr>
-      <Th><Input class="button" type="submit" value="Search"></Input></Th>
-      <Td>{{search.term}}</Td>
-      </Tr>
-    </Table>
+<Div>
+     <Span>
+      <Input class="button" type="submit" value="Search"></Input>
+      {{search.term}}
+     </Span>
+      {% for choice in search.field %}
+        <Span>{{choice.tag}} {{choice.choice_label}}</Span>
+      {% endfor %}
+</Div>
 </Form>
