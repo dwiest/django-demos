@@ -1,9 +1,10 @@
 from datetime import date
 from django import forms
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.db.models import Q
 from django.forms import widgets
-from enum import Enum
+from django.utils.translation import ugettext, ugettext_lazy as _
+from enum import Enum, auto
 from ..conf import settings
 from .models import Bookmark
 from datetime import date
@@ -19,9 +20,12 @@ class QuickBookmarkForm(forms.Form):
     URL = 'url'
 
   class Errors(str, Enum):
-    pass
+    DUPLICATE_URL = auto()
 
-  error_messages = {}
+  error_messages = {
+    Errors.DUPLICATE_URL:
+      _(settings.DEMOS_BOOKMARKS_DUPLICATE_URL_ERROR),
+    }
 
   field_defaults = {
     Fields.URL: settings.DEMOS_BOOKMARKS_URL_DEFAULT
@@ -73,7 +77,17 @@ class QuickBookmarkForm(forms.Form):
       )
 
   def save(self):
-    self.bookmark.save()
+    try:
+      self.bookmark.save()
+    except IntegrityError as e:
+      raise self.get_duplicate_url_error()
+
+  @classmethod
+  def get_duplicate_url_error(cls):
+    return forms.ValidationError(
+      cls.error_messages[cls.Errors.DUPLICATE_URL],
+      code=cls.Errors.DUPLICATE_URL
+      )
 
 
 class BaseBookmarkForm(forms.ModelForm):
@@ -217,6 +231,7 @@ class BookmarkFilterForm(forms.Form):
 class BookmarkSearchForm(forms.Form):
 
   class Fields(str, Enum):
+    FIELD = 'field'
     TERM = 'term'
 
   class Errors(str, Enum):
@@ -239,7 +254,34 @@ class BookmarkSearchForm(forms.Form):
       ),
     )
 
+  field = forms.CharField(
+    label=None,
+    initial='title',
+    required=True,
+    widget=widgets.RadioSelect(
+      choices=[
+        ('title', 'Title'),
+        ('description', 'Description'),
+        ('url', 'URL'),
+        ('all', 'All Fields')
+        ],
+      attrs={
+        'class': None,
+        },
+      ),
+    )
+
   def getQ(self):
-    return Q(
-      title__contains=self.cleaned_data.get('term'),
-      )
+    field = self.cleaned_data['field']
+    term = self.cleaned_data['term']
+
+    if field == 'title':
+      q = Q(title__contains=term)
+    elif field == 'description':
+      q = Q(description__contains=term)
+    elif field == 'url':
+      q = Q(url__contains=term)
+    else: # all
+      q = Q(title__contains=term) | Q(description__contains=term) | Q(url__contains=term)
+
+    return q
