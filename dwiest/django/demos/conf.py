@@ -22,6 +22,8 @@ class DemosAppConf(AppConf):
   BOOKMARKS_DUPLICATE_URL_ERROR = 'A bookmark already exists for that URL.'
   BOOKMARKS_LAST_MODIFIED_CLASS = 'last-modified'
   BOOKMARKS_LAST_MODIFIED_LABEL = 'Last Modified'
+  BOOKMARKS_STATUS_CLASS = 'status'
+  BOOKMARKS_STATUS_LABEL = 'Status'
   BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
   BOOKMARKS_TITLE_CLASS = 'title'
   BOOKMARKS_TITLE_LABEL = 'Title'
