@@ -51,6 +51,10 @@ class Bookmark(models.Model):
     null=True,
     )
 
+  status = models.IntegerField(
+    default=0,
+    )
+
 #class Screenshot(models.Model):
 #  bookmark = models.ForeignKey(Bookmark)
 #  path = models.TextField()
