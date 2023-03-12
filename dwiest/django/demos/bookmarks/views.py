@@ -186,6 +186,7 @@ class QuickAddBookmarkView(FormView, TemplateResponseMixin):
        # return render(request, BookmarksView.template_name, self.response_dict)
         return HttpResponseRedirect(reverse('demos:bookmarks:home') + '?url={}'.format(form.cleaned_data['url']))
 
+    messages.info(request, "Your bookmark was added.")
     return HttpResponseRedirect(reverse('demos:bookmarks:home'))
 
 
