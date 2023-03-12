@@ -1,5 +1,6 @@
 from datetime import date
 from django import forms
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, IntegrityError
 from django.db.models import Q
 from django.forms import widgets
@@ -95,18 +96,29 @@ class BaseBookmarkForm(forms.ModelForm):
   class Fields(str, Enum):
     ARTICLE_DATE = 'article_date'
     DESCRIPTION = 'description'
+    STATUS = 'status'
     TITLE = 'title'
     URL = 'url'
 
   class DateInput(forms.DateInput):
     input_type = 'date'
 
+  max_status = MaxValueValidator(1, "Status is more than the maximum allowed value.")
+  min_status = MinValueValidator(-1, "Status is less than the minimum allowed value.")
+
+  def clean_status(self):
+    status = self.cleaned_data['status']
+    self.max_status(status)
+    self.min_status(status)
+    print("all good!")
+    return status
+
 
 class BookmarkForm(BaseBookmarkForm):
 
   class Meta:
     model = Bookmark
-    fields =  ['article_date', 'description', 'title', 'url']
+    fields =  ['article_date', 'description', 'status', 'title', 'url']
     widgets = {
       BaseBookmarkForm.Fields.ARTICLE_DATE: BaseBookmarkForm.DateInput(
         attrs = {
@@ -118,6 +130,16 @@ class BookmarkForm(BaseBookmarkForm):
         attrs = {
           'class': settings.DEMOS_BOOKMARKS_DESCRIPTION_CLASS,
           }
+        ),
+      BaseBookmarkForm.Fields.STATUS: widgets.Select(
+        attrs = {
+          'class': settings.DEMOS_BOOKMARKS_STATUS_CLASS,
+          },
+        choices=[
+          (-1, 'Deleted'),
+          (0, 'Active'),
+          (1, 'Hidden'),
+          ],
         ),
       BaseBookmarkForm.Fields.TITLE: forms.TextInput(
         attrs = {
