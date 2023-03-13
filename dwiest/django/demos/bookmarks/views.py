@@ -117,6 +117,31 @@ class BookmarksView(ListView):
       elif filter == 'none':
         request.session['bookmarks_filter'] = 'none'
 
+      # deleted/hidden
+      status = [0]
+      if bff.cleaned_data['show_deleted']:
+        status.append(-1)
+      if bff.cleaned_data['show_hidden']:
+        status.append(1)
+
+      q = Q(status__in=status)
+
+      if hasattr(self,'filter_q'):
+        self.filter_q = self.filter_q & q
+      else:
+        self.filter_q = q
+
+      # unread
+      if bff.cleaned_data['hide_read']:
+        q = Q(unread=True)
+
+      if hasattr(self,'filter_q'):
+        self.filter_q = self.filter_q & q
+      else:
+        self.filter_q = q
+
+
+
   def get_template_names(self):
     return [self.template_name]
 
