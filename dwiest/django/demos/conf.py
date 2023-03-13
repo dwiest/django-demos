@@ -27,6 +27,8 @@ class DemosAppConf(AppConf):
   BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
   BOOKMARKS_TITLE_CLASS = 'title'
   BOOKMARKS_TITLE_LABEL = 'Title'
+  BOOKMARKS_UNREAD_CLASS = 'unread'
+  BOOKMARKS_UNREAD_LABEL = 'To Read'
   BOOKMARKS_URL_DEFAULT = None
   BOOKMARKS_URL_LABEL = 'URL'
   BOOKMARKS_URL_CLASS = 'url'
