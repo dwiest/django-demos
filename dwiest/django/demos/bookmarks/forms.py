@@ -98,6 +98,7 @@ class BaseBookmarkForm(forms.ModelForm):
     DESCRIPTION = 'description'
     STATUS = 'status'
     TITLE = 'title'
+    UNREAD = 'unread'
     URL = 'url'
 
   class DateInput(forms.DateInput):
@@ -110,7 +111,6 @@ class BaseBookmarkForm(forms.ModelForm):
     status = self.cleaned_data['status']
     self.max_status(status)
     self.min_status(status)
-    print("all good!")
     return status
 
 
@@ -118,7 +118,7 @@ class BookmarkForm(BaseBookmarkForm):
 
   class Meta:
     model = Bookmark
-    fields =  ['article_date', 'description', 'status', 'title', 'url']
+    fields =  ['article_date', 'description', 'status', 'title', 'unread', 'url']
     widgets = {
       BaseBookmarkForm.Fields.ARTICLE_DATE: BaseBookmarkForm.DateInput(
         attrs = {
@@ -146,6 +146,11 @@ class BookmarkForm(BaseBookmarkForm):
           'class': settings.DEMOS_BOOKMARKS_TITLE_CLASS,
           }
         ),
+      BaseBookmarkForm.Fields.UNREAD: widgets.CheckboxInput(
+        attrs = {
+          'class': settings.DEMOS_BOOKMARKS_UNREAD_CLASS,
+          }
+        ),
       BaseBookmarkForm.Fields.URL: forms.TextInput(
         attrs = {
           'class': settings.DEMOS_BOOKMARKS_URL_CLASS,
@@ -156,6 +161,7 @@ class BookmarkForm(BaseBookmarkForm):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.fields['title'].required = False
+    self.fields['unread'].label = settings.DEMOS_BOOKMARKS_UNREAD_LABEL
 
 
 class BookmarkFilterForm(forms.Form):
@@ -221,6 +227,25 @@ class BookmarkFilterForm(forms.Form):
     required=False,
     )
 
+  show_deleted = forms.BooleanField(
+    label="Show deleted",
+    initial=False,
+    required=False,
+    )
+
+  show_hidden = forms.BooleanField(
+    label="Show hidden",
+    initial=False,
+    required=False,
+    )
+
+  hide_read = forms.BooleanField(
+    label="Hide read",
+    initial=False,
+    required=False,
+    )
+
+
   def __init__(self, filter=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     if filter:
@@ -229,11 +254,9 @@ class BookmarkFilterForm(forms.Form):
     with connection.cursor() as cursor:
       cursor.execute("select distinct strftime('%Y',article_date) as year from demos_bookmark where article_date is not null order by year desc;")
       rows = cursor.fetchall()
-      print(rows)
       years = []
       for row in rows:
         years.append((int(row[0]),row[0]))
-      print(years)
       self.fields['year'].widget = widgets.Select(choices=years)
 
    # url = self.fields[self.Fields.URL].initial
