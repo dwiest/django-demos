@@ -1,0 +1,45 @@
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL>
+  <DT><H2 ADD_DATE="1662150117" LAST_MODIFIED="1668616327" PERSONAL_TOOLBAR_FOLDER="true">Bookmarks</H3>
+  <DL>
+<!-- content here -->
+
+{% for bookmark in bookmarks %}
+  {% if bookmark.article_date %}
+    {% ifchanged bookmark.article_date.month %}
+       {% if not forloop.first %}
+      </DL>
+    </DL>
+       {% endif %}
+    <DT><H3>{{bookmark.article_date|date:'F, Y'}}</H3>
+    <DL>
+      <DL>
+    {% endifchanged %}
+    {% ifchanged bookmark.article_date.day %}
+      </DL>
+      <DT><H3>{{bookmark.article_date|date:'l -  F j, Y'}}</H3>
+      <DL>
+    {% endifchanged %}
+        <DT><A HREF="{{bookmark.url}}">{{bookmark.title|default:bookmark.url}}</A>
+  {% else %}
+    {% ifchanged runonce %}
+      </DL>
+    </DL>
+    <DT><H3>Undated</H3>
+    <DL>
+    {% endifchanged %}
+      <DT><A HREF="{{bookmark.url}}">{{bookmark.title|default:bookmark.url}}</A>
+  {% endif %}
+{% endfor %}
+
+<!-- end content -->
+
+    </DL>
+  </DL>
+</DL>
