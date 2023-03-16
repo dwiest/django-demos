@@ -267,3 +267,35 @@ class BookmarkView(TemplateView):
 
     else:
       return render(request, self.template_name, self.response_dict)
+
+
+class BookmarkExportView(ListView):
+
+  class ResponseDict(str, Enum):
+    BOOKMARKS = 'bookmarks'
+
+  template_name = settings.DEMOS_BOOKMARKS_EXPORT_TEMPLATE
+
+  def setup(self, request, *args, **kwargs):
+    super().setup(request, *args, **kwargs)
+    if request.user.id:
+      self.user = request.user
+    else:
+      self.user = None
+
+  def get_template_names(self):
+    return [self.template_name]
+
+  def get_queryset(self):
+    if self.user:
+      owner_q = Q(owner=self.user)
+    else:
+      owner_q = Q(owner=self.none)
+    bookmarks = Bookmark.objects.filter(owner_q)
+
+    return bookmarks
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context[self.ResponseDict.BOOKMARKS] = self.get_queryset()
+    return context
