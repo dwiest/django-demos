@@ -19,6 +19,7 @@
        {% endif %}
     <DT><H3>{{bookmark.article_date|date:'F, Y'}}</H3>
     <DL>
+      <DT><H3></H3> <!-- needed for proper nesting after import -->
       <DL>
     {% endifchanged %}
     {% ifchanged bookmark.article_date.day %}
