@@ -10,4 +10,6 @@ urlpatterns = [
     QuickAddBookmarkView.as_view(), name='add'),
   path('bookmark',
     BookmarkView.as_view(), name='bookmark'),
+  path('export',
+    BookmarkExportView.as_view(), name='export'),
 ]
