@@ -1,0 +1,64 @@
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL>
+  <DT><H2 ADD_DATE="1662150117" LAST_MODIFIED="1668616327" PERSONAL_TOOLBAR_FOLDER="true">Bookmarks</H3>
+  <DL>
+<!-- content here -->
+
+{% set ns = namespace(month=None, new_month=None, day=None, new_day=None, first=1, first_day=1, runonce=1)%}
+
+{% for bookmark in bookmarks %}
+  {% if bookmark.article_date %}
+    {% set ns.new_month = bookmark.article_date.month %}
+    {% if ns.new_month != ns.month %}
+       {% if ns.first == 1 %}
+       {% set ns.first = 0 %}
+       {% else %}
+      </DL>
+    </DL>
+       {% endif %}
+    <DT><H3>{{bookmark.article_date.strftime('%B, %Y')}}</H3>
+    <DL>
+      <DT><H3></H3> <!-- needed for proper nesting after import -->
+      <DL>
+      {% set ns.month = ns.new_month %}
+      {% set ns.first_day = 1 %}
+    {% endif%}
+    {% set ns.new_day = bookmark.article_date.day %}
+    {% if ns.new_day != ns.day %}
+      {% if ns.first_day %}
+        {% set ns.first_day = 0 %}
+      {% else %}
+      </DL>
+      {% endif %}
+      <DT><H3>{{bookmark.article_date.strftime('%A - %B %d, %Y')}}</H3>
+      <DL>
+      {% set ns.day = ns.new_day %}
+    {% endif%}
+    {% if bookmark.title %}
+        <DT><A HREF="{{bookmark.url}}">{{bookmark.title}}</A>
+    {% else %}
+        <DT><A HREF="{{bookmark.url}}">{{bookmark.url}}</A>
+    {% endif %}
+  {% else %}
+    {% if ns.runonce == 1 %}
+      </DL>
+    </DL>
+    <DT><H3>Undated</H3>
+    <DL>
+    {% set ns.runonce = 0 %}
+    {% endif%}
+      <DT><A HREF="{{bookmark.url}}">{{bookmark.title|default(bookmark.url)}}</A>
+  {% endif %}
+{% endfor %}
+
+<!-- end content -->
+
+    </DL>
+  </DL>
+</DL>
