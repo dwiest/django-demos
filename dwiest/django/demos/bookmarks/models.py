@@ -4,7 +4,7 @@ from django.db import models
 
 class Bookmark(models.Model):
   class Meta:
-    ordering = ['-article_date']
+    ordering = ['-article_date', '-id']
 
   owner = models.ForeignKey(
     User,
