@@ -10,22 +10,20 @@
   <DL>
 <!-- content here -->
 
-{% set ns = namespace(month=None, new_month=None, day=None, new_day=None, first=1, first_day=1, runonce=1)%}
+{% set ns = namespace(month=None, new_month=None, day=None, new_day=None, first_bookmark=1, first_day=1, runonce=1)%}
 
 {% for bookmark in bookmarks %}
   {% if bookmark.article_date %}
     {% set ns.new_month = bookmark.article_date.month %}
     {% if ns.new_month != ns.month %}
-       {% if ns.first == 1 %}
-       {% set ns.first = 0 %}
+       {% if ns.first_bookmark == 1 %}
+         {% set ns.first_bookmark = 0 %}
        {% else %}
       </DL>
     </DL>
        {% endif %}
     <DT><H3>{{bookmark.article_date.strftime('%B, %Y')}}</H3>
     <DL>
-      <DT><H3></H3> <!-- needed for proper nesting after import -->
-      <DL>
       {% set ns.month = ns.new_month %}
       {% set ns.first_day = 1 %}
     {% endif%}
