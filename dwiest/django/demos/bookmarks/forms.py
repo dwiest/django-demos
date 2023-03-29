@@ -193,7 +193,7 @@ class BookmarkFilterForm(forms.Form):
         ('date', 'date')
         ],
       attrs={
-        'class': None,
+        'class': settings.DEMOS_BOOKMARKS_FILTER_CLASS,
         },
       ),
     )
