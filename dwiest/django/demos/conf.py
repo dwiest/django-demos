@@ -20,6 +20,7 @@ class DemosAppConf(AppConf):
   BOOKMARKS_DESCRIPTION_CLASS = 'description'
   BOOKMARKS_DESCRIPTION_LABEL = 'Description'
   BOOKMARKS_DUPLICATE_URL_ERROR = 'A bookmark already exists for that URL.'
+  BOOKMARKS_FILTER_CLASS = 'filter'
   BOOKMARKS_EXPORT_TEMPLATE = 'dwiest-django-demos/bookmarks/export.html'
   BOOKMARKS_LAST_MODIFIED_CLASS = 'last-modified'
   BOOKMARKS_LAST_MODIFIED_LABEL = 'Last Modified'
