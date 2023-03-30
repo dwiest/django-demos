@@ -1,4 +1,15 @@
 <Style>
+
+div.bookmark {
+  width: 50%;
+  height: 100px;
+  overflow: scroll;
+}
+
+div.undated, div.month, div.day {
+  Xoverflow: hidden;
+}
+
 li a {
   text-decoration: none;
   color: black;
@@ -81,6 +92,9 @@ form.bookmarks {
   margin-right: auto;
   padding-top: 10px;
   padding-bottom: 10px;
+  position: fixed;
+  bottom: 0;
+  -webkit-backface-visibility: hidden;
   }
 
 form.bookmarks input.url {

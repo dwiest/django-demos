@@ -22,8 +22,6 @@
 
 {% include 'dwiest-django-demos/bookmarks/errors.html' %}
 
-{% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
-
 <Div align="center">
 <Table style="width:100%;text-align:center;">
 <Tr>
@@ -39,9 +37,13 @@
 </Table>
 </Div>
 
+<Div style="margin-bottom: 50px;">
 {% include 'dwiest-django-demos/bookmarks/bookmarks.html' %}
+</Div>
 
 <Div class="filler"></Div>
+
+{% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
 
 {% include 'dwiest-django-demos/bookmarks/paginator.html' %}
 

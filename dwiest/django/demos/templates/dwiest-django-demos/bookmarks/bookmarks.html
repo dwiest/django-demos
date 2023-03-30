@@ -2,7 +2,9 @@
   {% if not bookmark.article_date %}
     {% ifchanged bogus %}
 </Ol>
+</Div>
 <Div class="undated">Undated Links</Div>
+<Div class="bookmark">
 <Ol>
     {% endifchanged %}
    <Li><A href="{{bookmark.url}}" target="_">{{bookmark.title|default:bookmark.url}}</A> <A class="edit" href="{% url 'demos:bookmarks:bookmark' %}?id={{bookmark.id}}">edit</A></Li>
@@ -13,11 +15,17 @@
     {% endifchanged %}
     -->
     {% ifchanged bookmark.article_date.month %}
-</Ol><Div class="month">{{bookmark.article_date|date:'F, Y'}}</Div>
+</Ol>
+</Div>
+<Div class="month">
+  {{bookmark.article_date|date:'F, Y'}}
+</Div>
     {% endifchanged %}
     {% ifchanged bookmark.article_date.day %}
-</Ol>
+</Ol> 
+</Div>
 <Div class="day">{{bookmark.article_date|date:'l -  F j, Y'}}</Div>
+<Div class="bookmark">
 <Ol>
   <Li><A href="{{bookmark.url}}" target="_">{{bookmark.title|default:bookmark.url}}</A> <A class="edit" href="{% url 'demos:bookmarks:bookmark' %}?id={{bookmark.id}}">edit</A></Li>
     {% else %}
@@ -26,3 +34,4 @@
   {% endif %}
 {% endfor %}
 </Ol>
+</Div>
