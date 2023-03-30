@@ -1,13 +1,18 @@
 <Style>
 
 div.bookmark {
-  width: 50%;
-  height: 100px;
-  overflow: scroll;
+  width: 100%;
+  overflow: auto;
 }
 
 div.undated, div.month, div.day {
   Xoverflow: hidden;
+}
+
+div.quickadd {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
 }
 
 li a {
@@ -92,8 +97,8 @@ form.bookmarks {
   margin-right: auto;
   padding-top: 10px;
   padding-bottom: 10px;
-  position: fixed;
-  bottom: 0;
+  Xposition: fixed;
+  Xbottom: 0;
   -webkit-backface-visibility: hidden;
   }
 
