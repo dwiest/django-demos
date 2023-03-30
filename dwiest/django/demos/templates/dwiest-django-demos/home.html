@@ -2,6 +2,7 @@
 <Head>
   <Title>Django Demos</Title>
 {% include "dwiest-django-demos/default.css" %}
+{% include "dwiest-django-demos/header.css" %}
 {% include "dwiest-django-demos/django-messages.css" %}
 {% load dwiest_django_demos.tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,11 +11,7 @@
 <Body>
 <Div class="filler"></Div>
 
-{% block header %}
-{% with title='Django Demos' breadcrumbs=False %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
+<Div class="header">Django Demos</Div>
 
 <Table class="home">
   <Tr>
