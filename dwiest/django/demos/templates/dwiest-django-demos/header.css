@@ -1,50 +1,63 @@
 <Style>
-h1.header {
+div.header {
+  margin-top: 10px;
   text-align: center;
   }
 
-a.header {
+div.header span {
+  width: 33.33333%;
+}
+
+span.breadcrumbs {
+  font-size: 2px;
+  float: left;
+  text-align: left;
+  margin-left: 10px;
+  }
+
+span.title{
   text-align: center;
+  float: left;
   }
 
 @media only screen and (max-width: 600px) {
-h1.header {
+div.header {
   font-size: 6vw;
   }
-a.header {
-  font-size: 4vw;
+span.breadcrumbs {
+  font-size: 2vw;
   }
 }
 @media only screen and (min-width: 600px) {
-h1.header {
+div.header {
   font-size: 5.4vw;
   }
-a.header {
-  font-size: 3.6vw;
+span.breadcrumbs {
+  font-size: 1.8vw;
   }
 }
 @media only screen and (min-width: 768px) {
-h1.header {
+div.header {
   font-size: 4.9vw;
   }
-a.header {
-  font-size: 3.2vw;
+span.breadcrumbs {
+  font-size: 1.6vw;
   }
 }
 @media only screen and (min-width: 992px) {
-h1.header {
+div.header {
   font-size: 4.4vw;
   }
-a.header {
-  font-size: 2.9vw;
+span.breadcrumbs {
+  font-size: 1.4w;
   }
 }
 @media only screen and (min-width: 1200px) {
-h1.header {
+div.header {
   font-size: 4vw;
   }
-a.header {
-  font-size: 2.6vw;
+span.breadcrumbs {
+  font-size: 1.3vw;
   }
 }
 </Style>
