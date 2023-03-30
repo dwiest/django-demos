@@ -1,27 +1,34 @@
-<Div align="right">
-<Form action="{% url 'demos:bookmarks:home' %}" method="GET">
-<Table>
-  <Tr>
-    <Th><Input type="submit" value="Filter:"/></Th>
-    <Td>
-      {% for choice in filter.filter %}
+<Div align="center">
+<Form class="filter" action="{% url 'demos:bookmarks:home' %}" method="GET">
+  <Table style="outline-color:black;outline-style:inset;margin-bottom:10px;">
+    <Tr>
+      <Td>
+{% for choice in filter.filter %}
+  {% if choice.choice_label == 'date' %}
+      <Br>
       {{choice.tag}}</Input>
-      {% if choice.choice_label == 'date' %}
-        {{filter.month}}
-        {{filter.year}}
-      {% else %}
+      {{filter.month}}
+      {{filter.year}}
+  {% else %}
+      {{choice.tag}}</Input>
       {{choice.choice_label}}
-      {% endif %}
-      </Br>
-      {% endfor %}
+  {% endif %}
+{% endfor %}
       </Td>
-      </Tr>
-    </Table>
-    {{filter.show_hidden}}
-    {{filter.show_hidden.label}}
-    {{filter.show_deleted}}
-    {{filter.show_deleted.label}}
-    {{filter.hide_read}}
-    {{filter.hide_read.label}}
+      <Td>
+        <Input class="submit" type="submit" value="Filter"/>
+      </Td>
+    </Tr>
+    <Tr>
+      <Td colspan="2">
+        {{filter.show_hidden}}
+        {{filter.show_hidden.label}}
+        {{filter.show_deleted}}
+        {{filter.show_deleted.label}}
+        {{filter.hide_read}}
+        {{filter.hide_read.label}}
+      </Td>
+    </Tr>
+  </Table>
 </Form>
 </Div>
