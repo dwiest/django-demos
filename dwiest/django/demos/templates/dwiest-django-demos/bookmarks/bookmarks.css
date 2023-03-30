@@ -9,10 +9,11 @@ div.undated, div.month, div.day {
   Xoverflow: hidden;
 }
 
-div.quickadd {
+div.toolbar {
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;
+  background-color: lightgray;
 }
 
 li a {
