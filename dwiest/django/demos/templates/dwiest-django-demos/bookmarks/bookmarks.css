@@ -122,6 +122,7 @@ form.bookmarks input.date {
 form.search input#id_term {
   margin-right: 5px;
   width: 80%;
+  background-color: lightyellow;
 }
 form.search table {
   width: 94%;
