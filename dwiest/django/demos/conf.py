@@ -12,6 +12,29 @@ class DemosAppConf(AppConf):
   ''' Django page template settings '''
   PAGE_FOOTER = None
 
+  ''' Booksmarks demo settings '''
+  BOOKMARKS_ARTICLE_DATE_CLASS = 'article-date'
+  BOOKMARKS_BOOKMARK_TEMPLATE = 'dwiest-django-demos/bookmarks/bookmark.html'
+  BOOKMARKS_CREATED_AT_CLASS = 'created-at'
+  BOOKMARKS_CREATED_AT_LABEL = 'Created'
+  BOOKMARKS_DESCRIPTION_CLASS = 'description'
+  BOOKMARKS_DESCRIPTION_LABEL = 'Description'
+  BOOKMARKS_DUPLICATE_URL_ERROR = 'A bookmark already exists for that URL.'
+  BOOKMARKS_FILTER_CLASS = 'filter'
+  BOOKMARKS_EXPORT_TEMPLATE = 'dwiest-django-demos/bookmarks/export.html'
+  BOOKMARKS_LAST_MODIFIED_CLASS = 'last-modified'
+  BOOKMARKS_LAST_MODIFIED_LABEL = 'Last Modified'
+  BOOKMARKS_STATUS_CLASS = 'status'
+  BOOKMARKS_STATUS_LABEL = 'Status'
+  BOOKMARKS_TEMPLATE = 'dwiest-django-demos/bookmarks/home.html'
+  BOOKMARKS_TITLE_CLASS = 'title'
+  BOOKMARKS_TITLE_LABEL = 'Title'
+  BOOKMARKS_UNREAD_CLASS = 'unread'
+  BOOKMARKS_UNREAD_LABEL = 'To Read'
+  BOOKMARKS_URL_DEFAULT = None
+  BOOKMARKS_URL_LABEL = 'URL'
+  BOOKMARKS_URL_CLASS = 'url'
+
   ''' File demo settings '''
 
   FILE_UPLOAD_DIR = '/tmp'

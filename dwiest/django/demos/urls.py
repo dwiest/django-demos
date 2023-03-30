@@ -22,6 +22,8 @@ urlpatterns = [
     TemplateView.as_view(
       template_name="dwiest-django-demos/home.html"), name='home'
     ),
+  path('bookmarks/',
+    include('dwiest.django.demos.bookmarks.urls', namespace='bookmarks')),
   path('file/',
     include('dwiest.django.demos.file.urls', namespace='file')),
   path('otp/',

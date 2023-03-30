@@ -1,0 +1,96 @@
+<Html>
+
+<Head>
+  <Title>Update Bookmark</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div class="filler"></Div>
+
+<Div>
+{% block header %}
+{% with title='Update Bookmark' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+</Div>
+
+<Div class="filler"></Div>
+
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+<Div class="error" align="center">{{error}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error" align="center">{{error}}</Div>
+  {% endfor %}
+{% endfor %}
+</P>
+{% endif %}
+
+<Div class="filler"></Div>
+
+<Form class="bookmark" method="post" action="{% url 'demos:bookmarks:bookmark' %}">
+{% csrf_token %}
+  <Input type="hidden" name="id" value="{{form.instance.id}}"/>
+
+    <Div class="title" align="center">
+      <Div align="left">{{form.title.label}}</Div>
+      <Div>{{form.title}}</Div>
+    </Div>
+    <Div class="url" align="center">
+      <Div align="left">{{form.url.label}}</Div>
+      <Div>{{form.url}}</Div>
+    </Div>
+    <Div align="left" style="margin-left: 5px;">
+      <A href="{{form.url.value}}" target="_">open</A></Span>
+    </Div>
+    <Div class="description" align="center">
+      {{form.description}}
+      </Div>
+    <Div class="date">
+      {{form.article_date.label}}:
+      {{form.article_date}}
+      </Div>
+    <Div class="createad_at">
+      Created{{form.created_at.label}}:
+      {{form.instance.created_at}}
+      </Div>
+    <Div class="last_modified">
+      Last Modified{{form.last_modified.label}}:
+      {{form.instance.last_modified}}
+      </Div>
+    <Div class="status">
+      {{form.status.label}}:
+      {{form.status}}
+      </Div>
+    <Div class="unread">
+      {{form.unread.label}}:
+      {{form.unread}}
+      </Div>
+
+    <Div align="center"><Input class="bookmark-button" type="submit" name="submit" value="Update Bookmark"></Input></Div>
+</Form>
+
+<Div class="filler"></Div>
+
+<A href="{% url 'demos:bookmarks:home' %}" style="text-align:center">Back To Bookmarks</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>

@@ -1,0 +1,199 @@
+<Style>
+li a {
+  text-decoration: none;
+  color: black;
+  }
+
+li a:hover {
+  background: lightgray;
+  }
+
+li a.edit {
+  text-decoration: none;
+  color: white;
+  background: white;
+  }
+
+li a.edit:hover {
+  background: lightgray;
+  color: black;
+  }
+
+form.bookmark {
+  width: 95%;
+  background: lightgray;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 5px;
+  padding-right: 5px;
+  }
+
+form.bookmark td {
+  width: 100%;
+  }
+
+form.bookmark div.description {
+  }
+
+form.bookmark div.title {
+  font-size: 14pt;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  }
+
+form.bookmark div.url{
+  font-size: 14pt;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  }
+
+form.bookmark textarea.description {
+  width: 90%;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  }
+
+form.bookmark input.title {
+  color: green;
+  width: 90%;
+  margin-left: auto;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  }
+
+form.bookmark input.url{
+  color: black;
+  width: 90%;
+  margin-left: auto;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  }
+
+form.bookmarks {
+  margin-left: auto;
+  margin-right: auto;
+  width: 98vw;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  }
+
+form.bookmarks input.url {
+  background: lightblue;
+  width: 90vw;
+  margin-bottom: 5px;
+  }
+
+form.bookmarks input.button {
+  background: white;
+  margin-right: 5px;
+  }
+
+form.bookmarks input.date {
+  background: white;
+  margin-right: 5px;
+  }
+
+form.search input#id_term {
+  margin-right: 5px;
+  width: 80%;
+}
+form.search table {
+  width: 94%;
+}
+form.search td {
+  vertical-align: middle;
+  text-align: left;
+}
+
+form.bookmark input.url {
+  background: lightblue;
+}
+
+form.bookmark input.title {
+  background: lightblue;
+  align: right;
+}
+
+div.pagination {
+  color: blue;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+div.export-link{
+  text-align: left;
+  color: black;
+  margin-left: 10px;
+  }
+
+div.undated {
+  text-align: left;
+  color: orange;
+  font-size: 16pt;
+  margin-top: 20px;
+  }
+
+div.year {
+  text-align: center;
+  color: red;
+  font-size: 32pt;
+  }
+
+div.month {
+  text-align: center;
+  color: green;
+  background: lightgray;
+  font-size: 24pt;
+  }
+
+div.day {
+  text-align: left;
+  color: black;
+  font-size: 16pt;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  }
+
+.new-week {
+  text-align: left;
+  width = 80%;
+  color: red;
+  }
+
+@media only screen and (max-width: 600px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2.5vw;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2.2vw;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2vw;
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 1.8vw;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 1.6vw;
+  }
+}
+</Style>

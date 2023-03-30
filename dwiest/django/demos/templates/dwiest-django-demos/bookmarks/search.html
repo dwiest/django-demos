@@ -1,0 +1,19 @@
+<Div align="center">
+<Form class="search" method="GET" action="{% url 'demos:bookmarks:home' %}">
+<Table>
+  <Tr>
+    <Td>
+      {{search.term}}
+      <Input class="button" type="submit" value="Search"></Input>
+    </Td>
+  </Tr>
+    <Td>
+{% for choice in search.field %}
+    <Span>{{choice.tag}} {{choice.choice_label}}</Span>
+{% endfor %}
+    </Td>
+  <Tr>
+  </Tr>
+</Table>
+</Form>
+</Div>

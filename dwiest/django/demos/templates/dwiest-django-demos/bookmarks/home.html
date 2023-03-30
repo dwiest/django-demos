@@ -1,0 +1,50 @@
+<!doctype html>
+<Html>
+
+<Head>
+  <Title>Bookmarks</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+{% block header %}
+{% with title='Bookmarks' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+
+{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
+
+<Div align="center">
+<Table style="width:100%;text-align:center;">
+<Tr>
+<Td>
+{% include 'dwiest-django-demos/bookmarks/search.html' %}
+</Td>
+</Tr>
+<Tr>
+<Td>
+{% include 'dwiest-django-demos/bookmarks/filter.html' %}
+</Td>
+</Tr>
+</Table>
+</Div>
+
+{% include 'dwiest-django-demos/bookmarks/bookmarks.html' %}
+
+<Div class="filler"></Div>
+
+{% include 'dwiest-django-demos/bookmarks/paginator.html' %}
+
+{% footer %}
+</Body>
+</Html>
