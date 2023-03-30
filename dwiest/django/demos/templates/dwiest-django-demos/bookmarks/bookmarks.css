@@ -23,10 +23,12 @@ div.month {
 }
 
 div.toolbar {
+  margin-top: 10px;
+  margin-bottom: 10px;
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;
-  background-color: lightgray;
+  background-color: white;
 }
 
 li a {
