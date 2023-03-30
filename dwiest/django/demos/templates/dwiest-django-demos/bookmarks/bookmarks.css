@@ -6,11 +6,20 @@ div.bookmark {
 }
 
 div.bookmarks {
-  margin-bottom: 50px;
+  Xmargin-bottom: 300px;
+  Xbackground-color: lightyellow;
+  Xposition: relative;
+  Xbottom: 40px;
+  Xoverflow: auto;
+  Xwidth: 100%;
 }
 
 div.undated, div.month, div.day {
   Xoverflow: hidden;
+}
+
+div.month {
+  margin-top: 10px;
 }
 
 div.toolbar {
@@ -146,12 +155,13 @@ form.bookmark input.title {
 }
 
 div.pagination {
-  color: blue;
+  Xcolor: blue;
   Xmargin: auto;
   position: fixed;
   bottom: 10px;
   right: 10px;
   background-color: lightyellow;
+  border-style: inset;
   }
 
 div.export-link{
