@@ -1,10 +1,15 @@
 <Form class="bookmarks" method="post" action="{% url 'demos:bookmarks:add' %}">
 {% csrf_token %}
-  <Table class="bookmarks">
-    <Tr>
-      <Th><Input class="button" type="submit" name="submit" value="Add Bookmark"></Input></Th>
-      <Td>{{form.date}}</Td>
-      <Td>{{form.url}}</Td>
-      </Tr>
-    </Table>
+<Div align="center">
+  {{form.url}}
+</Div>
+<Div>
+  <Span style="margin-left:3.6%;">
+    <Input class="button" type="submit" name="submit" value="Add Bookmark"></Input>
+    {{form.date}}
+  </Span>
+  <Span style="position:absolute;right:4%;padding:.3vw 0;">
+    <A class="export-link" href="{% url 'demos:bookmarks:export' %}">Export</A>
+  </Span>
+</Div>
 </Form>
