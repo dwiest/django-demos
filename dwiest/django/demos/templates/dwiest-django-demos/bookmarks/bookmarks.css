@@ -5,6 +5,10 @@ div.bookmark {
   overflow: auto;
 }
 
+div.bookmarks {
+  margin-bottom: 50px;
+}
+
 div.undated, div.month, div.day {
   Xoverflow: hidden;
 }
@@ -143,8 +147,11 @@ form.bookmark input.title {
 
 div.pagination {
   color: blue;
-  margin-left: auto;
-  margin-right: auto;
+  Xmargin: auto;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: lightyellow;
   }
 
 div.export-link{
