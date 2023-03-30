@@ -9,17 +9,10 @@
     {% endifchanged %}
    <Li><A href="{{bookmark.url}}" target="_">{{bookmark.title|default:bookmark.url}}</A> <A class="edit" href="{% url 'demos:bookmarks:bookmark' %}?id={{bookmark.id}}">edit</A></Li>
   {% else %}
-    <!--
-    {% ifchanged bookmark.article_date.year %}
-  <Div class="year">{{bookmark.article_date|date:'Y'}}</Div>
-    {% endifchanged %}
-    -->
     {% ifchanged bookmark.article_date.month %}
 </Ol>
-</Div>
 <Div class="month">
   {{bookmark.article_date|date:'F, Y'}}
-</Div>
     {% endifchanged %}
     {% ifchanged bookmark.article_date.day %}
 </Ol> 
@@ -35,3 +28,4 @@
 {% endfor %}
 </Ol>
 </Div>
+<Div style="height: 20px;"></div>
