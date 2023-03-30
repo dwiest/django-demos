@@ -1,7 +1,7 @@
 <Html>
 
 <Head>
-  <Title>Add/Edit Bookmark</Title>
+  <Title>Update Bookmark</Title>
   {% include 'dwiest-django-demos/default.css' %}
   {% include 'dwiest-django-demos/django-messages.css' %}
   {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
@@ -13,11 +13,13 @@
 
 <Div class="filler"></Div>
 
+<Div>
 {% block header %}
-{% with title='Add/Edit Bookmark' breadcrumbs=True %}
+{% with title='Update Bookmark' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
+</Div>
 
 <Div class="filler"></Div>
 
@@ -44,41 +46,43 @@
 <Form class="bookmark" method="post" action="{% url 'demos:bookmarks:bookmark' %}">
 {% csrf_token %}
   <Input type="hidden" name="id" value="{{form.instance.id}}"/>
-  <Table>
-    <Tr>
-      <Th>{{form.title.label}}:</Th>
-      <Td>{{form.title}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.url.label}}:</Th>
-      <Td>{{form.url}} <A href="{{form.url.value}}" target="_">open</A></Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.description.label}}:</Th>
-      <Td>{{form.description}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.article_date.label}}:</Th>
-      <Td>{{form.article_date}}</Td>
-      </Tr>
-    <Tr>
-      <Th>Created{{form.created_at.label}}:</Th>
-      <Td>{{form.instance.created_at}}</Td>
-      </Tr>
-    <Tr>
-      <Th>Last Modified{{form.last_modified.label}}:</Th>
-      <Td>{{form.instance.last_modified}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.status.label}}:</Th>
-      <Td>{{form.status}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.unread.label}}:</Th>
-      <Td>{{form.unread}}</Td>
-      </Tr>
-    </Table>
-    <Div align="center"><Input class="bookmark-button" type="submit" name="submit" value="Add/Edit Bookmark"></Input></Div>
+
+    <Div class="title" align="center">
+      <Div align="left">{{form.title.label}}</Div>
+      <Div>{{form.title}}</Div>
+    </Div>
+    <Div class="url" align="center">
+      <Div align="left">{{form.url.label}}</Div>
+      <Div>{{form.url}}</Div>
+    </Div>
+    <Div align="left" style="margin-left: 5px;">
+      <A href="{{form.url.value}}" target="_">open</A></Span>
+    </Div>
+    <Div class="description" align="center">
+      {{form.description}}
+      </Div>
+    <Div class="date">
+      {{form.article_date.label}}:
+      {{form.article_date}}
+      </Div>
+    <Div class="createad_at">
+      Created{{form.created_at.label}}:
+      {{form.instance.created_at}}
+      </Div>
+    <Div class="last_modified">
+      Last Modified{{form.last_modified.label}}:
+      {{form.instance.last_modified}}
+      </Div>
+    <Div class="status">
+      {{form.status.label}}:
+      {{form.status}}
+      </Div>
+    <Div class="unread">
+      {{form.unread.label}}:
+      {{form.unread}}
+      </Div>
+
+    <Div align="center"><Input class="bookmark-button" type="submit" name="submit" value="Update Bookmark"></Input></Div>
 </Form>
 
 <Div class="filler"></Div>
