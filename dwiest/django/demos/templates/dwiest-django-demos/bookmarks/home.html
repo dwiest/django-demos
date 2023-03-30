@@ -18,17 +18,26 @@
 {% endwith %}
 {% endblock %}
 
-{% include 'dwiest-django-demos/bookmarks/filter.html' %}
-
-<A href="{% url 'demos:bookmarks:export' %}">Export Bookmarks</A>
-
 {% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
 
 {% include 'dwiest-django-demos/bookmarks/quickadd.html' %}
 
+<Div align="center">
+<Table style="width:100%;text-align:center;">
+<Tr>
+<Td>
 {% include 'dwiest-django-demos/bookmarks/search.html' %}
-
-{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+</Td>
+</Tr>
+<Tr>
+<Td>
+{% include 'dwiest-django-demos/bookmarks/filter.html' %}
+</Td>
+</Tr>
+</Table>
+</Div>
 
 {% include 'dwiest-django-demos/bookmarks/bookmarks.html' %}
 
