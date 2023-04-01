@@ -55,6 +55,19 @@ class DemosAppConf(AppConf):
   GOOGLE_RECAPTCHA_SITE_KEY = None
   GOOGLE_RECAPTCHA_TEMPLATE = 'dwiest-django-demos/grecaptcha/index.html'
 
+  ''' Journal demo settings '''
+  JOURNAL_LIST_TEMPLATE = 'dwiest-django-demos/journal/index.html'
+  JOURNAL_TEMPLATE = 'dwiest-django-demos/journal/journal.html'
+  JOURNAL_EDIT_TEMPLATE = 'dwiest-django-demos/journal/journal_edit.html'
+  JOURNAL_ENTRY_TEMPLATE = 'dwiest-django-demos/journal/entry.html'
+  JOURNAL_ENTRY_EDIT_TEMPLATE = 'dwiest-django-demos/journal/entry_edit.html'
+  JOURNAL_DUPLICATE_NAME_ERROR = 'That name is already in use.'
+  JOURNAL_NAME_LABEL = 'Name'
+  JOURNAL_NAME_CLASS = 'journal_name'
+  JOURNAL_NAME_DEFAULT = 'My Journal'
+  JOURNAL_DUPLICATE_DATE_ERROR = 'There is already a journal entry for that date'
+
+
   ''' One-time password demo settings '''
   OTP_SECRET_KEY = ''
   OTP_QRCODE_NAME = ''

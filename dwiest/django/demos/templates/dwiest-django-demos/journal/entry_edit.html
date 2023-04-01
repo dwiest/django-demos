@@ -1,0 +1,59 @@
+<Html>
+
+<Head>
+  <Title>Entry Edit</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/journal/journal.css' %}
+  {% load dwiest_django_demos.tags%}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div>
+{% block header %}
+{% with title='Entry Edit' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+</Div>
+
+<Div class="filler"></Div>
+
+{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+
+<Form method="POST" action={% url 'demos:journal:entry_edit' %}>
+{% csrf_token %}
+{% if form.instance.id %}
+<Input type="hidden" name="id" value="{{form.instance.id}}"/>
+{% endif %}
+<Input type="hidden" name="journal" value="{{request.GET.journal}}"/>
+<Div>
+{{form.date.label}}: {{form.date}}
+</Div>
+<Div>
+{{form.content.label}}: {{form.content}}
+</Div>
+<Div>
+Created at:
+{{form.created_at}}
+</Div>
+<Div>
+Last modified:
+{{form.last_modified}}
+</Div>
+<Div>
+Status:
+{{form.status.label}}: {{form.status}}
+</Div>
+<Input type="submit"></Input>
+</Form>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>

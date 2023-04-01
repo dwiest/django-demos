@@ -1,0 +1,35 @@
+<!doctype html>
+<Html>
+
+<Head>
+  <Title>Journal</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+{% block header %}
+{% with title='Journal' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+
+{% include 'dwiest-django-demos/journal/django-messages.html' %}
+
+{% include 'dwiest-django-demos/journal/errors.html' %}
+
+<Div class="journals">
+<A href="{% url 'demos:journal:create' %}">Create Journal</A>
+
+<Div class="journal_list">
+<Ol>
+{% for journal in journals %}
+<LI><A href="{% url 'demos:journal:view' %}?id={{journal.id}}">{{journal.name}} - {{journal.description}}</A>
+{% endfor %}
+</Ol>
+</Div>
+</Div>

@@ -1,0 +1,86 @@
+<Html>
+
+<Head>
+  <Title>Journal</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/journal/journal.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div>
+{% block header %}
+{% with title='Journal' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+</Div>
+
+{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+
+<Div>
+Name: {{journal.name}}
+</Div>
+<Div>
+Description: {{journal.description}}
+</Div>
+<Div>
+Created at: {{journal.created_at}}
+</Div>
+<Div>
+Last modified: {{journal.last_modified}}
+</Div>
+<Div>
+Status: {{journal.status}}
+</Div>
+
+<P>
+<Div>
+<Div>
+<A href="{% url 'demos:journal:edit' %}?id={{journal.id}}">Edit</A>
+</Div>
+
+<Div>
+<A href="{% url 'demos:journal:entry_edit' %}?journal={{journal.id}}">Add Entry</A>
+</Div>
+</Div>
+
+{% for entry in entries %}
+<Div style="width:90%;margin:20px;padding:20px;">
+  <Div align="left" style="padding-bottom:10px;font-size:4vw">
+    <Span>
+      <A href="{% url 'demos:journal:entry' %}?id={{entry.id}}">{{entry.date|date:'l -  F j, Y'}}</A>
+    </Span>
+  </Div>
+  <Div>
+    <Div align="left">
+      <textarea style="width:100%;height:150px;overflow:auto;resize:none;">{{entry.content}}</textarea>
+    </Div>
+  </Div>
+  <Div align="left" style="margin:10px;font-size:1vw;">
+    <Span>
+      Created:
+      {{entry.created_at}}<Br>
+    </Span>
+    <Span>
+      Last Modified:
+      {{entry.last_modified}}<Br>
+    </Span>
+    <Span>
+      Status:
+      {{entry.status}}
+    </Span>
+  </Div>
+</Div>
+{% endfor %}
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>
