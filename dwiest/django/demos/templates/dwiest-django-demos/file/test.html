@@ -36,8 +36,9 @@ table th {
 </Head>
 
 <Body>
-<Div align="center">
+{% include "dwiest-django-demos/topnav.html" %}
 
+<Div align="center">
 {% block header %}
 {% with title='File Demo' breadcrumbs=True %}
 {% include 'dwiest-django-demos/header.html' %}

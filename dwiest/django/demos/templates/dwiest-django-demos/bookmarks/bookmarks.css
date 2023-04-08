@@ -27,8 +27,9 @@ div.toolbar {
   margin-bottom: 10px;
   position: -webkit-sticky; /* Safari */
   position: sticky;
-  top: 0;
+  top: 45px;
   background-color: white;
+  z-index: 0;
 }
 
 li a {

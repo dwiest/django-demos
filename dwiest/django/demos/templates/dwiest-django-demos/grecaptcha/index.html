@@ -18,7 +18,9 @@ function onSubmit(token) {
 
 <Body>
 
-<Div class="filler"></Div>
+{% include "dwiest-django-demos/topnav.html" %}
+
+<Div style="height:50px;"></Div>
 
 {% block header %}
 {% with title='Google reCAPTCHA' breadcrumbs=True %}
