@@ -11,6 +11,9 @@
 
 <Body>
 
+<!--{% include "dwiest-django-demos/topnav.html" %}-->
+
+<!--Div style="height:50px;"></Div-->
 <Div>
 {% block header %}
 {% with title='Journal' breadcrumbs=True %}
@@ -23,60 +26,19 @@
 
 {% include 'dwiest-django-demos/bookmarks/errors.html' %}
 
-<Div>
-Name: {{journal.name}}
-</Div>
-<Div>
-Description: {{journal.description}}
-</Div>
-<Div>
-Created at: {{journal.created_at}}
-</Div>
-<Div>
-Last modified: {{journal.last_modified}}
-</Div>
-<Div>
-Status: {{journal.status}}
+<Div style="margin-left:50px;">
+<A style="text-decoration:none;color:black;" href="{% url 'demos:journal:edit' %}?id={{journal.id}}">
+{% include 'dwiest-django-demos/journal/journal-info.html' %}
+</A>
 </Div>
 
 <P>
-<Div>
-<Div>
-<A href="{% url 'demos:journal:edit' %}?id={{journal.id}}">Edit</A>
-</Div>
-
-<Div>
+<Div style="margin-left:100px;font-size:2vw;">
 <A href="{% url 'demos:journal:entry_edit' %}?journal={{journal.id}}">Add Entry</A>
-</Div>
 </Div>
 
 {% for entry in entries %}
-<Div style="width:90%;margin:20px;padding:20px;">
-  <Div align="left" style="padding-bottom:10px;font-size:4vw">
-    <Span>
-      <A href="{% url 'demos:journal:entry' %}?id={{entry.id}}">{{entry.date|date:'l -  F j, Y'}}</A>
-    </Span>
-  </Div>
-  <Div>
-    <Div align="left">
-      <textarea style="width:100%;height:150px;overflow:auto;resize:none;">{{entry.content}}</textarea>
-    </Div>
-  </Div>
-  <Div align="left" style="margin:10px;font-size:1vw;">
-    <Span>
-      Created:
-      {{entry.created_at}}<Br>
-    </Span>
-    <Span>
-      Last Modified:
-      {{entry.last_modified}}<Br>
-    </Span>
-    <Span>
-      Status:
-      {{entry.status}}
-    </Span>
-  </Div>
-</Div>
+{% include 'dwiest-django-demos/journal/journal-entry.html' %}
 {% endfor %}
 
 <Div class="filler"></Div>

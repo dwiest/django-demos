@@ -1,0 +1,21 @@
+<Div align="left" style="margin:20px;padding:20px;align:right;padding-bottom:10px;">
+  <Table width="100%" style="border-spacing:0px;">
+    <Tr style="background-color:orange;">
+      <Td style="padding-left:10px;">
+        <Span style="font-size:4vw;font-family:Times New Roman;">
+          <A style="text-decoration:none;color:black;" href="{% url 'demos:journal:entry_edit' %}?id={{entry.id}}">{{entry.date|date:'l -  F j, Y'}}</A>
+        </Span>
+      </Td>
+      <Td style="width: 1%;white-space:nowrap;padding-right:10px;">
+        <Div style="font-size:1vw;align:left;">
+          {% include 'dwiest-django-demos/journal/journal-stats.html' %}
+        </Div>
+      </Td>
+    </Tr>
+    <Tr>
+      <Td colspan="2">
+        <Div style="font-family:Helvetica;margin-top:5px;">{{entry.content|linebreaks}}</Div>
+      </Td>
+    </Tr>
+  </Table>
+</Div>
