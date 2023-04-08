@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<style>
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48,
+}
+
+.material-symbols-outlined {
+  width: 0;
+  }
+
+div.dropdown {
+  Xbackground-color:red;
+  align:right;
+  padding-top: 17px;
+  padding-bottom: 17px;
+}
+
+ul.pulldown {
+  position:fixed; 
+  top: 0;
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  Xoverflow: hidden;
+  background-color: #333;
+}
+
+li.pulldown {
+  float: left;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: left;
+}
+
+li.pulldown span {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li.pulldown a {
+  display: block;
+  color: black;
+  text-align: left;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li.pulldown a:hover:not(.active) {
+  background-color: #111;
+}
+li.pulldown span:hover:not(.active) {
+  background-color: #111;
+}
+
+.active {
+  background-color: #04AA6D;
+}
+</style>
+</head>
+<body>
+
+<ul class="pulldown">
+  <li class="pulldown">
+{% block hamburger %}
+{% with title='<span class="material-symbols-outlined">menu</span>' menus='<A href="/django/demos/">Home</A>|<A>Login</A>|<A href="">About</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}
+</A></li>
+  <li class="pulldown">
+{% block cloud %}
+{% with title='Cloud' menus='<A>EC2 instances</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block file %}
+{% with title='Files' menus='<A href="/django/demos/file/">File manager</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block graphics %}
+{% with title='Graphics' menus='<A href="/django/demos/qrcode/">QR code generator</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block monitoring %}
+{% with title='Monitoring' menus='<A>Cacti</A>|<A>Grafana</A>|<A>Nagios</A>|<A>Prometheus</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block otp %}
+{% with title='OTP' menus='<A href="/django/demos/otp/">Time-based</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block services %}
+{% with title='Services' menus='<A>Jenkins</A>|<A>RabbitMQ</A>|<A>MySQL Admin</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown">
+{% block web %}
+{% with title='Web' menus='<A href="/django/demos/bookmarks/">Bookmarks</A>|<A href="/django/demos/grecaptcha/">Google reCAPTCHA</A>|<A href="/django/demos/journal/">Journal</A>|<A href="/django/demos/selenium/">Selenium</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <li class="pulldown" style="align:right;">
+{% block settings %}
+{% with title='<span class="material-symbols-outlined">settings</span>' menus='<A>Connect Wallet</A><A>Settings</A>' %}
+{% include 'dwiest-django-demos/hamburger.html' %}
+{% endwith %}
+{% endblock %}</li>
+  <!--li style="float:right"><a class="active" href="#about">About</a></li-->
+</ul>
+
+</body>
+</html>
