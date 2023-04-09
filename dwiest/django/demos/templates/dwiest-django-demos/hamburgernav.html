@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+
+<style>
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48,
+}
+
+.material-symbols-outlined {
+  width: 25px;
+  }
+
+ul.pulldown {
+  position:fixed; 
+  top: 0;
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  Xoverflow: hidden;
+  Xbackground-color: #cccccc;
+  Xbackground-color: blue;
+}
+
+ul.pulldown2 {
+  position:relative; 
+  Xtop: 50;
+  float:top;
+  Xwidth: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  Xoverflow: hidden;
+}
+
+li.pulldown {
+  float: left;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: left;
+  background-color: blue;
+}
+
+li.pulldown2 {
+  float: top;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: left;
+  background-color: blue;
+}
+
+li.pulldown a {
+  display: block;
+  color:white;
+  text-align: left;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li.pulldown2 a {
+  display: block;
+  text-align: left;
+  Xvertical-align: top;
+  padding: 14px 16px;
+  text-decoration: none;
+  background-color: red;
+}
+
+Xli.pulldown2 a::before{
+  Xfont-family: 'Material Icons';
+  font-family: 'Material Symbols Outlined';
+  content: "home";
+  vertical-align: top;
+  -webkit-font-feature-settings: 'liga';
+}
+
+li.pulldown a:hover:not(.active) {
+  color: white;
+  background-color: #111;
+}
+
+li.pulldown2 a:hover:not(.active) {
+  background-color: red;
+}
+
+.active {
+  background-color: #04AA6D;
+}
+
+<!-- -->
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown2 {
+  position: relative;
+  display: inline-block;
+  width:100%;
+}
+
+.dropdown-content {
+  Xdisplay: none;
+  display: none;
+  position: relative;
+  float: top;
+  Xbackground-color: #f9f9f9;
+  background-color: red;
+  text-align: left;
+  min-width: 140px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  Xpadding: 3px 4px;
+  z-index: 1;
+}
+
+.dropdown-content2 {
+  display: none;
+  position: fixed;
+  left: 40px;
+  Xleft: 20px;
+  Xtop: -20px;
+  float: left;
+  Xbackground-color: #f9f9f9;
+  background-color: red;
+  text-align: left;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  Xpadding: 3px 4px;
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display:inline-block;
+}
+
+.dropdown a:hover {
+  background: white;
+  color:#111;
+  }
+
+.dropdown a:hover .dropdown-content {
+  display: inline-block;
+  color: white;
+  }
+
+.dropdown:hover .dropdown-content:hover {
+  background: white;
+  color:#111;
+}
+.dropdown:hover .dropdown-content:hover a {
+  background: white;
+  color:#111;
+}
+.dropdown:hover .dropdown-content:hover a:hover {
+  background: red;
+  color:white;
+}
+
+div.dropdown-content a {
+  padding:10px;
+}
+
+div.dropdown-content2 {
+  display:none;
+}
+
+div.dropdown2:hover .dropdown-content2 {
+  display:block;
+}
+
+
+
+</style>
+</head>
+<body>
+
+<ul class="pulldown">
+  <li class="pulldown">
+    <Div class="dropdown"><A class="material-symbols-outlined">menu</A>
+      <Span class="dropdown-content">
+        <ul class="pulldown2">
+          <li class="pulldown2"><A> <i class="material-symbols-outlined">home</i> Home</A></li>
+          <li class="pulldown2">
+            <Div class="dropdown2"><A><i class="material-symbols-outlined">star</i> Files</A>
+              <Span class="dropdown-content2">
+                <A>File Manager</A>
+              </Span>
+            </Div>
+          </li>
+          <li class="pulldown2">
+            <Div class="dropdown2"><A><i class="material-symbols-outlined">check</i> Graphics</A>
+              <Span class="dropdown-content2">
+                <A>QR code generator</A>
+              </Span>
+            </Div>
+          </li>
+          <li class="pulldown2">
+            <Div class="dropdown2"><A><i class="material-symbols-outlined">apps</i> OTP</A>
+              <Span class="dropdown-content2">
+                <A>Time-based</A>
+              </Span>
+            </Div>
+          </li>
+          <li class="pulldown2">
+            <Div class="dropdown2"><A><i class="material-symbols-outlined">key</i> Web</A>
+              <Span class="dropdown-content2">
+                <A>Bookmarks</A>
+                <A>Google reCAPTCHA</A>
+                <A>Journal</A>
+                <A>Selenium</A>
+              </Span>
+            </Div>
+          </li>
+        </ul>
+      </Span>
+    </Div>
+  </li>
+</ul>
+
+</body>
+</html>
