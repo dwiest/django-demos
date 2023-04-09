@@ -75,17 +75,11 @@ li.pulldown span:hover:not(.active) {
 <ul class="pulldown">
   <li class="pulldown">
 {% block hamburger %}
-{% with title='<span class="material-symbols-outlined">menu</span>' menus='<A href="/django/demos/">Home</A>|<A>Login</A>|<A href="">About</A>' %}
+{% with title='<span class="material-symbols-outlined">menu</span>' menus='<A href="/django/demos/">Home</A>|<A href="">About</A>' %}
 {% include 'dwiest-django-demos/hamburger.html' %}
 {% endwith %}
 {% endblock %}
 </A></li>
-  <li class="pulldown">
-{% block cloud %}
-{% with title='Cloud' menus='<A>EC2 instances</A>' %}
-{% include 'dwiest-django-demos/hamburger.html' %}
-{% endwith %}
-{% endblock %}</li>
   <li class="pulldown">
 {% block file %}
 {% with title='Files' menus='<A href="/django/demos/file/">File manager</A>' %}
@@ -99,20 +93,8 @@ li.pulldown span:hover:not(.active) {
 {% endwith %}
 {% endblock %}</li>
   <li class="pulldown">
-{% block monitoring %}
-{% with title='Monitoring' menus='<A>Cacti</A>|<A>Grafana</A>|<A>Nagios</A>|<A>Prometheus</A>' %}
-{% include 'dwiest-django-demos/hamburger.html' %}
-{% endwith %}
-{% endblock %}</li>
-  <li class="pulldown">
 {% block otp %}
 {% with title='OTP' menus='<A href="/django/demos/otp/">Time-based</A>' %}
-{% include 'dwiest-django-demos/hamburger.html' %}
-{% endwith %}
-{% endblock %}</li>
-  <li class="pulldown">
-{% block services %}
-{% with title='Services' menus='<A>Jenkins</A>|<A>RabbitMQ</A>|<A>MySQL Admin</A>' %}
 {% include 'dwiest-django-demos/hamburger.html' %}
 {% endwith %}
 {% endblock %}</li>
@@ -124,7 +106,7 @@ li.pulldown span:hover:not(.active) {
 {% endblock %}</li>
   <li class="pulldown" style="align:right;">
 {% block settings %}
-{% with title='<span class="material-symbols-outlined">settings</span>' menus='<A>Connect Wallet</A><A>Settings</A>' %}
+{% with title='<span class="material-symbols-outlined">settings</span>' menus='<A>Settings</A>' %}
 {% include 'dwiest-django-demos/hamburger.html' %}
 {% endwith %}
 {% endblock %}</li>
