@@ -189,35 +189,35 @@ div.dropdown2:hover .dropdown-content2 {
       <Span class="dropdown-content">
         <ul class="pulldown2">
           <li class="pulldown2">
-	    <Div class="dropdown2"><A><span class="material-symbols-outlined">home</span><span style="vertical-align:bottom;">Home</span></A></div></li>
+	    <Div class="dropdown2"><A href="{%url 'demos:home'%}"><span class="material-symbols-outlined">home</span><span style="vertical-align:bottom;">Home</span></A></div></li>
           <li class="pulldown2">
             <Div class="dropdown2"><div><A><span class="material-symbols-outlined"><i class="material-symbols-outlined">star</i></span><span style="vertical-align:bottom;">Files</span></A>
               <Span class="dropdown-content2">
-                <A>File Manager</A>
+                <A href="{%url 'demos:file:index'%}">File Manager</A>
               </Span>
             </Div>
           </li>
           <li class="pulldown2">
             <Div class="dropdown2"><A><span class="material-symbols-outlined">check</span><span style="vertical-align:middle;">Graphics</span></A>
               <Span class="dropdown-content2">
-                <A>QR code generator</A>
+                <A href="{%url 'demos:qrcode:home'%}">QR code generator</A>
               </Span>
             </Div>
           </li>
           <li class="pulldown2">
             <Div class="dropdown2"><A><span class="material-symbols-outlined">apps</span><span style="vertical-align:middle;">OTP</span></A>
               <Span class="dropdown-content2">
-                <A>Time-based</A>
+                <A href="{%url 'demos:otp:home'%}">Time-based</A>
               </Span>
             </Div>
           </li>
           <li class="pulldown2">
             <Div class="dropdown2"><A><span class="material-symbols-outlined">key</span><span style="vertical-align:middle;">Web</span></A>
               <Span class="dropdown-content2">
-                <A>Bookmarks</A>
-                <A>Google reCAPTCHA</A>
-                <A>Journal</A>
-                <A>Selenium</A>
+                <A href="{%url 'demos:bookmarks:home'%}">Bookmarks</A>
+                <A href="{%url 'demos:grecaptcha:home'%}">Google reCAPTCHA</A>
+                <A href="{%url 'demos:journal:home'%}">Journal</A>
+                <A href="{%url 'demos:selenium:home'%}">Selenium</A>
               </Span>
             </Div>
           </li>
