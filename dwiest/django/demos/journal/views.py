@@ -18,6 +18,7 @@ class JournalListView(ListView):
     JOURNALS = 'journals'
 
   template_name = settings.DEMOS_JOURNAL_LIST_TEMPLATE
+  user = None
 
   def setup(self, request, *args, **kwargs):
     super().setup(request, *args, **kwargs)
@@ -32,7 +33,7 @@ class JournalListView(ListView):
     if self.user:
       owner_q = Q(owner=self.user, status=0)
     else:
-      owner_q = Q(owner=self.none, status=0)
+      owner_q = Q(owner=None, status=0)
 
     journals = Journal.objects.filter(owner_q)
     return journals
