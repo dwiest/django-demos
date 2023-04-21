@@ -149,7 +149,7 @@ class BookmarksView(ListView):
     if self.user:
       owner_q = Q(owner=self.user)
     else:
-      owner_q = Q(owner=self.none)
+      owner_q = Q(owner=None)
 
     bookmarks = Bookmark.objects.filter(owner_q)
 
@@ -290,7 +290,7 @@ class BookmarkExportView(ListView):
     if self.user:
       owner_q = Q(owner=self.user)
     else:
-      owner_q = Q(owner=self.none)
+      owner_q = Q(owner=None)
     bookmarks = Bookmark.objects.filter(owner_q)
 
     return bookmarks
