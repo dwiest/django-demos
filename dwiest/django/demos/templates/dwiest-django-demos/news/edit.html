@@ -1,0 +1,108 @@
+<Html>
+
+<Head>
+  <Title>Edit News Item</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/news/news.css' %}
+  {% load dwiest_django_demos.tags%}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<!--Div style="height:50px;"></Div-->
+
+<Div>
+{% block header %}
+{% with title='Edit News item' breadcrumbs=True %}
+{% include 'dwiest-django-demos/header.html' %}
+{% endwith %}
+{% endblock %}
+</Div>
+
+<Div style="text-align:center;margin-left:auto;margin-right:auto;">
+<A href="{% url 'demos:news:home' %}">Back to News</A>
+</Div>
+
+{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
+
+{% include 'dwiest-django-demos/bookmarks/errors.html' %}
+
+<Div class="news_item">
+
+<Form method="POST" action={% url 'demos:news:edit' %}>
+
+{% csrf_token %}
+
+{% if form.instance.id %}
+<Input type="hidden" name="id" value="{{form.instance.id}}"/>
+{% endif %}
+<Input type="hidden" name="owner" value="{{form.instance.owner.id}}"/>
+
+<Div class="field">
+{{form.name.label}}:
+</Div>
+<Div class="value">
+{{form.name}}
+</Div>
+
+<Div class="field">
+{{form.description.label}}:
+</Div>
+<Div class="value">
+{{form.description}}
+</Div>
+
+<Div class="field">
+{{form.begin_time.label}}:
+</Div>
+<Div class="value">
+{{form.begin_time}}
+</Div>
+
+<Div class="field">
+{{form.end_time.label}}:
+</Div>
+<Div class="value">
+{{form.end_time}}
+</Div>
+
+<Div class="field">
+{{form.status.label}}:
+</Div>
+<Div class="value">
+{{form.status}}
+</Div>
+
+<Div class="field">
+Created:
+</Div>
+<Div class="value">
+{{form.instance.created_at}}
+</Div>
+
+<Div class="field">
+Last Modified:
+</Div>
+<Div class="value">
+{{form.instance.last_modified}}:
+</Div>
+
+<Div style="text-align:middle;margin-top:20px;margin-left:auto;margin-right:auto;" align="center">
+<Input type="submit"></Input>
+</Div>
+
+</Form>
+</Div>
+
+<A class="new_item" href="{% url "demos:news:view" %}?id={{form.instance.id}}">Cancel</A>
+
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>

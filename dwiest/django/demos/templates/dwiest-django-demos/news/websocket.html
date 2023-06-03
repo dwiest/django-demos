@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>News Feed</title>
+</head>
+<body>
+
+<Div id="news" class="newsfeed">
+some news...
+</Div>
+<script>
+number_one=document.getElementById('news')
+var endpoint='wss://ws.' + window.location.host + '/django/ws/demos/news/'
+var socket;
+var running = false;
+var fetch_item = true;
+var speed = 3;
+
+function openWebsocket(endpoint) {
+  console.log(endpoint)
+
+  if (running) {
+    console.log("Websocket already open")
+    return;
+  }
+
+  socket = new WebSocket(endpoint)
+  running = true;
+  document.getElementById('connect').disabled = true
+  document.getElementById('disconnect').disabled = false
+  document.getElementById('getNews').disabled = false
+  console.log(socket)
+
+  socket.onopen = function(e) {
+    console.log('Websocket opened',e)
+    if (fetch_item == true) {
+      socket.send(1)
+    }
+  }
+
+  socket.onmessage = function(e) {
+    console.log('Received:',e)
+    number_one.innerHTML=e.data
+    if (fetch_item) {
+      setTimeout(function() {
+        socket.send(1);
+      }, (speed * 1000));
+    }
+  }
+}
+
+function closeWebsocket() {
+  console.log('closing...');
+  socket.close();
+  document.getElementById('disconnect').disabled = true
+  document.getElementById('connect').disabled = false
+  document.getElementById('getNews').disabled = true
+  console.log('Websocket closed');
+  running = false;
+}
+
+function getNews(e) {
+  console.log('getNews()')
+  fetch_item = !fetch_item
+  console.log(fetch_item)
+
+  if (fetch_item == true) {
+    socket.send(1)
+    e.value = 'Pause News'
+  }
+  else {
+    e.value = 'Get News'
+  }
+}
+
+function setSpeed(n) {
+  console.log('setSpeed:', n)
+  speed = n 
+}
+
+</script>
+<Div align="center">
+<Span>
+<Input id="connect" style="margin-right:auto;margin-left:50px;" type="button" value="Connect" onClick="openWebsocket(endpoint);" />
+<Input id="getNews" style="" type="button" value="Pause News" onClick="getNews(this);" disabled="true"/>
+<Input type="number" min="1" max="5" minLength="1" maxLength="1" id="speed" onClick="setSpeed(this.value)"/>
+<Input id="disconnect" style="margin-right:auto;margin-left:50px;" type="button" value="Disconnect" onClick="closeWebsocket();" disabled="true"/>
+</Span>
+</Div>
+
+<script>
+var input = document.getElementById('speed');
+input.value = speed;
+</script>
+
+</body>
+</html>

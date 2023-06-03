@@ -67,6 +67,11 @@ class DemosAppConf(AppConf):
   JOURNAL_NAME_DEFAULT = 'My Journal'
   JOURNAL_DUPLICATE_DATE_ERROR = 'There is already a journal entry for that date'
 
+  ''' News settings '''
+
+  NEWS_ITEM_LIST_TEMPLATE = 'dwiest-django-demos/news/index.html'
+  NEWS_ITEM_TEMPLATE = 'dwiest-django-demos/news/item.html'
+  NEWS_ITEM_EDIT_TEMPLATE = 'dwiest-django-demos/news/edit.html'
 
   ''' One-time password demo settings '''
   OTP_SECRET_KEY = ''

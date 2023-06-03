@@ -30,6 +30,8 @@ urlpatterns = [
     include('dwiest.django.demos.journal.urls', namespace='journal')),
   path('otp/',
     include('dwiest.django.demos.otp.urls', namespace='otp')),
+  path('news/',
+    include('dwiest.django.demos.news.urls', namespace='news')),
   path('grecaptcha/',
     include('dwiest.django.demos.grecaptcha.urls', namespace='grecaptcha')),
   path('qrcode/',

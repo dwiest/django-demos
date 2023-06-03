@@ -1,0 +1,37 @@
+<Html>
+<Head>
+  <Title>Today's News</Title>
+{% include "dwiest-django-demos/default.css" %}
+{% include "dwiest-django-demos/header.css" %}
+{% include "dwiest-django-demos/django-messages.css" %}
+{% include "dwiest-django-demos/news/news.css" %}
+{% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</Head>
+
+<Body>
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div class="header">Today's News</Div>
+
+{% include "dwiest-django-demos/news/websocket.html" %}
+
+<Ul class="news_list">
+{%for item in news %}
+  <Li>
+    {% if item.status == 0 %}
+    <A href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A>
+    {% else %}
+    <A style="color:red;" href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A>
+    {% endif %}
+  </Li>
+{%endfor%}
+</Ul>
+
+<A class="new_item" href="{% url 'demos:news:create' %}">Create news item</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>
