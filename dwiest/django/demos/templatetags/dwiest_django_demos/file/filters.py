@@ -16,3 +16,10 @@ def format_bytes(size, precision):
     n += 1
   size = round(size, precision)
   return "{} {}B".format(size, power_labels[n])
+
+@register.filter(name='split')
+def split(value, key):
+    """
+        Returns the value turned into a list.
+    """
+    return value.split(key)

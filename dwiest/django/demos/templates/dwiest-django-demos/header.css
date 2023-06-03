@@ -2,9 +2,10 @@
 div.header {
   margin-top: 10px;
   text-align: center;
+  width: 100%;
   }
 
-div.header span {
+Xdiv.header span {
   width: 33.33333%;
 }
 
@@ -15,7 +16,7 @@ span.breadcrumbs {
   margin-left: 10px;
   }
 
-span.title{
+Xspan.title{
   text-align: center;
   float: left;
   }

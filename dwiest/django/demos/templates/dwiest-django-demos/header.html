@@ -1,11 +1,6 @@
 <!-- header.html -->
 {% include 'dwiest-django-demos/header.css' %}
 <Div class="header">
-{% if breadcrumbs == True %}
-  <Span class="breadcrumbs">
-    <A href="{%url 'demos:home'%}">List of Demos</A>
-  </Span>
-{% endif %}
   <Span class="title">
     {{title}}
   </Span>

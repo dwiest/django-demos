@@ -12,8 +12,12 @@
 
 <Body>
 
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div style="height:50px;"></Div>
+
 {% block header %}
-{% with title='Bookmarks' breadcrumbs=True %}
+{% with title="Bookmarks" %}
 {% include 'dwiest-django-demos/header.html' %}
 {% endwith %}
 {% endblock %}
