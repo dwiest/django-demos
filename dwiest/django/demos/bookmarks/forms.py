@@ -40,7 +40,6 @@ class QuickBookmarkForm(forms.Form):
     widget=DateInput(
       attrs={
         'class': None,
-        'max' : date.today(),
         }
       ),
     )
@@ -61,6 +60,7 @@ class QuickBookmarkForm(forms.Form):
 
     self.owner = owner
     url = self.fields[self.Fields.URL].initial
+    self.fields[self.Fields.DATE].widget.attrs['max'] = date.today()
 
     if 'data' in kwargs: # bound form
       if self.Fields.URL not in kwargs['data']:
