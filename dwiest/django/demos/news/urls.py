@@ -12,6 +12,8 @@ urlpatterns = [
     NewsItemEditView.as_view(), name='create'),
   path('edit',
     NewsItemEditView.as_view(), name='edit'),
+  path('delete',
+    DeleteView.as_view(), name='delete'),
 #  path('entry',
 #    JournalEntryView.as_view(), name='entry'),
 #  path('entry/edit',
