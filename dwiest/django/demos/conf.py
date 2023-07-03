@@ -72,6 +72,7 @@ class DemosAppConf(AppConf):
   NEWS_ITEM_LIST_TEMPLATE = 'dwiest-django-demos/news/index.html'
   NEWS_ITEM_TEMPLATE = 'dwiest-django-demos/news/item.html'
   NEWS_ITEM_EDIT_TEMPLATE = 'dwiest-django-demos/news/edit.html'
+  NEWS_ITEM_DELETE_TEMPLATE = 'dwiest-django-demos/news/delete.html'
 
   ''' One-time password demo settings '''
   OTP_SECRET_KEY = ''
