@@ -16,12 +16,13 @@ class NewsFeed(AsyncJsonWebsocketConsumer):
       return list(NewsItem.objects.filter(status=0))
 
     def __init__(self):
-      print("NewsFeed()")
+#      print("NewsFeed()")
 #      self.news = ["uhnce","tice","fee times","a mady"]
+      pass
 
 
     async def websocket_connect(self, event):
-        print("websocket connected", event)
+#        print("websocket connected", event)
 #        sync_to_async(NewsItem.objects.get)()
 #        await self.channel_layer.group_add('woot',self.channel_name)
         self.news = await self.getNewsItems()
@@ -31,13 +32,14 @@ class NewsFeed(AsyncJsonWebsocketConsumer):
 
 
     async def websocket_disconnect(self, event):
-        print("disconnecting", event)
+#        print("disconnecting", event)
 #        await self.channel_layer.group_discard('woot',self.channel_name)
-        print("disconnected")
+#        print("disconnected")
+        pass
 
 
     async def websocket_receive(self, event):
-        print("websocket_receive", event)
+#        print("websocket_receive", event)
         #sleep(3)
       #  await self.channel_layer.send("woot",{"type":"foo.msg","content":str(randint(0,100))})
         i = next(self.generator)
