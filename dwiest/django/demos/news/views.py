@@ -83,7 +83,7 @@ class NewsEditView(TemplateView):
   class ResponseDict(str, Enum):
     FORM = 'form'
 
-  form_class = NewsItemForm 
+  form_class = NewsItemForm
   success_page = 'demos:news:home'
   template_name = settings.DEMOS_NEWS_ITEM_EDIT_TEMPLATE
 
@@ -173,7 +173,7 @@ class NewsItemEditView(TemplateView):
   class ResponseDict(str, Enum):
     FORM = 'form'
 
-  form_class = NewsItemForm 
+  form_class = NewsItemForm
   success_page = 'demos:news:view'
   template_name = settings.DEMOS_NEWS_ITEM_EDIT_TEMPLATE
 
@@ -218,4 +218,49 @@ class NewsItemEditView(TemplateView):
       return HttpResponseRedirect(reverse(self.success_page) + query_string)
     else:
       print("not_valid()")
+
+
+class DeleteView(TemplateView):
+
+  class ResponseDict(str, Enum):
+    ITEMS = 'items'
+
+  success_page = 'demos:news:home'
+  template_name = settings.DEMOS_NEWS_ITEM_DELETE_TEMPLATE
+
+  def __init__(self, *args, **kwargs):
+    self.response_dict = {}
+
+  def get(self, request, *args, **kwargs):
+    print("DeleteView.get()")
+
+    try:
+      if request.user and request.user.id:
+        items = NewsItem.objects.filter(owner=request.user, status=-1)
+      else:
+       news = NewsItem.objects.filter(owner=None, status=-1)
+
+    except Exception as e:
+      print(str(e))
+      messages.error(request, str(e))
       return render(request, self.template_name, self.response_dict)
+
+    self.response_dict[self.ResponseDict.ITEMS] = items
+
+    return render(request, self.template_name, self.response_dict)
+
+  def post(self, request, *args, **kwargs):
+    try:
+      if request.user and request.user.id:
+        items = NewsItem.objects.filter(owner=request.user, status=-1)
+      else:
+        items = NewsItem.objects.filter(owner=None, status=-1)
+      items.delete()
+
+    except Exception as e:
+      print(str(e))
+      messages.error(request, str(e))
+      return render(request, self.template_name, self.response_dict)
+
+    messages.info(request, "Deleted inactive items.")
+    return HttpResponseRedirect(reverse(self.success_page))
