@@ -16,19 +16,35 @@
 
 {% include "dwiest-django-demos/news/websocket.html" %}
 
+{% include "dwiest-django-demos/django-messages.html" %}
+
+{% if news %}
 <Ul class="news_list">
 {%for item in news %}
   <Li>
-    {% if item.status == 0 %}
-    <A href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A>
-    {% else %}
-    <A style="color:red;" href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A>
-    {% endif %}
+  {% if item.status == 0 %}
+    <A href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A></Li>
+  {% else %}
+    <A class="deleted" href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A></Li>
+  {% endif %}
   </Li>
 {%endfor%}
 </Ul>
+{% else %}
+<Div class="no_items">
+Didn't find any news, why not add something?
+</Div>
+{% endif %}
 
+<Div align="center">
+<Span>
 <A class="new_item" href="{% url 'demos:news:create' %}">Create news item</A>
+{% if news %}
+-
+<A class="delete" href="{% url 'demos:news:delete' %}">Delete inactive items</A>
+{% endif %}
+</Span>
+</Div>
 
 <Div class="filler"></Div>
 
