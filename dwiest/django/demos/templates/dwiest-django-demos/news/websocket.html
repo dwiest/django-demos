@@ -48,16 +48,23 @@ function openWebsocket(endpoint) {
       }, (speed * 1000));
     }
   }
+
+  socket.onclose = function(e) {
+    console.log('onclose:',e)
+    running = false;
+    document.getElementById('disconnect').disabled = true
+    document.getElementById('connect').disabled = false
+    document.getElementById('getNews').disabled = true
+    if (e.wasClean == false) {
+      alert('Websocket unexpectedly disconnected.')
+    }
+    console.log('Websocket closed');
+  }
 }
 
 function closeWebsocket() {
   console.log('closing...');
   socket.close();
-  document.getElementById('disconnect').disabled = true
-  document.getElementById('connect').disabled = false
-  document.getElementById('getNews').disabled = true
-  console.log('Websocket closed');
-  running = false;
 }
 
 function getNews(e) {
