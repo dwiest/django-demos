@@ -1,0 +1,44 @@
+<Html>
+<Head>
+  <Title>Delete Inactive News</Title>
+{% include "dwiest-django-demos/default.css" %}
+{% include "dwiest-django-demos/header.css" %}
+{% include "dwiest-django-demos/django-messages.css" %}
+{% include "dwiest-django-demos/news/news.css" %}
+{% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</Head>
+
+<Body>
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div class="header">Delete Inactive News</Div>
+
+{% include "dwiest-django-demos/django-messages.html" %}
+
+{% if items %}
+<Ul class="news_list">
+{%for item in items %}
+  <Li>
+    <A class="deleted" href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A>
+  </Li>
+{%endfor%}
+</Ul>
+
+<Form class="delete" id="delete" action="{%url 'demos:news:delete' %}" method="POST">
+{%csrf_token%}
+<Input class="button" type="submit" value="Delete Items"/>
+</Form>
+-
+{% else %}
+<Div align="center" class="no_items">
+No inactive items found.
+</Div>
+{% endif %}
+<A class="back" href="{% url 'demos:news:home' %}">Back to News</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>
