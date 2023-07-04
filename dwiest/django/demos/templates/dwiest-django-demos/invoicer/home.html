@@ -1,0 +1,18 @@
+<Html>
+  <Head>
+    <Title>Invoice</Title>
+    </Head>
+
+  <Body>
+    <Div><A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-To's</A></Div>
+    <Div><A href="{% url 'demos:invoicer:bill_to_view' %}">View Bill-To</A></Div>
+    <Div><A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A></Div>
+    <Div><A href="{% url 'demos:invoicer:bill_to_edit' %}">Edit Bill-To</A></Div>
+
+    <Div>List of recent invoices</Div>
+    <Div><A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoices</A></Div>
+    <Div><A href="{% url 'demos:invoicer:invoice_view' %}">View Invoice</A></Div>
+    <Div><A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A></Div>
+    <Div><A href="{% url 'demos:invoicer:invoice_edit' %}">Edit Invoice</A></Div>
+    </Body>
+  </Html>

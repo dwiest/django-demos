@@ -34,6 +34,8 @@ urlpatterns = [
     include('dwiest.django.demos.news.urls', namespace='news')),
   path('grecaptcha/',
     include('dwiest.django.demos.grecaptcha.urls', namespace='grecaptcha')),
+  path('invoicer/',
+    include('dwiest.django.demos.invoicer.urls', namespace='invoicer')),
   path('qrcode/',
     include('dwiest.django.demos.qrcode.urls', namespace='qrcode')),
   path('selenium/',

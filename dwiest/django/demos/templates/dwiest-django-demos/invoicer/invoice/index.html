@@ -1,0 +1,11 @@
+Invoice Index
+
+{% if items %}
+<Ul>
+{% for item in items %}
+  <Li>{{item.name}}</Li>
+{% endfor %}
+</Ul>
+{% else %}
+No invoices found.
+{% endif %}

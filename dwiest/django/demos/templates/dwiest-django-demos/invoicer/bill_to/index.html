@@ -1,0 +1,11 @@
+Bill-To Index
+
+{% if items %}
+<Ul>
+{% for item in items %}
+  <Li>{{item.name}}</Li>
+{% endfor %}
+</Ul>
+{% else %}
+No bill-to's found.
+{% endif %}

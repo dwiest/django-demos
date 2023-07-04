@@ -55,6 +55,14 @@ class DemosAppConf(AppConf):
   GOOGLE_RECAPTCHA_SITE_KEY = None
   GOOGLE_RECAPTCHA_TEMPLATE = 'dwiest-django-demos/grecaptcha/index.html'
 
+  ''' Invoice demo settings '''
+  INVOICER_BILL_TO_TEMPLATE = 'dwiest-django-demos/invoicer/bill_to/view.html'
+  INVOICER_BILL_TO_EDIT_TEMPLATE = 'dwiest-django-demos/invoicer/bill_to/edit.html'
+  INVOICER_BILL_TO_LIST_TEMPLATE = 'dwiest-django-demos/invoicer/bill_to/index.html'
+  INVOICER_INVOICE_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/view.html'
+  INVOICER_INVOICE_EDIT_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/edit.html'
+  INVOICER_INVOICE_LIST_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/index.html'
+
   ''' Journal demo settings '''
   JOURNAL_LIST_TEMPLATE = 'dwiest-django-demos/journal/index.html'
   JOURNAL_TEMPLATE = 'dwiest-django-demos/journal/journal.html'
