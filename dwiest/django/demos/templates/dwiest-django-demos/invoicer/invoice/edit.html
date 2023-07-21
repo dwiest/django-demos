@@ -1,10 +1,72 @@
 <Html>
   <Head>
-    <Title>Add/Edit Invoice</Title>
+    <Title>
+      {% if invoice.id %}
+        Edit Invoice
+      {% else %}
+        Add Invoice
+      {% endif %}
+      </Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
     </Head>
 
   <Body>
-    <Div>Add/Edit Invoice</Div>
-    <Div>{{form}}</Div>
+    <Div>
+      {% if invoice.id %}
+        Edit Invoice
+      {% else %}
+        Add Invoice
+      {% endif %}
+      </Div>
+    {% include 'dwiest-django-demos/django-messages.html' %}
+    <Div>
+      <Form action="{% url 'demos:invoicer:invoice_edit' %}" method="POST">
+      {% csrf_token %}
+      <Input type="hidden" name="id" id="id" value="{{invoice.id}}"/>
+      <Table width="100%">
+      {{form}}
+      </Table>
+      </Div>
+    {% for f in formset %}
+    <Div>
+      {{formset.management_form}}
+      {{f.id}}
+      <Table width="100%"
+      <Tr>
+        <Td>{{f.id.label}}</Td>
+        <Td>{{f.id.value}}</Td>
+	</Tr>
+      <Tr>
+        <Td>{{f.status.label}}</Td>
+        <Td>{{f.status}}</Td>
+	</Tr>
+      <Tr>
+        <Td>{{f.invoice.label}}</Td>
+        <Td>{{f.invoice}}</Td>
+	</Tr>
+      <Tr>
+        <Td>{{f.description.label}}</Td>
+        <Td>{{f.description}}</Td>
+	</Tr>
+      <Tr>
+        <Td>{{f.delete.label}}</Td>
+        <Td>{{f.delete}}</Td>
+	</Tr>
+      </Table>
+	<!--
+      {{f}} -->
+      </Div>
+    {% endfor %}
+    <Div>
+      <P>
+      <Input type="submit"/>
+      </Div>
+    </Form>
+
+    <Div>
+      <P>
+      <A href="{% url 'demos:invoicer:invoice_edit' %}?id={{invoice.id}}">Cancel</A>
+      </Div>
+
     </Body>
   </Html>
