@@ -1,11 +1,18 @@
 Invoice Index
 
 {% if items %}
+<Div>
 <Ul>
 {% for item in items %}
-  <Li>{{item.name}}</Li>
+  <Li>{{item.bill_to.name}} - <A href="{% url 'demos:invoicer:invoice_view' %}?id={{item.id}}">{{item.name}}</A></Li>
 {% endfor %}
 </Ul>
+</Div>
 {% else %}
+<Div>
 No invoices found.
+</Div>
 {% endif %}
+
+<Div><A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A></Div>
+<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
