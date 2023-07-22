@@ -4,7 +4,25 @@
     </Head>
 
   <Body>
-    <Div>Add/Edit Bill-To</Div>
-    <Div>{{form}}</Div>
+    <Div>
+      {% if form.instance.id %}
+        Edit Bill-To
+      {% else %}
+        Add Bill-To
+      {% endif %}
+    </Div>
+    <Form action="{% url 'demos:invoicer:bill_to_edit' %}" method="post">
+      {% csrf_token %}
+      {% if form.instance.id %}
+      <Input type="hidden" name="id" id="id_id" value="{{form.instance.id}}"/>
+      {% endif %}
+      <Div>{{form}}</Div>
+      <Div><Input type="submit">
+    </Form>
+    {% if form.instance.id %}
+    <Div><A href="{% url 'demos:invoicer:bill_to_view' %}?id={{form.instance.id}}">Cancel</A></Div>
+    {% else %}
+    <Div><A href="{% url 'demos:invoicer:home' %}">Cancel</A></Div>
+    {% endif %}
     </Body>
   </Html>
