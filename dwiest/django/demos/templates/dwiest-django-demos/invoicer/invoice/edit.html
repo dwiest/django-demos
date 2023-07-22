@@ -33,28 +33,37 @@
       {{f.id}}
       <Table width="100%"
       <Tr>
-        <Td>{{f.id.label}}</Td>
+        <Th>{{f.id.label}}</Th>
         <Td>{{f.id.value}}</Td>
+	</Tr>
+      <!--
+      <Tr>
+        <Td></Td>
+        <Td>{{f.DELETE}}{{f.DELETE.label}}</Td>
+	</Tr>
+      <Tr>
+        <Td>{{f.date.label}}</Td>
+        <Td>{{f.date}}{{f.date.errors}}</Td>
 	</Tr>
       <Tr>
         <Td>{{f.status.label}}</Td>
-        <Td>{{f.status}}</Td>
+        <Td>{{f.status}}{{f.status.errors}}</Td>
 	</Tr>
       <Tr>
         <Td>{{f.invoice.label}}</Td>
-        <Td>{{f.invoice}}</Td>
+        <Td>{{f.invoice}}{{f.invoice.errors}}</Td>
 	</Tr>
       <Tr>
         <Td>{{f.description.label}}</Td>
-        <Td>{{f.description}}</Td>
+        <Td>{{f.description}}{{f.description.errors}}</Td>
 	</Tr>
       <Tr>
         <Td>{{f.delete.label}}</Td>
         <Td>{{f.delete}}</Td>
-	</Tr>
+	</Tr> -->
+
+      {{f}}
       </Table>
-	<!--
-      {{f}} -->
       </Div>
     {% endfor %}
     <Div>
@@ -65,7 +74,7 @@
 
     <Div>
       <P>
-      <A href="{% url 'demos:invoicer:invoice_edit' %}?id={{invoice.id}}">Cancel</A>
+      <A href="{% url 'demos:invoicer:invoice_view' %}?id={{invoice.id}}">Cancel</A>
       </Div>
 
     </Body>
