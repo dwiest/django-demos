@@ -16,4 +16,5 @@ urlpatterns = [
   path('invoice/edit', InvoiceEditView.as_view(), name='invoice_edit'),
   path('invoice/view', InvoiceView.as_view(), name='invoice_view'),
   path('invoice/add', InvoiceEditView.as_view(), name='invoice_add'),
+  path('invoice/render', InvoiceRenderView.as_view(), name='invoice_render'),
 ]
