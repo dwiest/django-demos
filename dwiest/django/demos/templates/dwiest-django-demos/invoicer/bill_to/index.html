@@ -1,11 +1,18 @@
 Bill-To Index
 
 {% if items %}
+<Div>
 <Ul>
 {% for item in items %}
-  <Li>{{item.name}}</Li>
+  <Li><A href="{% url 'demos:invoicer:bill_to_view' %}?id={{item.id}}">{{item.name}}</A></Li>
 {% endfor %}
 </Ul>
+</Div>
 {% else %}
+<Div>
 No bill-to's found.
+</Div>
 {% endif %}
+
+<Div><A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A></Div>
+<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
