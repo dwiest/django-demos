@@ -7,7 +7,7 @@ from django.forms import widgets
 from django.utils.translation import ugettext, ugettext_lazy as _
 from enum import Enum, auto
 #from ..conf import settings
-from .models import BillTo, Invoice
+from .models import BillTo, Invoice, LineItem
 from datetime import date
 
 
@@ -18,8 +18,9 @@ class DateInput(forms.DateInput):
 class BillToForm(forms.ModelForm):
   class Meta:
     model = BillTo
+    exclude = ['owner']
 
-    fields = ['id', 'name', 'status', 'owner']
+#    fields = ['id', 'name', 'status', 'owner']
 
   class Fields(str, Enum):
     NAME = 'name'
@@ -53,22 +54,22 @@ class BillToForm(forms.ModelForm):
       ),
     )
 
-#  def __init__(self, *args, **kwargs):
-#    super().__init__(*args, **kwargs)
-#    print("created NewsItemForm")
+  def __init__(self, *args, **kwargs):
+    print("created {}".format(self.__class__.__name__))
+    super().__init__(*args, **kwargs)
 
   def is_valid(self):
+    print("BillToForm.is_valid()")
     print(self.is_bound)
     print(self.errors)
-    print(str(self))
+#    print(str(self))
     return self.is_bound and not self.errors
 
 
 class InvoiceForm(forms.ModelForm):
   class Meta:
     model = Invoice
-
-    fields = ['id', 'name', 'status', 'owner']
+    exclude = ['owner']
 
   class Fields(str, Enum):
     NAME = 'name'
@@ -111,3 +112,48 @@ class InvoiceForm(forms.ModelForm):
     print(self.errors)
     print(str(self))
     return self.is_bound and not self.errors
+
+
+class LineItemForm(forms.ModelForm):
+  class Meta:
+    model = LineItem
+    exclude = ['owner']
+    widgets = {
+      'date': DateInput(
+        attrs = {
+          'class': None,
+          'max' : date.today(),
+          }
+        ),
+      }
+
+  class Fields(str, Enum):
+    DATE = 'date'
+    DESCRIPTION = 'description'
+    STATUS = 'status'
+
+  class Errors(str, Enum):
+    DUPLICATE_NAME = auto()
+
+  error_messages = {
+    Errors.DUPLICATE_NAME:
+#      _(settings.DEMOS_NEWS_ITEM_DUPLICATE_NAME_ERROR),
+      'duplicate_name',
+    }
+
+  field_defaults = {
+    #Fields.URL: settings.DEMOS_BOOKMARKS_URL_DEFAULT
+  }
+
+  date = forms.DateField(
+    label=None,
+    initial=None,
+    required=False,
+#    widget=forms.SelectDateWidget(
+    widget=DateInput(
+      attrs={
+        'class': None,
+        }
+      ),
+    )
+
