@@ -1,0 +1,40 @@
+<Div style="text-align:right;background:yellow;width:60%;">
+<Div>Invoice Date: {{invoice.invoice_date}}</Div>
+<Div>Bill-To: {{invoice.bill_to}}</Div>
+<Div>Total: {{invoice.total}}</Div>
+<Div>Due Date: {{invoice.due_date}}</Div>
+</Div>
+
+<Div>
+<Div style="padding:10px;width:100%;text-align:middle">
+<Table style="padding:10px;" align="center" width="60%">
+  <Tr>
+    <Th align="left">Date</Th>
+    <Th align="left">Description</Th>
+    <Th align="left">Rate</Th>
+    <Th align="left">Quantity</Th>
+    <Th align="left">Amount</Th>
+    </Tr>
+{% for line_item in line_items %}
+  <Tr>
+    <Td align="left">{{line_item.date}}</Td>
+    <Td align="left">{{line_item.description}}</Td>
+    <Td align="left">{{line_item.rate}}</Td>
+    <Td align="left">{{line_item.quantity}}</Td>
+    <Td align="left">{{line_item.total}}</Td>
+    </Tr>
+  {% endfor %}
+  </Table>
+  </Div>
+
+<Div style="padding:10px;width:60%;text-align:right">
+  <Table align="right">
+    <Tr>
+      <Th>Total</Th>
+      </Tr>
+    <Tr>
+      <Td>{{invoice.total}}</Td>
+      </Tr>
+    </Table>
+  </Div>
+  </Div>
