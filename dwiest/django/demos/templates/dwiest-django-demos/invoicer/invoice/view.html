@@ -1,1 +1,41 @@
 View Invoice
+
+<P>
+<Div>Id: {{invoice.id}}</Div>
+<Div>Name: {{invoice.name}}</Div>
+<Div>Description: {{invoice.description}}</Div>
+<Div>Invoice Date: {{invoice.invoice_date}}</Div>
+<Div>Invoice Created: {{invoice.created_at}}</Div>
+<Div>Invoice Last-Modified: {{invoice.last_modified}}</Div>
+<Div>Bill-To: {{invoice.bill_to}}</Div>
+<Div>Total: {{invoice.total}}</Div>
+<Div>Due Date: {{invoice.due_date}}</Div>
+
+<P>
+<Div>
+<Table style="padding:10px;">
+  <Tr>
+    <Th align="left">Date</Th>
+    <Th align="left">Description</Th>
+    <Th align="left">Rate</Th>
+    <Th align="left">Quantity</Th>
+    <Th align="left">Amount</Th>
+    </Tr>
+{% for line_item in line_items %}
+  <Tr>
+    <Td align="left">{{line_item.date}}</Td>
+    <Td align="left">{{line_item.description}}</Td>
+    <Td align="left">{{line_item.rate}}</Td>
+    <Td align="left">{{line_item.quantity}}</Td>
+    <Td align="left">{{line_item.total}}</Td>
+    </Tr>
+  {% endfor %}
+  </Table>
+</Div>
+
+<P>
+<Div><A href="{% url 'demos:invoicer:invoice_render' %}?id={{invoice.id}}" target="_">Render</A></Div>
+<Div><A href="{% url 'demos:invoicer:invoice_edit' %}?id={{invoice.id}}">Edit</A></Div>
+<Div><A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoice's</A></Div>
+<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
+
