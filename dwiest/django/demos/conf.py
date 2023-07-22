@@ -62,6 +62,7 @@ class DemosAppConf(AppConf):
   INVOICER_INVOICE_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/view.html'
   INVOICER_INVOICE_EDIT_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/edit.html'
   INVOICER_INVOICE_LIST_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/index.html'
+  INVOICER_INVOICE_RENDER_TEMPLATE = 'dwiest-django-demos/invoicer/invoice/render.html'
 
   ''' Journal demo settings '''
   JOURNAL_LIST_TEMPLATE = 'dwiest-django-demos/journal/index.html'
