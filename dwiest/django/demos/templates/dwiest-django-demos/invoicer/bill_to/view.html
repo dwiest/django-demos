@@ -1,1 +1,11 @@
 View Bill-To
+<Div>Id: {{bill_to.id}}</Div>
+<Div>Name: {{bill_to.name}}</Div>
+<Div>Description: {{bill_to.description}}</Div>
+<Div>Address Line 1: {{bill_to.line_1}}</Div>
+<Div>Address Line 2: {{bill_to.line_2}}</Div>
+<Div>City: {{bill_to.city}}</Div>
+<Div>State: {{bill_to.state}}</Div>
+<Div><A href="{% url 'demos:invoicer:bill_to_edit' %}?id={{bill_to.id}}">Edit</A></Div>
+<Div><A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-to's</A></Div>
+<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
