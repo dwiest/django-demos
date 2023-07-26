@@ -8,6 +8,7 @@
       {% endif %}
       </Title>
     {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
     </Head>
 
   <Body>
@@ -27,45 +28,56 @@
       {{form}}
       </Table>
       </Div>
-    {% for f in formset %}
     <Div>
       {{formset.management_form}}
-      {{f.id}}
-      <Table width="100%"
+      <Table class="inv_line_items">
+      <!--
       <Tr>
         <Th>{{f.id.label}}</Th>
         <Td>{{f.id.value}}</Td>
 	</Tr>
-      <!--
+	-->
       <Tr>
-        <Td></Td>
-        <Td>{{f.DELETE}}{{f.DELETE.label}}</Td>
+        <Th>
+	  Id
+	  </Th>
+        <Th>
+	  Status
+	  </Th>
+        <Th>
+	  Date
+	  </Th>
+        <Th>
+	  Description
+	  </Th>
+        <Th>
+	  Rate
+	  </Th>
+        <Th>
+	  Quantity
+	  </Th>
+        <Th>
+	  Delete
+	  </Th>
 	</Tr>
+    {% for f in formset %}
       <Tr>
-        <Td>{{f.date.label}}</Td>
-        <Td>{{f.date}}{{f.date.errors}}</Td>
+        {{f.id}}
+        <Td>{% if f.id.value %}{{f.id.value}}{%else%}NEW!{%endif%}</Td>
+        <Td>{{f.status}}</Td>
+        <Td>{{f.date}}</Td>
+        <Td>{{f.description}}</Td>
+        <Td>{{f.rate}}</Td>
+        <Td>{{f.quantity}}</Td>
+        <Td>{{f.DELETE}}</Td>
 	</Tr>
-      <Tr>
-        <Td>{{f.status.label}}</Td>
-        <Td>{{f.status}}{{f.status.errors}}</Td>
-	</Tr>
-      <Tr>
-        <Td>{{f.invoice.label}}</Td>
-        <Td>{{f.invoice}}{{f.invoice.errors}}</Td>
-	</Tr>
-      <Tr>
-        <Td>{{f.description.label}}</Td>
-        <Td>{{f.description}}{{f.description.errors}}</Td>
-	</Tr>
-      <Tr>
-        <Td>{{f.delete.label}}</Td>
-        <Td>{{f.delete}}</Td>
-	</Tr> -->
 
+      <!--
       {{f}}
+      -->
+    {% endfor %}
       </Table>
       </Div>
-    {% endfor %}
     <Div>
       <P>
       <Input type="submit"/>
