@@ -103,6 +103,18 @@ class InvoiceForm(forms.ModelForm):
       ),
     )
 
+  invoice_date = forms.DateField(
+    label='Invoice Date:',
+    initial=date.today(),
+    required=False,
+    widget=DateInput(
+      attrs={
+        'class': None,
+        }
+      ),
+    )
+
+
 #  def __init__(self, *args, **kwargs):
 #    super().__init__(*args, **kwargs)
 #    print("created NewsItemForm")
@@ -111,6 +123,7 @@ class InvoiceForm(forms.ModelForm):
     print(self.is_bound)
     print(self.errors)
     print(str(self))
+
     return self.is_bound and not self.errors
 
 
@@ -119,10 +132,38 @@ class LineItemForm(forms.ModelForm):
     model = LineItem
     exclude = ['owner']
     widgets = {
-      'date': DateInput(
+      'status': widgets.NumberInput(
         attrs = {
-          'class': None,
-          'max' : date.today(),
+          'max'  : 1,
+          'min'  : -1,
+          'class' : 'inv_li_status'
+          }
+        ),
+      'description': widgets.Textarea(
+        attrs = {
+          'rows' : 2,
+          'cols' : 80,
+          'class' : 'inv_li_description'
+          }
+        ),
+#      'date': DateInput(
+#        attrs = {
+#          'max' : date.today(),
+#          'class' : 'inv_li_date'
+#          }
+#        ),
+      'rate': widgets.NumberInput(
+        attrs = {
+            'class' : 'inv_li_rate'
+          }
+        ),
+      'quantity': widgets.NumberInput(
+        attrs = {
+            'class' : 'inv_li_quantity',
+            'max'   : 24,
+            'min'   : 0.25,
+            'step'  : 0.25,
+
           }
         ),
       }
@@ -152,7 +193,8 @@ class LineItemForm(forms.ModelForm):
 #    widget=forms.SelectDateWidget(
     widget=DateInput(
       attrs={
-        'class': None,
+        'max' : date.today(),
+        'class' : 'inv_li_date'
         }
       ),
     )
