@@ -224,11 +224,12 @@ class InvoiceView(TemplateView):
     if id:
       try:
         if request.user and request.user.id:
-          item = Invoice.objects.get(owner=request.user, id=id, status=0)
-          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id, status=0)
+          item = Invoice.objects.get(owner=request.user, id=id)
+          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id)
         else:
           print("No invoice: {}".format(id))
-          item = Invoice.objects.get(owner=None, id=id, status=0)
+          item = Invoice.objects.get(owner=None, id=id)
+          line_items = LineItem.objects.filter(owner=None, invoice_id=id)
         print(item)
         print(line_items)
 
@@ -256,6 +257,7 @@ class InvoiceEditView(TemplateView):
 
   form_class = InvoiceForm
   success_page = 'demos:invoicer:invoice_edit'
+  view_page = 'demos:invoicer:invoice_view'
   template_name = settings.DEMOS_INVOICER_INVOICE_EDIT_TEMPLATE
 
   def __init__(self, *args, **kwargs):
@@ -268,24 +270,30 @@ class InvoiceEditView(TemplateView):
     if id:
       try:
         if request.user and request.user.id:
-          item = Invoice.objects.get(owner=request.user, id=id)
+          invoice = Invoice.objects.get(owner=request.user, id=id)
         else:
-          item = Invoice.objects.get(owner=None, id=id)
+          invoice = Invoice.objects.get(owner=None, id=id)
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
         return render(request, self.template_name, self.response_dict)
     else:
-      item = Invoice(owner=request.user)
+      invoice = Invoice(owner=request.user)
 
-    form = self.form_class(instance=item)
+    if invoice.status != 0:
+      messages.error(request, "Can't modify, invoice status not 0.")
+      query_string = "?id={}".format(id)
+      return HttpResponseRedirect(reverse(self.view_page) + query_string)
+
+    form = self.form_class(instance=invoice)
 
     self.response_dict[self.ResponseDict.FORM] = form
-    self.response_dict[self.ResponseDict.INVOICE] = item
+    self.response_dict[self.ResponseDict.INVOICE] = invoice
 
-    formset = modelformset_factory(LineItem, extra=1,exclude=['id','owner','invoice'],can_delete=True,widgets={'status':forms.NumberInput(attrs={'max':0,'min':-1}),'date':DateInput(attrs={'max': date.today()}),'description':forms.Textarea(attrs={'cols':40,'rows':2}),'quantity':forms.NumberInput(attrs={'min':0.25,'step':0.25})})
+    formset = modelformset_factory(LineItem, form=LineItemForm, extra=3,exclude=['id','owner','invoice'],can_delete=True)
+#    formset = modelformset_factory(LineItem, form=LineItemForm, extra=3,exclude=['id','owner','invoice'],can_delete=True,widgets={'status':forms.NumberInput(attrs={'max':0,'min':-1}),'date':DateInput(attrs={'max': date.today()}),'description':forms.Textarea(attrs={'cols':40,'rows':2}),'quantity':forms.NumberInput(attrs={'min':0.25,'step':0.25})})
 
-    self.response_dict[self.ResponseDict.FORMSET] = formset(queryset=LineItem.objects.filter(invoice=item),initial=[{'date':date.today(),'invoice':item,'description':'initial description'}])
+    self.response_dict[self.ResponseDict.FORMSET] = formset(queryset=LineItem.objects.filter(invoice=invoice),initial=[{'date':date.today(),'invoice':invoice,'description':'initial description'}])
 
     return render(request, self.template_name, self.response_dict)
 
@@ -305,6 +313,11 @@ class InvoiceEditView(TemplateView):
       print("uhoh: {}".format(e))
       return render(request, self.template_name, self.response_dict)
 
+    if invoice.status != 0:
+      messages.error(request, "Can't modify, invoice status not 0.")
+      query_string = "?id={}".format(invoice_id)
+      return HttpResponseRedirect(reverse(self.success_page) + query_string)
+
     invoice_form = self.form_class(instance=invoice, data=request.POST)
     if invoice_form.is_valid():
       invoice_form.save();
@@ -313,6 +326,7 @@ class InvoiceEditView(TemplateView):
 
     line_item_formset = modelformset_factory(
       LineItem,
+      extra=3,
       exclude=['id','owner','invoice'],
       can_delete=True,
       widgets={
@@ -332,6 +346,7 @@ class InvoiceEditView(TemplateView):
       line_items = formset.save(commit=False)
       for line_item in line_items:
         line_item.invoice = invoice
+        line_item.owner = owner
         print("Formset: save()")
         line_item.save()
       for line_item in formset.deleted_objects:
@@ -373,10 +388,10 @@ class InvoiceRenderView(TemplateView):
     if id:
       try:
         if request.user and request.user.id:
-          item = Invoice.objects.get(owner=request.user, id=id, status=0)
-          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id, status=0)
+          item = Invoice.objects.get(owner=request.user, id=id)
+          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id)
         else:
-          item = Invoice.objects.get(owner=None, id=id, status=0)
+          item = Invoice.objects.get(owner=None, id=id)
         print(item)
 
       except Exception as e:
