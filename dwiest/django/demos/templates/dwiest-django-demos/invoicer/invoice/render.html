@@ -1,40 +1,125 @@
-<Div style="text-align:right;background:yellow;width:60%;">
-<Div>Invoice Date: {{invoice.invoice_date}}</Div>
-<Div>Bill-To: {{invoice.bill_to}}</Div>
-<Div>Total: {{invoice.total}}</Div>
-<Div>Due Date: {{invoice.due_date}}</Div>
-</Div>
+<Html>
 
-<Div>
-<Div style="padding:10px;width:100%;text-align:middle">
-<Table style="padding:10px;" align="center" width="60%">
-  <Tr>
-    <Th align="left">Date</Th>
-    <Th align="left">Description</Th>
-    <Th align="left">Rate</Th>
-    <Th align="left">Quantity</Th>
-    <Th align="left">Amount</Th>
-    </Tr>
-{% for line_item in line_items %}
-  <Tr>
-    <Td align="left">{{line_item.date}}</Td>
-    <Td align="left">{{line_item.description}}</Td>
-    <Td align="left">{{line_item.rate}}</Td>
-    <Td align="left">{{line_item.quantity}}</Td>
-    <Td align="left">{{line_item.total}}</Td>
-    </Tr>
-  {% endfor %}
-  </Table>
+<Head>
+  <Title>Invoice - {{invoice.name}}</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+  {% load dwiest_django_demos.tags %}
+  {% load humanize %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+<Div class="inv_title">
+  INVOICE
+  </Div>
+<Hr width="90%"/>
+
+<Div class="inv_header">
+  <Div class="vendor">
+    Damian Wiest<Br/>
+    DBA: Wiest.World<Br/>
+    800 Saint Marys St.<Br/>
+    Apt. 403<Br/>
+    Raleigh, NC 27605-3405
+    </Div>
+
+  <Div class="inv_data">
+    <Table>
+      <Tr>
+        <Th>Invoice Number:</Th>
+        <Td>{{invoice.name}}</Td>
+        </Tr>
+      <Tr>
+        <Th>Invoice Date:</Th>
+        <Td>{{invoice.invoice_date|date:'m/d/Y'}}</Td>
+        </Tr>
+      <Tr>
+        <Th>Terms: </Th>
+        <Td>{{invoice.terms}}</Td>
+        </Tr>
+      <Tr>
+        <Th>Due Date: </Th>
+        <Td>{{invoice.due_date|date:'m/d/Y'}}</Td>
+        </Tr>
+      <Tr>
+        <Th>Amount Due: </Th>
+        <Td>${{invoice.total|floatformat:2|intcomma}}</Td>
+        </Tr>
+      </Table>
+    </Div>
   </Div>
 
-<Div style="padding:10px;width:60%;text-align:right">
-  <Table align="right">
+<Div class="bill_to">
+  <Table>
     <Tr>
-      <Th>Total</Th>
+      <Th>Bill To</Th>
       </Tr>
     <Tr>
-      <Td>{{invoice.total}}</Td>
+      <Td>{{invoice.bill_to.name}}</Td>
+      </Tr>
+    <Tr>
+      <Td>{{invoice.bill_to.line_1}}</Td>
+      </Tr>
+    <Tr>
+      <Td>{{invoice.bill_to.line_2}}</Td>
+      </Tr>
+    <Tr>
+      <Td>
+        {{invoice.bill_to.city}},
+        {{invoice.bill_to.state}}
+        {{invoice.bill_to.zipcode}}
+	</Td>
       </Tr>
     </Table>
   </Div>
+
+<Div class="line_items">
+<Table>
+  <Tr>
+    <Th class="left">Date</Th>
+    <Th class="left">Description</Th>
+    <Th>Hours</Th>
+    <Th>Rate</Th>
+    <Th>Amount</Th>
+    </Tr>
+{% for line_item in line_items %}
+  <Tr>
+    <Td class="left">{{line_item.date|date:'m/d/Y'}}</Td>
+    <Td class="left">{{line_item.description}}</Td>
+    <Td>{{line_item.quantity|intcomma}}</Td>
+    <Td>${{line_item.rate|intcomma}}.00</Td>
+    <Td>${{line_item.total|floatformat:2|intcomma}}</Td>
+    </Tr>
+  {% endfor %}
+  </Table>
+</Div>
+
+<Div class="inv_total">
+  <Table>
+    <Tr>
+      <Th>Total:</Th>
+      <Td>${{invoice.total|floatformat:2|intcomma}}</Td>
+      </Tr>
+    </Table>
   </Div>
+
+<Div class="qrcode">
+  <!-- FIXME -->
+  <Img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhIAAAISCAIAAAAWX7HoAAAMvElEQVR4nO3dwY7bOhJA0elB/v+XM9ssBkQu+PhYtM/ZBrFsWe4LLUr18/v37/8AwN/57+03AMBLZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACH7dOvDPz8+tQx/y+/fvxb+uP+/O/11bv/La573nW8edeW2cs3Mm1z7vXO04d57X3G0AEMgGAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABBcmxJfuzX9uDZzyvTWuZo5j33uuDN93pncmQPfMfPamPk3x90GAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABDIBgDB0CnxtXOTk7dmUHc+0bmp2lsbsG9NIO+YOWO89uJ7vsWV8yd3GwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABE9Oib/o1lz02s67Ojd/PtO5ufdb+8DXXpzzf/G6epG7DQAC2QAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AAlPiI5zby33LzA3nO87te1978QkCM69J/inuNgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACJ6cErcx+E8zdz7vuLUfe8e5OfBz3+Cta2PmVbf24ns+x90GAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABDIBgDB0Cnxb9tFPHPSe+aE+bkt1jP3n3/etTHz837b35wd7jYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAh+7MidYOY89jnn5oTXPm+X+LlXfnFa+/N+KTO52wAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AAtkAIPjAKfFb86u3zuS5Hcjnppd3jrv24kbomdvCd8ycP1978Xd069t3twFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABLIBQPDklPitSWAT5n+aeeXc2lK+NvO458y82md68TfobgOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgODX7Tfw/52bnNx55XPTvLf2n6/d2vn84tm4ddxbT0x4cVv42q3nC8z8ftfcbQAQyAYAgWwAEMgGAIFsABDIBgCBbAAQyAYAgWwAEAydEt8xcwZ17cXZ9XOvfOs7mnltrH3elvKZ2+BvPV9g5jXpbgOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgOBn5hTijpk7gddmbvz+vLNxzq157Be3WH/bd7Rj5vMU3G0AEMgGAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABBcmxKfuTF47fMm6necm1+99f2unftEM1/53HFnPhNhx+d9ojV3GwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABL9uv4F/3rmZ2xdnQW9N876443pt5ieaOQe+NvPJFGu33vPMJ1O42wAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AAtkAIHhyl/itV5553B3f9i3s+Lw5/5kbv8+9sln9f4q7DQAC2QAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AgmtT4msvzpG+OFO94/PO5K0t5TtmzmPvmPnt37qeZ3K3AUAgGwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFA8OvWgc9Nmc7cJr3zymszp1u/beL61v+dOZ8887gv7refOWHubgOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgODaLvGZ061rtyafP2+r844Xr42ZE8hrL05c37piX/y8O9xtABDIBgCBbAAQyAYAgWwAEMgGAIFsABDIBgCBbAAQPDklPnNy8twnmmnmtPaOW9/gzFf+vN/g2uddz+e42wAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AAtkAILg2Jb724tT0jplTtTPf1bf5thnyF7/9czvMZ/59drcBQCAbAASyAUAgGwAEsgFAIBsABLIBQCAbAASyAUDw5C7xnVdeO3c2br2rmfO6t87z532/O16cT575/X7e72jN3QYAgWwAEMgGAIFsABDIBgCBbAAQyAYAgWwAEMgGAMGvWwe+NQe+49yE6rlpz1vvan2uZs7c3vp+b23tXnvxlW8dd+YzL85xtwFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABLIBQHBtSnxt5tTlzE3Ua+cmrl88G2u3NjOf+45mTtTPPM/8PXcbAASyAUAgGwAEsgFAIBsABLIBQCAbAASyAUAgGwAE16bEz82+ft7m3lu7tWfuId85GzO/37WZe8j9fv80cw/5Oe42AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIfmZOIb7oxb3cLx535nleu/Wev21H/a2r7sXf0Q53GwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABEN3ic/cgbx2a/fy2ovTvC8ed+aW8pnPgJg59+65Bn/P3QYAgWwAEMgGAIFsABDIBgCBbAAQyAYAgWwAEMgGAMHX7RKfObE5c0L1nHNPAZjpxU90a6L+xac8fNsMubsNAALZACCQDQAC2QAgkA0AAtkAIJANAALZACCQDQCCoVPit+ZIP2/z9o4Xt2efc+sZAWsv/hZ2jrv2efPnO698jrsNAALZACCQDQAC2QAgkA0AAtkAIJANAALZACCQDQCCa1Pi5+Y5Z36itZm7iD9vOn3mjuuZTxD4vN/RzH3gazOf4uFuA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOA4NetA9/azDxzU/GLU6a3Jq5nzs1+3p7qtVtT8TM/77m/KjN/C+42AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIrk2Jr92ajbw123xri/XM6fSZW513zNzZvjZzp/etX8otM5+J4G4DgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4Dg59YU4ou7pl887ovv+dYrn3Nr8/aOW9/gjm87V3aJA/AA2QAgkA0AAtkAIJANAALZACCQDQAC2QAgkA0AgmtT4jPNnKk+58Wdz583nzxzxnjmZPvMb3DHzPO85m4DgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4Dg1+038G+7NTf7olszqDPnor9tDnzmpPeLv9DP+5vjbgOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgGDolPjM2chbu5dnvvI5L25XPmfnbJz7v7euq1uT7Wvn3tXM69ndBgCBbAAQyAYAgWwAEMgGAIFsABDIBgCBbAAQyAYAwbUp8VvblXfM3Ah9zsxv4dZxZ15Xt54gcO5szHxX57z4TAR3GwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFAIBsABD8zd9V+nhdnQc+ZORe949a09ovbs2/93x0zn2phShyAB8gGAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABAM3SX+ovXE5rfNJ8/cNb02cx778yauX5xsv2Xmu3K3AUAgGwAEsgFAIBsABLIBQCAbAASyAUAgGwAEsgFAcG1KfG3mbOS5yeed+dWZ52rH500vv/jK5+bt1148VztmTvKvudsAIJANAALZACCQDQAC2QAgkA0AAtkAIJANAALZACAYOiW+dmtP9Tmfty96bee4t6aXZ7r1fIFbG+zXXvx+X3zP7jYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAienBJ/0cztyjvHPTfNe2u2+dbU9LlXPvd5b238njlTfet6vsXdBgCBbAAQyAYAgWwAEMgGAIFsABDIBgCBbAAQyAYAgSnxf8nO7OutfeDfdtxzbm3evjVxPXPe/tbzBW7933PcbQAQyAYAgWwAEMgGAIFsABDIBgCBbAAQyAYAgWwAEDw5Jf7inPCOF2dQb81F77zy2q1zdWtqeubW7hefTTBzZ/sOdxsABLIBQCAbAASyAUAgGwAEsgFAIBsABLIBQCAbAAQ/t6YQZ86g7nhxfnXnuDPNnHx+cd5+5nu+ddwXv4Vz3G0AEMgGAIFsABDIBgCBbAAQyAYAgWwAEMgGAIFsABBcmxIH4EXuNgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACGQDgEA2AAhkA4BANgAIZAOAQDYACP4HgvOzShgy07MAAAAASUVORK5CYII=" />
+  <Div>
+  Scan to view and pay online.
+  </Div>
+  <Div align="center">
+  Thank you for your business!
+  </Div>
+  </Div>
+
+  <Div class="footer">
+  https://wiest.world/ | damian@wiest.world
+  </Div>
+
+  </Body>
+  </Html>
