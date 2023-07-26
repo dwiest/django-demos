@@ -54,6 +54,7 @@ class Address(BaseModel, OwnedModel, NamedModel, models.Model):
   line_2 = models.CharField(max_length=255)
   city = models.CharField(max_length=255)
   state = models.CharField(max_length=255)
+  zipcode = models.CharField(max_length=10)
   #province = models.ChoiceField()
   #country = models.ChoiceField()
 
@@ -78,7 +79,7 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
     )
 
   invoice_date = models.DateField(
-    auto_now_add=True,
+    #auto_now_add=True, #doesn't show on form
     editable=True,
     )
 
@@ -114,10 +115,14 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
     print("{}.due_date {}".format(self.__class__.__name__, self._due_date))
     return self._due_date
 
+  def terms(self):
+    print("TERMS: NET30")
+    return 'NET30'
+
 
 class LineItem(BaseModel, OwnedModel):
-#  class Meta:
-#    ordering = ['-created_at', '-id']
+  class Meta:
+    ordering = ['date']
 
   invoice = models.ForeignKey(
     Invoice,
