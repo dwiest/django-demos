@@ -6,6 +6,7 @@ View Bill-To
 <Div>Address Line 2: {{bill_to.line_2}}</Div>
 <Div>City: {{bill_to.city}}</Div>
 <Div>State: {{bill_to.state}}</Div>
+<Div>Zipcode: {{bill_to.zipcode}}</Div>
 <Div><A href="{% url 'demos:invoicer:bill_to_edit' %}?id={{bill_to.id}}">Edit</A></Div>
 <Div><A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-to's</A></Div>
 <Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
