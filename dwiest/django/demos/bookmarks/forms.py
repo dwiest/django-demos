@@ -123,7 +123,6 @@ class BookmarkForm(BaseBookmarkForm):
       BaseBookmarkForm.Fields.ARTICLE_DATE: BaseBookmarkForm.DateInput(
         attrs = {
           'class': settings.DEMOS_BOOKMARKS_ARTICLE_DATE_CLASS,
-          'max' : date.today(),
           }
         ),
       BaseBookmarkForm.Fields.DESCRIPTION: forms.Textarea(
@@ -162,7 +161,7 @@ class BookmarkForm(BaseBookmarkForm):
     super().__init__(*args, **kwargs)
     self.fields['title'].required = False
     self.fields['unread'].label = settings.DEMOS_BOOKMARKS_UNREAD_LABEL
-
+    self.fields[BaseBookmarkForm.Fields.ARTICLE_DATE].max = date.today()
 
 class BookmarkFilterForm(forms.Form):
 
