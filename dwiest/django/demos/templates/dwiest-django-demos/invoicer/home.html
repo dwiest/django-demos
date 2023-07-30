@@ -1,15 +1,35 @@
 <Html>
   <Head>
-    <Title>Invoice</Title>
+    <Title>Invoicer</Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Head>
-
   <Body>
-    <Div><A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-To's</A></Div>
-    <Div><A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A></Div>
+    {% include "dwiest-django-demos/hamburgernav.html" %}
 
-    <Div>&nbsp;</Div>
-    <Div>List of recent invoices</Div>
-    <Div><A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoices</A></Div>
-    <Div><A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A></Div>
+    <Div class="page_title">
+      Invoicer
+      </Div>
+
+
+    <Div style="width:80%;margin-left:auto;margin-right:auto;">
+      {% include 'dwiest-django-demos/django-messages.html' %}
+
+      <Div class="actions" style="text-align:center;">
+        <Div>
+          <A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-To's</A>
+	  |
+          <A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A>
+	  </Div>
+      <Div>
+        &nbsp;
+	</Div>
+      <Div>
+        <A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoices</A>
+	|
+        <A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A>
+        </Div>
+      </Div>
     </Body>
   </Html>
