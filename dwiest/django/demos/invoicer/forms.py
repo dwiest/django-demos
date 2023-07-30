@@ -70,6 +70,16 @@ class InvoiceForm(forms.ModelForm):
   class Meta:
     model = Invoice
     exclude = ['owner']
+    widgets = {
+      'status': widgets.NumberInput(
+        attrs = {
+          'max'  : 1,
+          'min'  : -1,
+          'class' : 'status'
+          }
+        ),
+      }
+
 
   class Fields(str, Enum):
     NAME = 'name'
@@ -142,7 +152,7 @@ class LineItemForm(forms.ModelForm):
       'description': widgets.Textarea(
         attrs = {
           'rows' : 2,
-          'cols' : 80,
+          'cols' : 70,
           'class' : 'inv_li_description'
           }
         ),
