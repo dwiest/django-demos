@@ -1,28 +1,59 @@
 <Html>
   <Head>
-    <Title>Add/Edit Bill-To</Title>
+    <Title>
+      {% if form.instance.id %}
+        Edit Bill-To
+      {% else %}
+        Add Bill-To
+      {% endif %}
+    </Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Head>
-
   <Body>
-    <Div>
+
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+
+    <Div class="page_title">
       {% if form.instance.id %}
         Edit Bill-To
       {% else %}
         Add Bill-To
       {% endif %}
     </Div>
+
+<Div style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:bill_to_index' %}">List of Bill-To's</A>
+      </Td>
+    <Td align="right">
+      {% if form.instance.id %}
+      <A href="{% url 'demos:invoicer:bill_to_view' %}?id={{form.instance.id}}">Cancel</A></Div>
+      {% else %}
+      <A href="{% url 'demos:invoicer:bill_to_index' %}">Cancel</A></Div>
+      {% endif %}
+      </Td>
+    </Tr>
+  </Table>
+  </Div>
+
     <Form action="{% url 'demos:invoicer:bill_to_edit' %}" method="post">
       {% csrf_token %}
       {% if form.instance.id %}
       <Input type="hidden" name="id" id="id_id" value="{{form.instance.id}}"/>
       {% endif %}
-      <Div>{{form}}</Div>
-      <Div><Input type="submit">
+      <Div class="bill_to_form">
+      <Table>
+      {{form}}
+      </Table>
+      </Div>
+      <Div align="center"><Input type="submit" class="submit"></Div>
     </Form>
-    {% if form.instance.id %}
-    <Div><A href="{% url 'demos:invoicer:bill_to_view' %}?id={{form.instance.id}}">Cancel</A></Div>
-    {% else %}
-    <Div><A href="{% url 'demos:invoicer:home' %}">Cancel</A></Div>
-    {% endif %}
+
     </Body>
   </Html>
