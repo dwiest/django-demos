@@ -4,28 +4,116 @@
       View Invoice
       </Title>
     {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+      <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Head>
 
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div class="page_title">
 View Invoice
+</Div>
+
+<Div align="center" style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoice's</A>
+      </Td>
+    <Td align="right">
+      <A href="{% url 'demos:invoicer:invoice_render' %}?id={{invoice.id}}" target="_">Render</A>
+      |
+      <A href="{% url 'demos:invoicer:invoice_edit' %}?id={{invoice.id}}">Edit</A>
+      </Td>
+    </Tr>
+  </Table>
+</Div>
 
 <Div>
   <P>
     {% include 'dwiest-django-demos/django-messages.html' %}
 </Div>
 
-<P>
-<Div>Id: {{invoice.id}}</Div>
-<Div>Name: {{invoice.name}}</Div>
-<Div>Description: {{invoice.description}}</Div>
-<Div>Invoice Date: {{invoice.invoice_date}}</Div>
-<Div>Invoice Created: {{invoice.created_at}}</Div>
-<Div>Invoice Last-Modified: {{invoice.last_modified}}</Div>
-<Div>Bill-To: {{invoice.bill_to}}</Div>
-<Div>Total: {{invoice.total}}</Div>
-<Div>Due Date: {{invoice.due_date}}</Div>
+<Div class="bill_to_form">
+<Table>
+  <Tr>
+    <Th>
+      Id:
+      </Th>
+    <Td>
+      {{invoice.id}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+      Name:
+      </Th>
+    <Td>
+      {{invoice.name}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+      Description:
+      </Th>
+    <Td>
+      {{invoice.description}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Invoice Date:
+      </Th>
+    <Td>
+{{invoice.invoice_date}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Invoice Created:
+      </Th>
+    <Td>
+{{invoice.created_at}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Invoice Last-Modified:
+      </Th>
+    <Td>
+{{invoice.last_modified}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Bill-To:
+      </Th>
+    <Td>
+{{invoice.bill_to}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Total:
+      </Th>
+    <Td>
+{{invoice.total}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Due Date:
+      </Th>
+    <Td>
+{{invoice.due_date}}
+      </Td>
+    </Tr>
+  </Table>
+  </Div>
 
-<P>
-<Div>
+<Div class="line_item_form">
 <Table style="padding:10px;">
   <Tr>
     <Th align="left">Date</Th>
@@ -45,10 +133,4 @@ View Invoice
   {% endfor %}
   </Table>
 </Div>
-
-<P>
-<Div><A href="{% url 'demos:invoicer:invoice_render' %}?id={{invoice.id}}" target="_">Render</A></Div>
-<Div><A href="{% url 'demos:invoicer:invoice_edit' %}?id={{invoice.id}}">Edit</A></Div>
-<Div><A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoice's</A></Div>
-<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
 
