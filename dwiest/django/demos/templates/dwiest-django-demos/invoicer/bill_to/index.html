@@ -1,7 +1,33 @@
-Bill-To Index
+<Html>
+  <Head>
+    <Title>Bill-To's</Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Head>
+  <Body>
+
+<Div class="page_title">
+Bill-To's
+</Div>
+
+  {% include "dwiest-django-demos/hamburgernav.html" %}
 
 {% if items %}
-<Div>
+
+<Div style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A>
+      </Td>
+    <Td align="right">
+      </Td>
+    </Tr>
+  </Table>
+
 <Ul>
 {% for item in items %}
   <Li><A href="{% url 'demos:invoicer:bill_to_view' %}?id={{item.id}}">{{item.name}}</A></Li>
@@ -14,5 +40,5 @@ No bill-to's found.
 </Div>
 {% endif %}
 
-<Div><A href="{% url 'demos:invoicer:bill_to_add' %}">Add Bill-To</A></Div>
-<Div><A href="{% url 'demos:invoicer:home' %}">Home</A></Div>
+  </Body>
+</Html>
