@@ -9,28 +9,52 @@
       </Title>
     {% include 'dwiest-django-demos/django-messages.css' %}
     {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Head>
 
   <Body>
-    <Div>
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+    <Div class="page_title">
       {% if invoice.id %}
         Edit Invoice
       {% else %}
         Add Invoice
       {% endif %}
       </Div>
+
     {% include 'dwiest-django-demos/django-messages.html' %}
-    <Div>
-      <Form action="{% url 'demos:invoicer:invoice_edit' %}" method="POST">
+
+<Div align="center" style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoice's</A>
+      </Td>
+    <Td align="right">
+      {% if invoice.id %}
+      <A href="{% url 'demos:invoicer:invoice_view' %}?id={{invoice.id}}">Cancel</A>
+      {% else %}
+      <A href="{% url 'demos:invoicer:invoice_index' %}">Cancel</A>
+      {% endif %}
+      </Td>
+    </Tr>
+  </Table>
+</Div>
+
+    <Form action="{% url 'demos:invoicer:invoice_edit' %}" method="POST">
       {% csrf_token %}
       <Input type="hidden" name="id" id="id" value="{{invoice.id}}"/>
-      <Table width="100%">
-      {{form}}
-      </Table>
-      </Div>
-    <Div>
+      <Div class="bill_to_form">
+        <Table>
+        {{form}}
+        </Table>
+        </Div>
+
+    <Div class="line_item_form">
       {{formset.management_form}}
-      <Table class="inv_line_items">
+      <Table>
       <!--
       <Tr>
         <Th>{{f.id.label}}</Th>
@@ -78,16 +102,11 @@
     {% endfor %}
       </Table>
       </Div>
-    <Div>
-      <P>
-      <Input type="submit"/>
+    <Div align="center">
+      <Input type="submit" class="submit" value="Save Changes"/>
       </Div>
     </Form>
 
-    <Div>
-      <P>
-      <A href="{% url 'demos:invoicer:invoice_view' %}?id={{invoice.id}}">Cancel</A>
-      </Div>
 
     </Body>
   </Html>
