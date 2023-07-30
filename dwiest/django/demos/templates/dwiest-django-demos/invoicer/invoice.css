@@ -207,200 +207,86 @@ div.qrcode img {
    font-size: 1.5vw;
    }
 
-li a.edit {
-  text-decoration: none;
-  color: white;
-  background: white;
-  }
+div.page_title {
+  text-align: center;
+  font-size: 4vw;
+  margin-bottom: 40px;
+}
 
-li a.edit:hover {
-  background: lightgray;
-  color: black;
-  }
-
-form.bookmark {
-  width: 95%;
-  background: lightgray;
+div.bill_to_form {
+  width: 80%;
+  border: 1px;
+  border-style: solid;
+  margin-bottom: 20px;
+  background-color: lightgray;
   margin-left: auto;
   margin-right: auto;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 5px;
+}
+
+div.bill_to_form table {
+  Xmargin-left: auto;
+  margin-right: auto;
+}
+
+div.bill_to_form table th {
+  text-align: left;
   padding-right: 5px;
-  }
+}
 
-form.bookmark td {
-  width: 90%;
-  }
+div.bill_to_form table td input.status {
+   width: 3em;
+}
 
-form.bookmark div.description {
-  }
-
-form.bookmark div.title {
-  font-size: 14pt;
-  margin-left: 5px;
-  margin-right: 5px;
-  margin-bottom: 5px;
-  }
-
-form.bookmark div.url{
-  font-size: 14pt;
-  margin-left: 5px;
-  margin-right: 5px;
-  margin-bottom: 5px;
-  }
-
-form.bookmark textarea.description {
-  width: 90%;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  }
-
-form.bookmark input.title {
-  color: green;
-  width: 90%;
-  margin-left: auto;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  }
-
-form.bookmark input.url{
-  color: black;
-  width: 90%;
-  margin-left: auto;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  }
-
-form.bookmarks {
+div.line_item_form {
+  width: 80%;
+  border: 1px;
+  border-style: solid;
+  background-color: lightblue;
   margin-left: auto;
   margin-right: auto;
-  width: 98vw;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  Xposition: fixed;
-  Xbottom: 0;
-  -webkit-backface-visibility: hidden;
-  }
-
-form.bookmarks input.url {
-  background: lightblue;
-  width: 90vw;
-  margin-bottom: 5px;
-  }
-
-form.bookmarks input.button {
-  background: white;
-  margin-right: 5px;
-  }
-
-form.bookmarks input.date {
-  background: white;
-  margin-right: 5px;
-  }
-
-form.search input#id_term {
-  margin-right: 5px;
-  width: 90%;
-  background-color: lightyellow;
-}
-form.search table {
-  width: 94%;
-}
-form.search td {
-  vertical-align: middle;
-  text-align: left;
+  margin-bottom: 25px;
 }
 
-form.bookmark input.url {
-  background: lightblue;
+input.submit {
+  font-size: 1.5vw;
 }
 
-form.bookmark input.title {
-  background: lightblue;
-  align: right;
+a.cancel {
+  font-size: 1.5vw;
 }
 
-div.pagination {
-  Xcolor: blue;
-  Xmargin: auto;
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: lightyellow;
-  border-style: inset;
-  }
-
-div.export-link{
-  text-align: left;
-  color: black;
-  margin-left: 10px;
-  }
-
-div.undated {
-  text-align: left;
-  color: orange;
-  font-size: 16pt;
-  margin-top: 20px;
-  }
-
-div.year {
-  text-align: center;
-  color: red;
-  font-size: 32pt;
-  }
-
-div.month {
-  text-align: center;
-  color: green;
-  background: lightgray;
-  font-size: 24pt;
-  }
-
-div.day {
-  text-align: left;
-  color: black;
-  font-size: 16pt;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  margin-left: 10px;
-  }
-
-.new-week {
-  text-align: left;
-  width = 90%;
-  color: red;
+div.actions{
+  font-size: 3vw;
   }
 
 @media only screen and (max-width: 600px) {
-  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
-    font-size: 2.5vw;
-  }
+  div.page_title{
+    margin-top: 15px;
+    font-size: 5vw;
+    }
+  div.actions{
+    font-size: 4vw;
+    }
+  input.submit {
+    font-size: 4vw;
+    }
 }
 
 @media only screen and (min-width: 600px) {
-  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
-    font-size: 2.2vw;
-  }
+  div.page_title{
+    font-size: 4vw;
+    }
+  div.actions{
+    font-size: 3vw;
+    }
 }
 
 @media only screen and (min-width: 768px) {
-  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
-    font-size: 2vw;
-  }
 }
 
 @media only screen and (min-width: 992px) {
-  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
-    font-size: 1.8vw;
-  }
 }
 
 @media only screen and (min-width: 1200px) {
-  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
-    font-size: 1.6vw;
-  }
 }
 </Style>
