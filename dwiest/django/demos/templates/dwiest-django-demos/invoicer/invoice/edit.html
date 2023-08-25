@@ -10,6 +10,29 @@
     {% include 'dwiest-django-demos/django-messages.css' %}
     {% include 'dwiest-django-demos/invoicer/invoice.css' %}
     <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+    function calcAmount() {
+      var n;
+      var total = 0;
+      var rate  = 80;
+
+      element  = document.getElementById("amount");
+      total_forms = document.getElementById("id_form-TOTAL_FORMS");
+
+      for ( n = 0; n < total_forms.value; n++) {
+        checkbox = document.getElementById("id_form-" + n.toString() + "-DELETE");
+        if ( checkbox.checked ) {
+          continue;
+        }
+        else {
+          quantity = document.getElementById("id_form-" + n.toString() + "-quantity");
+          total = total + Number(quantity.value);
+        }
+      }
+
+      element.innerHTML = "Hours: " + total.toString() + ", Amount: " + (total*rate).toString();
+    }
+    </script>
     </Head>
 
   <Body>
@@ -48,9 +71,11 @@
       <Input type="hidden" name="id" id="id" value="{{invoice.id}}"/>
       <Div class="bill_to_form">
         <Table>
-        {{form}}
+          {{form}}
         </Table>
-        </Div>
+	  <Input style="float:right;" type="button" value="Calculate Hours" onclick="calcAmount();"/>
+	  <Div style="float:left;" id="amount">0.00</Div>
+	  </Div>
 
     <Div class="line_item_form">
       {{formset.management_form}}
