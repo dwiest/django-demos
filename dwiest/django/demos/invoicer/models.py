@@ -80,7 +80,8 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
 
   invoice_date = models.DateField(
     #auto_now_add=True, #doesn't show on form
-    editable=True,
+    editable = True,
+    null     = True
     )
 
 
@@ -107,8 +108,11 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
   def due_date(self):
     terms = 30
     if hasattr(self,'_due_date') == False:
-      time_delta = timedelta(days=terms)
-      self._due_date = self.invoice_date + time_delta
+      if self.invoice_date != None:
+        time_delta = timedelta(days=terms)
+        self._due_date = self.invoice_date + time_delta
+      else:
+        self._due_date = "NOT ISSUED"
 
     print("{}.terms {}".format(self.__class__.__name__, terms))
     print("{}.invoice_date {}".format(self.__class__.__name__, self.invoice_date))
