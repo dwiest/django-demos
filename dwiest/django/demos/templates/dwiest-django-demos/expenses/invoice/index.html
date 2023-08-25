@@ -1,0 +1,43 @@
+<Html>
+  <Head>
+    <Title>Invoices</Title>
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Head>
+
+  <Body>
+
+<Div class="page_title">
+Invoices
+</Div>
+
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div align="center" style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A>
+      </Td>
+    <Td align="right">
+      </Td>
+    </Tr>
+  </Table>
+</Div>
+
+
+{% if items %}
+<Div style="width:80%;margin-left:auto;margin-right:auto;">
+<Ul>
+{% for item in items %}
+  <Li>{{item.bill_to.name}} - <A href="{% url 'demos:invoicer:invoice_view' %}?id={{item.id}}">{{item.name}}</A></Li>
+{% endfor %}
+</Ul>
+</Div>
+{% else %}
+<Div>
+No invoices found.
+</Div>
+{% endif %}

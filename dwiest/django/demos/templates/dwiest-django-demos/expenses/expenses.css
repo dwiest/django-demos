@@ -1,0 +1,292 @@
+<Style>
+container {
+  text-align: center;
+  }
+
+div.inv_title{
+  width: 90%;
+  text-align: right;
+  font-size: 4vw;
+  margin-top: 25px;
+  margin-left: auto;
+  margin-right: auto;
+  }
+
+div.inv_header {
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  #border: 1px;
+  #border-style: dashed;
+  font-size: 2vw;
+  }
+
+div.vendor {
+  margin-left: 5px;
+  text-align: left;
+  background: white;
+#  border: 1px;
+#  border-style:solid;
+#  width: 25%;
+  float: left;
+  }
+
+div.inv_data {
+  float: right;
+  #margin-right: 5px;
+  }
+
+div.inv_data table {
+  #margin-right: 50px;
+  }
+
+div.inv_data th {
+  text-align: right;
+  font-size: 2vw;
+  }
+
+div.inv_data td {
+  text-align: right;
+  font-size: 2vw;
+  }
+
+div.bill_to {
+  width: 90%;
+  text-align: right;
+  background: white;
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  #border: 1px;
+  #border-style: dashed;
+  }
+
+div.bill_to table {
+  width: 100%;
+  border: 1px;
+  border-collapse: collapse;
+  border-style: solid;
+  border-color: black;
+  padding: 0px;
+  }
+
+div.bill_to th {
+  text-align: left;
+  background: lightgray;
+  font-size: 2vw;
+  padding: 1px;
+  padding-left: 5px;
+  border: 1px;
+  border-style: solid;
+  }
+
+div.bill_to td {
+  padding-left: 5px;
+  font-size: 2vw;
+  }
+  
+div.bill_to_data {
+  background: orange;
+  padding: 0px;
+  }
+
+div.line_items {
+  width: 90%;
+  margin-left: auto;
+  margin-top: 20px;
+  margin-right: auto;
+  }
+
+div.line_items table {
+  width: 100%;
+  padding: 0px;
+  border: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+  }
+
+div.line_items th {
+  background: lightgray;
+  border: 1px;
+  border-style: solid;
+  padding: 1px;
+  padding-left: 5px;
+  font-size: 2vw;
+  text-align: middle;
+  padding-right: 5px;
+  }
+
+div.line_items td {
+  padding-left: 5px;
+  padding-right: 5px;
+  font-size: 2vw;
+  text-align: right;
+  }
+
+div.line_items *.left{
+  text-align: left;
+  }
+
+div.inv_total{
+  width:90%;
+  text-align: right;
+  #margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  #border: 1px;
+  #border-style: dashed;
+  }
+
+div.inv_total table {
+  margin-left: auto;
+  margin-right: 2px;
+  }
+
+div.inv_total th {
+  font-size: 2vw;
+  padding-right: 10;
+}
+
+div.inv_total td {
+  font-size: 2vw;
+}
+
+div.inv_data {
+  background: white;
+  }
+
+
+div.footer {
+  font-size: 2vw;
+  margin-top: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 5px;
+}
+
+div.qrcode{
+  font-size: 2vw;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 25px;
+  #border: 1px;
+  #border-style: dashed;
+  }
+
+div.qrcode img {
+  width: 100px;
+  #border: 1px;
+  #border-style: dashed; 
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  }
+  
+
+ input.inv_li_status {
+   width: 2em;
+   font-size: 1.5vw;
+   }
+
+ input.inv_li_date {
+   font-size: 1.5vw;
+   }
+
+ textarea.inv_li_description {
+   font-size: 1vw;
+   }
+
+ input.inv_li_rate {
+   width: 3em;
+   font-size: 1.5vw;
+   }
+
+ input.inv_li_quantity {
+   width: 4em;
+   font-size: 1.5vw;
+   }
+
+div.page_title {
+  text-align: center;
+  font-size: 4vw;
+  margin-bottom: 40px;
+}
+
+div.bill_to_form {
+  width: 80%;
+  border: 1px;
+  border-style: solid;
+  margin-bottom: 20px;
+  background-color: lightgray;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.bill_to_form table {
+  Xmargin-left: auto;
+  margin-right: auto;
+}
+
+div.bill_to_form table th {
+  text-align: left;
+  padding-right: 5px;
+}
+
+div.bill_to_form table td input.status {
+   width: 3em;
+}
+
+div.line_item_form {
+  width: 80%;
+  border: 1px;
+  border-style: solid;
+  background-color: lightblue;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 25px;
+}
+
+input.submit {
+  font-size: 1.5vw;
+}
+
+a.cancel {
+  font-size: 1.5vw;
+}
+
+div.actions{
+  font-size: 3vw;
+  }
+
+@media only screen and (max-width: 600px) {
+  div.page_title{
+    margin-top: 15px;
+    font-size: 5vw;
+    }
+  div.actions{
+    font-size: 4vw;
+    }
+  input.submit {
+    font-size: 4vw;
+    }
+}
+
+@media only screen and (min-width: 600px) {
+  div.page_title{
+    font-size: 4vw;
+    }
+  div.actions{
+    font-size: 3vw;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+}
+
+@media only screen and (min-width: 992px) {
+}
+
+@media only screen and (min-width: 1200px) {
+}
+</Style>

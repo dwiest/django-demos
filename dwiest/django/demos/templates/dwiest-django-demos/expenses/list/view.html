@@ -1,0 +1,107 @@
+<Html>
+  <Head>
+    <Title>Expense List</Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/expenses/expenses.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Head>
+  <Body>
+
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+
+
+<Div class="page_title">
+Expense List
+</Div>
+
+<Div>
+  {% include 'dwiest-django-demos/django-messages.html' %}
+</Div>
+
+<Div style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:expenses:home' %}">Home</A>
+      </Td>
+    <Td align="right">
+      <A href="{% url 'demos:expenses:list_add' %}">Add</A>
+      |
+      <A href="{% url 'demos:expenses:list_edit' %}?id={{expense_list.id}}">Edit</A>
+      </Td>
+    </Tr>
+  </Table>
+  </Div>
+
+<Div>
+<Table>
+  <Tr>
+    <Th>
+Id:
+      </Th>
+    <Td>
+{{expense_list.id}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Name:
+      </Th>
+    <Td>
+{{expense_list.name}}
+      </Td>
+    </Tr>
+  <Tr>
+    <Th>
+Description:
+      </Th>
+    <Td>
+{{expense_list.description}}
+      </Td>
+    </Tr>
+  </Table>
+  </Div>
+
+  <Div>
+    {% if expenses %}
+    <Table>
+      <Tr>
+        <Th>
+	  id
+          </Th>
+        <Th>
+	  name 
+          </Th>
+        <Th>
+	  description 
+          </Th>
+        <Th>
+	  amount
+          </Th>
+        </Tr>
+      {% for expense in expenses %}
+      <Tr>
+        <Td>
+	  {{expense.id}}
+	  </Td>
+        <Td>
+	  {{expense.name}}
+	  </Td>
+        <Td>
+	  {{expense.description}}
+	  </Td>
+        <Td>
+	  {{expense.amount}}
+	  </Td>
+        </Tr>
+      {% endfor %}
+      </Table>
+      {% else %}
+      <P>
+      No expenses found, go spend some money!
+      {% endif %}
+    </Div>
+
+</Div>
+</Body>
+</Html>

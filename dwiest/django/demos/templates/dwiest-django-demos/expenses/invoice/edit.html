@@ -1,0 +1,112 @@
+<Html>
+  <Head>
+    <Title>
+      {% if invoice.id %}
+        Edit Invoice
+      {% else %}
+        Add Invoice
+      {% endif %}
+      </Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/invoicer/invoice.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Head>
+
+  <Body>
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+    <Div class="page_title">
+      {% if invoice.id %}
+        Edit Invoice
+      {% else %}
+        Add Invoice
+      {% endif %}
+      </Div>
+
+    {% include 'dwiest-django-demos/django-messages.html' %}
+
+<Div align="center" style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+      |
+      <A href="{% url 'demos:invoicer:invoice_index' %}">List of Invoice's</A>
+      </Td>
+    <Td align="right">
+      {% if invoice.id %}
+      <A href="{% url 'demos:invoicer:invoice_view' %}?id={{invoice.id}}">Cancel</A>
+      {% else %}
+      <A href="{% url 'demos:invoicer:invoice_index' %}">Cancel</A>
+      {% endif %}
+      </Td>
+    </Tr>
+  </Table>
+</Div>
+
+    <Form action="{% url 'demos:invoicer:invoice_edit' %}" method="POST">
+      {% csrf_token %}
+      <Input type="hidden" name="id" id="id" value="{{invoice.id}}"/>
+      <Div class="bill_to_form">
+        <Table>
+        {{form}}
+        </Table>
+        </Div>
+
+    <Div class="line_item_form">
+      {{formset.management_form}}
+      <Table>
+      <!--
+      <Tr>
+        <Th>{{f.id.label}}</Th>
+        <Td>{{f.id.value}}</Td>
+	</Tr>
+	-->
+      <Tr>
+        <Th>
+	  Id
+	  </Th>
+        <Th>
+	  Status
+	  </Th>
+        <Th>
+	  Date
+	  </Th>
+        <Th>
+	  Description
+	  </Th>
+        <Th>
+	  Rate
+	  </Th>
+        <Th>
+	  Quantity
+	  </Th>
+        <Th>
+	  Delete
+	  </Th>
+	</Tr>
+    {% for f in formset %}
+      <Tr>
+        {{f.id}}
+        <Td>{% if f.id.value %}{{f.id.value}}{%else%}NEW!{%endif%}</Td>
+        <Td>{{f.status}}</Td>
+        <Td>{{f.date}}</Td>
+        <Td>{{f.description}}</Td>
+        <Td>{{f.rate}}</Td>
+        <Td>{{f.quantity}}</Td>
+        <Td>{{f.DELETE}}</Td>
+	</Tr>
+
+      <!--
+      {{f}}
+      -->
+    {% endfor %}
+      </Table>
+      </Div>
+    <Div align="center">
+      <Input type="submit" class="submit" value="Save Changes"/>
+      </Div>
+    </Form>
+
+
+    </Body>
+  </Html>

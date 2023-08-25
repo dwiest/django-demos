@@ -1,0 +1,62 @@
+<Html>
+  <Head>
+    <Title>Expense Category</Title>
+    {% include 'dwiest-django-demos/django-messages.css' %}
+    {% include 'dwiest-django-demos/expenses/expenses.css' %}
+    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Head>
+  <Body>
+
+  {% include "dwiest-django-demos/hamburgernav.html" %}
+
+
+<Div class="page_title">
+{% if expense_category.id %}
+Edit Expense Category
+{% else %}
+Add Expense Category
+{% endif %}
+</Div>
+
+<Div>
+  {% include 'dwiest-django-demos/django-messages.html' %}
+</Div>
+
+<Div style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
+<Table style="width:100%;">
+  <Tr>
+    <Td align="left">
+      <A href="{% url 'demos:expenses:home' %}">Home</A>
+      </Td>
+    <Td align="right">
+      {% if expense_category.id %}
+      <A href="{% url 'demos:expenses:category_view' %}?id={{expense_category.id}}">Cancel</A>
+      {% else %}
+      <A href="{% url 'demos:expenses:home' %}">Cancel</A>
+      {% endif %}
+      </Td>
+    </Tr>
+  </Table>
+  </Div>
+
+<Div>
+<Form action="{% url 'demos:expenses:category_edit' %}" method="post">
+  {% csrf_token %}
+  {% if expense_category.id %}
+  <Input type="hidden" name="id" id="id" value="{{expense_category.id}}"/>
+  {% endif %}
+<Table>
+    {{form}}
+    </Tr>
+  </Table>
+  {% if expense_category.id %}
+  <Input type="submit" value="Save Changes"/>
+  {% else %}
+  <Input type="submit" value="Create Expense Category"/>
+  {% endif %}
+  </Form>
+  </Div>
+
+</Div>
+</Body>
+</Html>
