@@ -203,7 +203,7 @@ class LineItemForm(forms.ModelForm):
 #    widget=forms.SelectDateWidget(
     widget=DateInput(
       attrs={
-        'max' : date.today(),
+#        'max' : date.today(),
         'class' : 'inv_li_date'
         }
       ),
