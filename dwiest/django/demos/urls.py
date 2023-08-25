@@ -24,6 +24,8 @@ urlpatterns = [
     ),
   path('bookmarks/',
     include('dwiest.django.demos.bookmarks.urls', namespace='bookmarks')),
+  path('expenses/',
+    include('dwiest.django.demos.expenses.urls', namespace='expenses')),
   path('file/',
     include('dwiest.django.demos.file.urls', namespace='file')),
   path('journal/',
