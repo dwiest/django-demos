@@ -35,6 +35,14 @@ class DemosAppConf(AppConf):
   BOOKMARKS_URL_LABEL = 'URL'
   BOOKMARKS_URL_CLASS = 'url'
 
+  ''' Expense Tracker demo settings '''
+  EXPENSES_EXPENSE_TEMPLATE = 'dwiest-django-demos/expenses/home.html'
+  EXPENSES_EXPENSE_EDIT_TEMPLATE = 'dwiest-django-demos/expenses/home.html'
+  EXPENSES_EXPENSE_LIST_TEMPLATE = 'dwiest-django-demos/expenses/list/view.html'
+  EXPENSES_EXPENSE_LIST_EDIT_TEMPLATE = 'dwiest-django-demos/expenses/list/edit.html'
+  EXPENSES_EXPENSE_CATEGORY_TEMPLATE = 'dwiest-django-demos/expenses/category/view.html'
+  EXPENSES_EXPENSE_CATEGORY_EDIT_TEMPLATE = 'dwiest-django-demos/expenses/category/edit.html'
+
   ''' File demo settings '''
 
   FILE_UPLOAD_DIR = '/tmp'
