@@ -59,6 +59,21 @@ class Bookmark(models.Model):
     default=False,
     )
 
+  def __str__(self):
+    if self.title:
+      return self.title
+    else:
+      return self.url
+
+  def tags(self):
+    tags = []
+    bookmark_tags = BookmarkTag.objects.filter(owner=self.owner, bookmark_id=self.id)
+    for item in bookmark_tags:
+      tag = Tag.objects.get(owner=item.owner, id=item.tag_id)
+      tags.append(tag)
+    return tags
+
+
 #class Screenshot(models.Model):
 #  bookmark = models.ForeignKey(Bookmark)
 #  path = models.TextField()
@@ -68,3 +83,68 @@ class Bookmark(models.Model):
 #  name = models.CharField(max_length=255)
 #  description = models.TextField(blank=True, null=True)
 #  bookmark = models.ManyToMany(Bookmark)
+
+class Tag(models.Model):
+  class Meta:
+    ordering = ['-id']
+
+  created_at = models.DateTimeField(
+    auto_now_add=True,
+    editable=False,
+    null = True,
+    )
+
+  last_modified = models.DateTimeField(
+    auto_now=True,
+    editable=False,
+    null = True,
+    )
+
+  owner = models.ForeignKey(
+    User,
+    on_delete=models.PROTECT,
+    blank = True,
+    null = True,
+    )
+
+  title = models.CharField(
+    max_length=255,
+    )
+
+  description = models.TextField(
+    blank=True,
+    null=True,
+    )
+
+  style = models.CharField(
+    max_length=255,
+    )
+
+  def __str__(self):
+    return self.title
+
+class BookmarkTag(models.Model):
+  class Meta:
+    ordering = ['-id']
+
+  created_at = models.DateTimeField(
+    auto_now_add=True,
+    editable=False,
+    )
+
+  owner = models.ForeignKey(
+    User,
+    on_delete=models.PROTECT,
+    blank = True,
+    null = True,
+    )
+
+  bookmark = models.ForeignKey(
+    Bookmark,
+    on_delete=models.PROTECT,
+    )
+
+  tag = models.ForeignKey(
+    Tag,
+    on_delete=models.PROTECT,
+    )
