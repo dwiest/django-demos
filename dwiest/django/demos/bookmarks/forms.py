@@ -7,7 +7,7 @@ from django.forms import widgets
 from django.utils.translation import ugettext, ugettext_lazy as _
 from enum import Enum, auto
 from ..conf import settings
-from .models import Bookmark
+from .models import Bookmark, Tag, BookmarkTag
 from datetime import date
 
 class DateInput(forms.DateInput):
@@ -329,3 +329,14 @@ class BookmarkSearchForm(forms.Form):
       q = Q(title__contains=term) | Q(description__contains=term) | Q(url__contains=term)
 
     return q
+
+
+class TagForm(forms.ModelForm):
+  class Meta:
+    model = Tag
+    exclude = ["created_at", "last_modified"]
+
+class BookmarkTagForm(forms.ModelForm):
+  class Meta:
+    model = BookmarkTag
+    exclude = ["owner_id"]
