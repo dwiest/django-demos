@@ -87,6 +87,13 @@
     <Div align="center"><Input class="bookmark-button" type="submit" name="submit" value="Update Bookmark"></Input></Div>
 </Form>
 
+Tags:
+<UL>
+{% for tag in form.instance.tags %}
+  <LI>{{tag.title}}: {{tag.description}}
+{% endfor %}
+</UL>
+
 <Div class="filler"></Div>
 
 <A href="{% url 'demos:bookmarks:home' %}" style="text-align:center">Back To Bookmarks</A>
