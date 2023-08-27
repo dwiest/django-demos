@@ -1,0 +1,86 @@
+<Html>
+
+<Head>
+  <Title>{% if form.instance.id %}Edit{%else%}Create{%endif%} BookmarkTag</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div class="filler"></Div>
+
+<Div>
+{% if form.instance.id %}
+{% block update %}
+  {% with title='Edit BookmarkTag' breadcrumbs=True %}
+  {% include 'dwiest-django-demos/header.html' %}
+  {% endwith %}
+{% endblock %}
+{% else %}
+{% block create %}
+  {% with title='Create BookmarkTag' breadcrumbs=True %}
+  {% include 'dwiest-django-demos/header.html' %}
+  {% endwith %}
+{% endblock %}
+{% endif %}
+</Div>
+
+<Div class="filler"></Div>
+
+{% if form.non_field_errors %}
+<P>
+{% for error in form.non_field_errors %}
+<Div class="error" align="center">{{error}}</Div>
+{% endfor %}
+</P>
+{% endif %}
+
+{% if form.errors %}
+<P>
+{% for field in form %}
+  {% for error in field.errors %}
+<Div class="error" align="center">{{error}}</Div>
+  {% endfor %}
+{% endfor %}
+</P>
+{% endif %}
+
+<Div class="filler"></Div>
+
+<Form class="tag" method="post" action="{% url 'demos:bookmarks:tag' %}">
+{% csrf_token %}
+  {% if form.instance.id %}
+  <Input type="hidden" name="id" value="{{form.instance.id}}"/>
+  {% endif %}
+
+    <Div class="" align="center">
+      <Div align="left">{{form.tag.label}}</Div>
+      <Div>{{form.tag}} {{form.tag.title}}</Div>
+      </Div>
+    <Div class="" align="center">
+      <Div align="left">{{form.bookmark.label}}</Div>
+      <Div>{{form.bookmark}}</Div>
+      </Div>
+    <Div class="createad_at">
+      Created{{form.created_at.label}}:
+      {{form.instance.created_at}}
+      </Div>
+
+    <Div align="center"><Input class="tag-button" type="submit" name="submit" value="Save"></Input></Div>
+</Form>
+
+<Div class="filler"></Div>
+
+<A href="{% url 'demos:bookmarks:tags' %}" style="text-align:center">Back To Tags</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>

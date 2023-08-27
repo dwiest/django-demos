@@ -1,0 +1,28 @@
+<html>
+<H2>Tags</H2>
+<A href="{% url 'demos:bookmarks:tag_create' %}">Create Tag</A>
+<B>id, owner_id, created_at, last_modified, description, style</B>
+{% for tag in tags %}
+<P>
+{{tag.id}}, 
+{{tag.owner_id}}, 
+{{tag.created_at}}, 
+{{tag.last_modified}}, 
+{{tag.description}}, 
+{{tag.style}}, 
+<A href="{% url 'demos:bookmarks:tag_edit' %}?id={{tag.id}}">Edit Tag</A>
+</P>
+{% endfor %}
+
+<H2>Tagged Bookmarks</H2>
+<A href="{% url 'demos:bookmarks:tag' %}">Create BookmarkTag</A>
+<B>id, created_at, bookmark_id, tag_id</B>
+{% for tag in bookmark_tags %}
+<P>
+<A href="{% url 'demos:bookmarks:tag' %}?id={{tag.id}}">{{tag.id}}</A>, 
+{{tag.created_at}}, 
+{{tag.bookmark_id}}, 
+{{tag.tag_id}}
+</P>
+{% endfor %}
+</html>

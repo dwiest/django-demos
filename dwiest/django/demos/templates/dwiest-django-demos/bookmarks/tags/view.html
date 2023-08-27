@@ -1,0 +1,47 @@
+<Html>
+
+<Head>
+  <Title>View Tag</Title>
+  {% include 'dwiest-django-demos/default.css' %}
+  {% include 'dwiest-django-demos/django-messages.css' %}
+  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
+  {% load dwiest_django_demos.tags %}
+  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </Head>
+
+<Body>
+
+{% include "dwiest-django-demos/hamburgernav.html" %}
+
+<Div class="filler"></Div>
+
+<Div>
+{% block update %}
+  {% with title='View Tag' breadcrumbs=True %}
+  {% include 'dwiest-django-demos/header.html' %}
+  {% endwith %}
+{% endblock %}
+</Div>
+
+<Div class="filler"></Div>
+
+<P>
+{{tag.title}} - <A href="{%url 'demos:bookmarks:tag_edit'%}?id={{tag.id}}">edit</A>
+</P>
+
+<UL>
+{% for bookmark in bookmarks %}
+<LI><A href="{{bookmark.url}}">{% if bookmark.title %}{{bookmark.title}}{%else%}{{bookmark.url}}{%endif%}
+{% endfor %}
+</UL>
+
+
+<Div class="filler"></Div>
+
+<A href="{% url 'demos:bookmarks:tags' %}" style="text-align:center">Back To Tags</A>
+
+<Div class="filler"></Div>
+
+{% footer %}
+</Body>
+</Html>
