@@ -34,6 +34,10 @@ class DemosAppConf(AppConf):
   BOOKMARKS_URL_DEFAULT = None
   BOOKMARKS_URL_LABEL = 'URL'
   BOOKMARKS_URL_CLASS = 'url'
+  BOOKMARKS_TAG_BOOKMARK_TEMPLATE = 'dwiest-django-demos/bookmarks/tags/bookmark.html'
+  BOOKMARKS_TAG_TEMPLATE = 'dwiest-django-demos/bookmarks/tags/view.html'
+  BOOKMARKS_TAG_EDIT_TEMPLATE = 'dwiest-django-demos/bookmarks/tags/edit.html'
+  BOOKMARKS_TAGS_TEMPLATE = 'dwiest-django-demos/bookmarks/tags/index.html'
 
   ''' Expense Tracker demo settings '''
   EXPENSES_EXPENSE_TEMPLATE = 'dwiest-django-demos/expenses/home.html'
