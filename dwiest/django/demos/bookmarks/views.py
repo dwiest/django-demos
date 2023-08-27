@@ -9,7 +9,7 @@ from django.views.generic.base import TemplateResponseMixin
 from enum import Enum
 from datetime import datetime
 from .forms import *
-from .models import Bookmark
+from .models import Bookmark, Tag, BookmarkTag
 from ..conf import settings
 
 class BookmarksView(ListView):
@@ -299,3 +299,234 @@ class BookmarkExportView(ListView):
     context = super().get_context_data(**kwargs)
     context[self.ResponseDict.BOOKMARKS] = self.get_queryset()
     return context
+
+
+class TagsView(TemplateView):
+
+  class ResponseDict(str, Enum):
+    TAGS = 'tags'
+    BOOKMARK_TAGS = 'bookmark_tags'
+
+  success_page = 'demos:bookmarks:home'
+  template_name = settings.DEMOS_BOOKMARKS_TAGS_TEMPLATE
+
+  def __init__(self, *args, **kwargs):
+    self.response_dict = {}
+
+  def get(self, request, *args, **kwargs):
+
+    try:
+      if request.user and request.user.id:
+        tags = Tag.objects.filter(owner=request.user)
+        bookmark_tags = BookmarkTag.objects.filter(owner=request.user)
+      else:
+        tags = Tag.objects.filter(owner=None)
+        bookmark_tags = BookmarkTag.objects.filter(owner=None)
+    except Exception as e:
+      print(str(e))
+      messages.error(request, str(e))
+      return render(request, self.template_name, self.response_dict)
+
+    print(tags)
+    self.response_dict[self.ResponseDict.TAGS] = tags
+    self.response_dict[self.ResponseDict.BOOKMARK_TAGS] = bookmark_tags
+
+    return render(request, self.template_name, self.response_dict)
+
+
+class TagFormView(FormView, TemplateResponseMixin):
+
+  class ResponseDict(str, Enum):
+    FORM = 'form'
+
+  form_class = TagForm
+  template_name = settings.DEMOS_BOOKMARKS_TAG_EDIT_TEMPLATE
+
+  def __init__(self, *args, **kwargs):
+    self.response_dict = {}
+    return super(FormView, self).__init__(*args, **kwargs)
+
+  def get(self, request, *args, **kwargs):
+    id = request.GET.get('id')
+
+    if id:
+      try:
+        if request.user and request.user.id:
+          model = Tag.objects.get(owner=request.user, id=id)
+        else:
+          model = Tag.objects.get(owner=None, id=id)
+      except Exception as e:
+        print(str(e))
+        messages.error(request, str(e))
+        return render(request, self.template_name, self.response_dict)
+    else:
+      model = Tag()
+
+    form = self.form_class(instance=model)
+
+    self.response_dict[self.ResponseDict.FORM] = form
+
+    return render(request, self.template_name, self.response_dict)
+
+  def post(self, request, *args, **kwargs):
+    print("post")
+
+    owner = None
+    if request.user and request.user.id:
+      owner = request.user
+
+    id = request.POST.get('id', None)
+    print("id: {}".format(id))
+    if id:
+      instance = Tag.objects.get(owner=owner, id=id)
+      print("instance owner: {}".format(instance.owner))
+    else:
+      instance = Tag()
+
+    instance.last_modified = datetime.now()
+
+    form = self.form_class(instance=instance, data=request.POST)
+
+    print("owner: {}".format(form.instance.owner))
+    print("created_at: {}".format(form.instance.created_at))
+    print("last_modified: {}".format(form.instance.last_modified))
+
+    self.response_dict[self.ResponseDict.FORM] = form
+
+    if form.is_valid():
+      try:
+        print("saving")
+        form.instance.owner = owner
+        print("owner:{}".format(form.instance.owner))
+        form.save()
+      except ValidationError as e:
+        messages.error(request, e.message)
+        return render(request, self.template_name, self.response_dict)
+    else:
+      print("form was invalid")
+      return render(request, self.template_name, self.response_dict)
+
+    messages.info(request, "Your Tag was updated.")
+    return HttpResponseRedirect(reverse('demos:bookmarks:tags'))
+
+
+class BookmarkTagFormView(FormView, TemplateResponseMixin):
+
+  class ResponseDict(str, Enum):
+    FORM = 'form'
+
+  form_class = BookmarkTagForm
+  template_name = settings.DEMOS_BOOKMARKS_TAG_BOOKMARK_TEMPLATE
+
+  def __init__(self, *args, **kwargs):
+    self.response_dict = {}
+    return super(FormView, self).__init__(*args, **kwargs)
+
+  def get(self, request, *args, **kwargs):
+    id = request.GET.get('id')
+
+    if id:
+      try:
+        if request.user and request.user.id:
+          model = BookmarkTag.objects.get(owner=request.user, id=id)
+        else:
+          model = BookmarkTag.objects.get(owner=None, id=id)
+      except Exception as e:
+        print(str(e))
+        messages.error(request, str(e))
+        return render(request, self.template_name, self.response_dict)
+    else:
+      model = BookmarkTag()
+      model.bookmark_id = request.GET.get('bookmark_id',None)
+
+    form = self.form_class(instance=model)
+
+    self.response_dict[self.ResponseDict.FORM] = form
+
+    return render(request, self.template_name, self.response_dict)
+
+  def post(self, request, *args, **kwargs):
+    print("post")
+
+    owner = None
+    if request.user and request.user.id:
+      owner = request.user
+
+    id = request.POST.get('id', None)
+    print("id: {}".format(id))
+    if id:
+      instance = BookmarkTag.objects.get(owner=owner, id=id)
+      print("instance owner: {}".format(instance.owner))
+    else:
+      instance = BookmarkTag()
+
+#    instance.last_modified = datetime.now()
+
+    form = self.form_class(instance=instance, data=request.POST)
+
+    print("owner: {}".format(form.instance.owner))
+    print("created_at: {}".format(form.instance.created_at))
+#    print("last_modified: {}".format(form.instance.last_modified))
+
+    self.response_dict[self.ResponseDict.FORM] = form
+
+    if form.is_valid():
+      try:
+        print("saving")
+        form.instance.owner = owner
+        print("owner:{}".format(form.instance.owner))
+        form.save()
+      except ValidationError as e:
+        messages.error(request, e.message)
+        return render(request, self.template_name, self.response_dict)
+    else:
+      print("form was invalid")
+      return render(request, self.template_name, self.response_dict)
+
+    messages.info(request, "Your BookmarkTag was updated.")
+    return HttpResponseRedirect(reverse('demos:bookmarks:home'))
+
+
+class TagView(TemplateView):
+
+  class ResponseDict(str, Enum):
+    TAG = 'tag'
+    BOOKMARKS = 'bookmarks'
+
+  success_page = 'demos:bookmarks:home'
+  template_name = settings.DEMOS_BOOKMARKS_TAG_TEMPLATE
+
+  def __init__(self, *args, **kwargs):
+    print(self.template_name)
+    self.response_dict = {}
+
+  def get(self, request, *args, **kwargs):
+
+    id = request.GET.get('id',None)
+    bookmarks = []
+
+    if id:
+      try:
+        if request.user and request.user.id:
+          tag = Tag.objects.get(owner=request.user, id=id)
+          bookmark_tags = BookmarkTag.objects.filter(owner=request.user, tag_id=tag.id)
+          for item in bookmark_tags:
+             bookmarks.append(Bookmark.objects.get(owner=request.user, id=item.bookmark_id))
+        else:
+          tag = Tag.objects.get(owner=None, id=id)
+          bookmark_tags = BookmarkTag.objects.filter(owner=None, tag_id=tag.id)
+          for item in bookmark_tags:
+             bookmarks.append(Bookmark.objects.get(owner=None, id=item.bookmark_id))
+      except Exception as e:
+        print(str(e))
+        messages.error(request, str(e))
+        return render(request, self.template_name, self.response_dict)
+
+    print(tag)
+    print("tag.id:{}".format(tag.id))
+    print("bookmark_tags:{}".format(bookmark_tags))
+    print("bookmarks:{}".format(bookmarks))
+    self.response_dict[self.ResponseDict.TAG] = tag
+    self.response_dict[self.ResponseDict.BOOKMARKS] = bookmarks
+
+    return render(request, self.template_name, self.response_dict)
