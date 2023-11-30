@@ -36,6 +36,7 @@ class JournalListView(ListView):
       owner_q = Q(owner=None, status=0)
 
     journals = Journal.objects.filter(owner_q)
+
     return journals
 
   def get_context_data(self, **kwargs):
@@ -44,41 +45,168 @@ class JournalListView(ListView):
     return context
 
 
-class JournalView(TemplateView):
+class JournalView(ListView):
 
   class ResponseDict(str, Enum):
-    JOURNAL = 'journal'
     ENTRIES = 'entries'
+    FILTER = 'filter'
+    JOURNAL = 'journal'
 
   template_name = settings.DEMOS_JOURNAL_TEMPLATE
 
   def __init__(self, *args, **kwargs):
     self.response_dict = {}
+    super().__init__(*args,**kwargs)
 
-  def get(self, request, *args, **kwargs):
+  def setup(self, request, *args, **kwargs):
+    super().setup(request, *args, **kwargs)
+
+    if request.user.id:
+      self.user = request.user
+    else:
+      self.user = None
+
     journal_id = request.GET.get('id')
 
     if journal_id:
       try:
         if request.user and request.user.id:
-          journal = Journal.objects.get(owner=request.user, id=journal_id, status=0)
-          entries = JournalEntry.objects.filter(owner=request.user, journal=journal_id, status=0)
+          self.journal = Journal.objects.get(owner=request.user, id=journal_id, status=0)
+          #self.entries = JournalEntry.objects.filter(owner=request.user, journal=journal_id, status=0)
         else:
-          journal = Journal.objects.get(owner=None, id=journal_id, status=0)
-          entries = JournalEntry.objects.filter(owner=None, journal=journal_id, status=0)
+          self.journal = Journal.objects.get(owner=None, id=journal_id, status=0)
+          #self.entries = JournalEntry.objects.filter(owner=None, journal=journal_id, status=0)
 
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
         return render(request, self.template_name, self.response_dict)
     else:
-      journal = Journal()
-      entries = []
+      self.journal = Journal()
+      #self.entries = []
 
-    self.response_dict[self.ResponseDict.JOURNAL] = journal
-    self.response_dict[self.ResponseDict.ENTRIES] = entries
+    if request.session.get('journal_filter'):
+      print("filter present")
+      if request.GET.get('filter'):
+        bff = JournalFilterForm(data=request.GET)
+      else:
+        f = request.session['journal_filter']
+        new_data = request.GET.copy()
+        new_data['filter'] = f
+        if f == 'date':
+          new_data['month'] = request.session.get('journal_filter_month')
+          new_data['year'] = request.session.get('journal_filter_year')
+        bff = JournalFilterForm(data=new_data)
+    else:
+      bff = JournalFilterForm(data=request.GET)
 
-    return render(request, self.template_name, self.response_dict)
+    self.filter = bff
+
+    if self.filter.is_valid():
+      filter = self.filter.cleaned_data['filter']
+      print(filter)
+
+      if filter == 'undated':
+        self.filter_q = Q(date=None)
+        request.session['journal_filter'] = 'undated'
+
+      elif filter == 'untitled':
+        self.filter_q = Q(title='')
+        request.session['journal_filter'] = 'untitled'
+
+      elif filter == 'date':
+        month = self.filter.cleaned_data['month']
+        year = self.filter.cleaned_data['year']
+        request.session['journal_filter_month'] = month
+        request.session['journal_filter_year'] = year
+
+        if month and int(month) > 0:
+          start_dt = datetime(int(year), int(month), 1)
+          if month == 12:
+            end_dt = datetime(int(year) + 1, 1, 1)
+          else:
+            end_dt = datetime(int(year), int(month) + 1, 1)
+
+        else:
+          start_dt = datetime(int(year), 1, 1)
+          end_dt = datetime(int(year) + 1, 1, 1)
+
+        self.filter_q = Q(date__gte=start_dt) & Q(date__lt=end_dt)
+
+        request.session['journal_filter'] = 'date'
+
+      elif filter == 'none':
+        request.session['journal_filter'] = 'none'
+
+      # deleted/hidden
+      status = [0]
+      if bff.cleaned_data['show_deleted']:
+        status.append(-1)
+      if bff.cleaned_data['show_hidden']:
+        status.append(1)
+
+      q = Q(status__in=status)
+
+      if hasattr(self,'filter_q'):
+        self.filter_q = self.filter_q & q
+      else:
+        self.filter_q = q
+
+      # unread
+      if bff.cleaned_data['hide_read']:
+        q = Q(unread=True)
+
+      if hasattr(self,'filter_q'):
+        self.filter_q = self.filter_q & q
+      else:
+        self.filter_q = q
+
+  def get_queryset(self):
+    if self.user:
+      owner_q = Q(owner=self.user)
+    else:
+      owner_q = Q(owner=None)
+
+    entries = JournalEntry.objects.filter(owner_q)
+
+    if hasattr(self, 'filter_q'):
+      entries = entries.filter(self.filter_q)
+
+    return entries 
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context[self.ResponseDict.FILTER] = self.filter
+    context[self.ResponseDict.JOURNAL] = self.journal
+    context[self.ResponseDict.ENTRIES] = self.get_queryset()
+
+    return context
+
+
+#  def get(self, request, *args, **kwargs):
+#    journal_id = request.GET.get('id')
+
+#    if journal_id:
+#      try:
+#        if request.user and request.user.id:
+#          journal = Journal.objects.get(owner=request.user, id=journal_id, status=0)
+#          entries = JournalEntry.objects.filter(owner=request.user, journal=journal_id, status=0)
+#        else:
+#          journal = Journal.objects.get(owner=None, id=journal_id, status=0)
+#          entries = JournalEntry.objects.filter(owner=None, journal=journal_id, status=0)
+
+#      except Exception as e:
+#        print(str(e))
+#        messages.error(request, str(e))
+#        return render(request, self.template_name, self.response_dict)
+#    else:
+#      journal = Journal()
+#      entries = []
+
+#    self.response_dict[self.ResponseDict.JOURNAL] = journal
+#    self.response_dict[self.ResponseDict.ENTRIES] = entries
+
+#    return render(request, self.template_name, self.response_dict)
 
 
 class JournalEditView(TemplateView):
