@@ -1,0 +1,42 @@
+<Style>
+
+div.toolbar {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 45px;
+  background-color: white;
+  z-index: 0;
+}
+
+@media only screen and (max-width: 600px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2.5vw;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2.2vw;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 2vw;
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 1.8vw;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  a.export-link, form.bookmarks, form.bookmarks input, form.filter, form.filter input, form.filter select, form.search, form.search input, #id_month, #id_year {
+    font-size: 1.6vw;
+  }
+}
+</Style>
