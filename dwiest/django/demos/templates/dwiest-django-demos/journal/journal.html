@@ -5,6 +5,7 @@
   {% include 'dwiest-django-demos/default.css' %}
   {% include 'dwiest-django-demos/django-messages.css' %}
   {% include 'dwiest-django-demos/journal/journal.css' %}
+  {% include 'dwiest-django-demos/journal/filter.css' %}
   {% load dwiest_django_demos.tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Head>
@@ -30,6 +31,16 @@
 <A style="text-decoration:none;color:black;" href="{% url 'demos:journal:edit' %}?id={{journal.id}}">
 {% include 'dwiest-django-demos/journal/journal-info.html' %}
 </A>
+</Div>
+
+<Div class="toolbar" align="center">
+<Table style="width:100%;text-align:center;">
+<Tr>
+<Td>
+{% include 'dwiest-django-demos/journal/filter.html' %}
+</Td>
+</Tr>
+</Table>
 </Div>
 
 <P>
