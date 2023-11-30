@@ -117,3 +117,113 @@ class JournalEntryForm(BaseJournalEntryForm):
     print(self.errors)
     print(str(self))
     return self.is_bound and not self.errors
+
+
+class JournalFilterForm(forms.Form):
+
+  class Fields(str, Enum):
+    FILTER = 'filter'
+    MONTH = 'month'
+    YEAR = 'year'
+
+  class Errors(str, Enum):
+    pass
+
+  error_messages = {}
+
+  field_defaults = {
+    Fields.FILTER: None,
+  }
+
+  filter = forms.CharField(
+    label=None,
+    initial='Untitled',
+    required=False,
+#    widget=forms.RadioSelect(
+    widget=widgets.RadioSelect(
+      choices=[
+        ('none', 'None'),
+        ('undated', 'Undated'),
+        ('untitled', 'Untitled'),
+        ('date', 'date')
+        ],
+      attrs={
+        'class': settings.DEMOS_BOOKMARKS_FILTER_CLASS,
+        },
+      ),
+    )
+
+  month = forms.IntegerField(
+    label=None,
+    initial=None,
+    required=False,
+    widget=widgets.Select(
+      choices=[
+        (0, '-'),
+        (1, 'January'),
+        (2, 'February'),
+        (3, 'March'),
+        (4, 'April'),
+        (5, 'May'),
+        (6, 'June'),
+        (7, 'July'),
+        (8, 'August'),
+        (9, 'September'),
+        (10, 'October'),
+        (11, 'November'),
+        (12, 'December'),
+        ],
+      ),
+    )
+
+  year = forms.IntegerField(
+    label=None,
+    initial=None,
+    required=False,
+    )
+
+  show_deleted = forms.BooleanField(
+    label="Show deleted",
+    initial=False,
+    required=False,
+    )
+
+  show_hidden = forms.BooleanField(
+    label="Show hidden",
+    initial=False,
+    required=False,
+    )
+
+  hide_read = forms.BooleanField(
+    label="Hide read",
+    initial=False,
+    required=False,
+    )
+
+
+  def __init__(self, filter=None, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    if filter:
+      print("filter is {}".format(filter))
+
+    with connection.cursor() as cursor:
+      cursor.execute("select distinct strftime('%Y', date) as year from demos_journalentry where date is not null order by year desc;")
+      rows = cursor.fetchall()
+      years = []
+      for row in rows:
+        years.append((int(row[0]),row[0]))
+      self.fields['year'].widget = widgets.Select(choices=years)
+
+   # url = self.fields[self.Fields.URL].initial
+
+#    if 'data' in kwargs: # bound form
+#      if self.Fields.URL not in kwargs['data']:
+#        new_data = kwargs['data'].copy()
+#        new_data[self.Fields.URL] = url
+#        self.data = new_data
+#      else:
+#        text = kwargs['data'][self.Fields.URL]
+
+  def process(self):
+    pass
+
