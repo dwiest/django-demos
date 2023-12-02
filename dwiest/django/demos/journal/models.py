@@ -40,7 +40,7 @@ class Journal(models.Model):
 
 class JournalEntry(models.Model):
   class Meta:
-    ordering = ['-date', '-id']
+    ordering = ['date', '-id']
 
   owner = models.ForeignKey(
     User,
