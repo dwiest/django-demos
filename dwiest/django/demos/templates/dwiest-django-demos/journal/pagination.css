@@ -1,0 +1,13 @@
+<Style>
+
+div.pagination {
+  Xcolor: blue;
+  Xmargin: auto;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: lightyellow;
+  border-style: inset;
+  }
+
+</Style>

@@ -6,6 +6,7 @@
   {% include 'dwiest-django-demos/django-messages.css' %}
   {% include 'dwiest-django-demos/journal/journal.css' %}
   {% include 'dwiest-django-demos/journal/filter.css' %}
+  {% include 'dwiest-django-demos/journal/pagination.css' %}
   {% load dwiest_django_demos.tags %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Head>
@@ -48,11 +49,13 @@
 <A href="{% url 'demos:journal:entry_edit' %}?journal={{journal.id}}">Add Entry</A>
 </Div>
 
-{% for entry in entries %}
+{% for entry in page_obj %}
 {% include 'dwiest-django-demos/journal/journal-entry.html' %}
 {% endfor %}
 
 <Div class="filler"></Div>
+
+{% include 'dwiest-django-demos/journal/paginator.html' %}
 
 {% footer %}
 </Body>
