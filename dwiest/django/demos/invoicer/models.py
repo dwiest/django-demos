@@ -91,7 +91,7 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
       amount = 0
       items = []
       try:
-        items = LineItem.objects.filter(owner=49,invoice=1)
+        items = LineItem.objects.filter(owner=49,invoice=5) #FIXME
       except Exception as e:
         print(e)
       for item in items:
