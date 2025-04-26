@@ -1,8 +1,12 @@
-<Div align="left" style="margin:20px;padding:20px;align:right;padding-bottom:10px;">
-  <Table width="100%" style="border-spacing:0px;">
-    <Tr style="background-color:orange;">
-      <Td style="padding-left:10px;">
-        <Span style="font-size:4vw;font-family:Times New Roman;">
+<Div align="left" style="margin-left:10px;margin-right:10px;margin-top:5px;align:right;">
+  <Table width="60%" style="border-spacing:0px;margin-left:auto;margin-right:auto">
+    {% if entry.date|date:'l' == 'Sunday' %}
+    <Tr style="background-color:#AEAEAC;">
+    {% else %}
+    <Tr style="background-color:#FEFEAC;">
+    {%endif%}
+      <Td style="padding-left:10px;vertical-align:top;">
+        <Span style="font-size:1.8vw;font-family:Times New Roman;">
           <A style="text-decoration:none;color:black;" href="{% url 'demos:journal:entry_edit' %}?id={{entry.id}}">{{entry.date|date:'l -  F j, Y'}}</A>
         </Span>
       </Td>
@@ -14,7 +18,7 @@
     </Tr>
     <Tr>
       <Td colspan="2">
-        <Div style="font-family:Helvetica;margin-top:5px;">{{entry.content|linebreaks}}</Div>
+        <Div style="font-family:Helvetica;margin-top:5px;margin-left:10px;">{{entry.content|linebreaks}}</Div>
       </Td>
     </Tr>
   </Table>
