@@ -1,0 +1,19 @@
+<Html>
+<Head>
+  <Title>Inventory Tracker - Inventory Entry View</Title>
+</Head>
+<Body>
+<Div align="center">Inventory Tracker - Inventory Entry View</Div>
+<P>
+{{item}}
+<P>
+{{item.id}}
+<P>
+{{item.name}}
+<P>
+{{item.description}}
+<P>
+<A href="{% url 'demos:inventory:list_view' %}?id={{item.list}}">Back</A>|
+<A href="{% url 'demos:inventory:home' %}">Home</A>
+</Body>
+</Html>

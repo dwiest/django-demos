@@ -1,0 +1,27 @@
+<Html>
+<Head>
+  <Title>Inventory Tracker - Edit Item</Title>
+</Head>
+<Body>
+<Div align="center">Inventory Tracker Edit Item</Div>
+
+{% include 'dwiest-django-demos/django-messages.html' %}
+
+<P>
+Created at: {{form.item.created_at}}
+<P>
+Last modified: {{form.item.last_modified}}
+<P>
+<Form name="item_edit" method="post" url="{% url 'demos:inventory:item_edit' %}">
+{% csrf_token %}
+{{form}}
+{% if form.instance.id %}
+<Input type="hidden" name="id" value="{{form.instance.id}}" id="id_id"></Input>
+{% endif %}
+Delete: <Input type="checkbox" name="delete" value="off" id="id_delete"></Input>
+<Input type="submit"></Input>
+</Form>
+<P>
+<A href="{% url 'demos:inventory:home' %}">Cancel</A>
+</Body>
+</Html>

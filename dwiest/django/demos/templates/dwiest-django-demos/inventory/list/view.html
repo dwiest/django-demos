@@ -1,0 +1,23 @@
+<Html>
+<Head>
+  <Title>Inventory Tracker - List View</Title>
+</Head>
+<Body>
+<Div align="center">
+<H1>Inventory Tracker - List View</H1>
+</Div>
+<P>
+({{list.id}}) <A href="{% url 'demos:inventory:list_edit' %}?id={{list.id}}">{{list.name}}</A> - {{list.description}}
+<Hr>
+<H2>Items:</H2>
+{% for item in items %}
+<P>
+<A href="{% url 'demos:inventory:entry_edit' %}?id={{item.id}}">{{item.item.name}} - {{item.item.description}} - {{item.quantity}}</A>
+{% endfor %}
+<P>
+<A href="{% url 'demos:inventory:item_create' %}">Create Item</A> |
+<A href="{% url 'demos:inventory:entry_create' %}?list={{list.id}}">Add Item</A>
+<P>
+<A href="{% url 'demos:inventory:home' %}">Home</A>
+</Body>
+</Html>
