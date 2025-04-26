@@ -124,8 +124,8 @@ Due Date:
     </Tr>
 {% for line_item in line_items %}
   <Tr>
-    <Td align="left">{{line_item.date}}</Td>
-    <Td align="left">{{line_item.description}}</Td>
+    <Td align="left">{{line_item.id}} - {{line_item.date}}</Td>
+    <Td align="left">{{line_item.description|linebreaks}}</Td>
     <Td align="left">{{line_item.rate}}</Td>
     <Td align="left">{{line_item.quantity}}</Td>
     <Td align="left">{{line_item.total}}</Td>
