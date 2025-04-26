@@ -125,6 +125,7 @@ class JournalFilterForm(forms.Form):
     FILTER = 'filter'
     MONTH = 'month'
     YEAR = 'year'
+    ID = 'id'
 
   class Errors(str, Enum):
     pass
@@ -200,6 +201,11 @@ class JournalFilterForm(forms.Form):
     required=False,
     )
 
+  id = forms.IntegerField(
+    label="Journal Id",
+    initial=69,
+    required=True,
+    )
 
   def __init__(self, filter=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
