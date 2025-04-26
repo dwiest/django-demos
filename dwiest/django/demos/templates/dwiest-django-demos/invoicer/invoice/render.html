@@ -88,7 +88,7 @@
 {% for line_item in line_items %}
   <Tr>
     <Td class="left">{{line_item.date|date:'m/d/Y'}}</Td>
-    <Td class="left">{{line_item.description}}</Td>
+    <Td class="left">{{line_item.description|linebreaks}}</Td>
     <Td>${{line_item.rate|intcomma}}.00</Td>
     <Td>{{line_item.quantity|intcomma}}</Td>
     <Td>${{line_item.total|floatformat:2|intcomma}}</Td>
