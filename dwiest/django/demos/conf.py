@@ -67,6 +67,15 @@ class DemosAppConf(AppConf):
   GOOGLE_RECAPTCHA_SITE_KEY = None
   GOOGLE_RECAPTCHA_TEMPLATE = 'dwiest-django-demos/grecaptcha/index.html'
 
+  ''' Inventory demo settings '''
+  INVENTORY_LIST_HOME_TEMPLATE = 'dwiest-django-demos/inventory/home.html'
+  INVENTORY_LIST_VIEW_TEMPLATE = 'dwiest-django-demos/inventory/list/view.html'
+  INVENTORY_LIST_EDIT_TEMPLATE = 'dwiest-django-demos/inventory/list/edit.html'
+  INVENTORY_ITEM_VIEW_TEMPLATE = 'dwiest-django-demos/inventory/item/view.html'
+  INVENTORY_ITEM_EDIT_TEMPLATE = 'dwiest-django-demos/inventory/item/edit.html'
+  INVENTORY_ENTRY_VIEW_TEMPLATE = 'dwiest-django-demos/inventory/entry/view.html'
+  INVENTORY_ENTRY_EDIT_TEMPLATE = 'dwiest-django-demos/inventory/entry/edit.html'
+
   ''' Invoice demo settings '''
   INVOICER_BILL_TO_TEMPLATE = 'dwiest-django-demos/invoicer/bill_to/view.html'
   INVOICER_BILL_TO_EDIT_TEMPLATE = 'dwiest-django-demos/invoicer/bill_to/edit.html'
@@ -139,7 +148,7 @@ class DemosAppConf(AppConf):
   SELENIUM_IMAGE_WIDTH_MIN = 20
   SELENIUM_IMAGE_WIDTH_MAX =  2048
   SELENIUM_INPUT_SIZE = 40
-  SELENIUM_PROXY = None
+  SELENIUM_PROXY = 'squid:3128'
   SELENIUM_CHROME_DRIVER_PATH = '/usr/bin/chromedriver'
   SELENIUM_SCREENSHOT_DIR = '/tmp'
   SELENIUM_TEMPLATE = 'dwiest-django-demos/selenium/index.html'
