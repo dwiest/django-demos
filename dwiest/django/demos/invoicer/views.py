@@ -305,7 +305,7 @@ class InvoiceEditView(TemplateView):
 #      item = Invoice(owner=request.user)
    # form = self.form_class(instance=item, data=request.POST)
 
-    invoice_id = request.POST.get('id',1) #FIXME
+    invoice_id = request.POST.get('id',6) #FIXME
     owner = request.user
 
     try:
