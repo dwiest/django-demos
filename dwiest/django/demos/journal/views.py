@@ -53,13 +53,15 @@ class JournalView(ListView):
     JOURNAL = 'journal'
 
   template_name = settings.DEMOS_JOURNAL_TEMPLATE
-  paginate_by = 7
+  paginate_by = 31
 
   def __init__(self, *args, **kwargs):
+    print("JournalView.__init__()")
     self.response_dict = {}
     super().__init__(*args,**kwargs)
 
   def setup(self, request, *args, **kwargs):
+    print("JournalView.setup()")
     super().setup(request, *args, **kwargs)
 
     if request.user.id:
