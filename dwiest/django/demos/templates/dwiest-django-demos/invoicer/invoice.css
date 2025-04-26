@@ -123,6 +123,10 @@ div.line_items td {
   text-align: right;
   }
 
+div.line_items tr {
+  vertical-align: top;
+  }
+
 div.line_items *.left{
   text-align: left;
   }
