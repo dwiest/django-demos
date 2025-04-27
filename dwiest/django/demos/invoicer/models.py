@@ -70,6 +70,8 @@ class BillTo(Address):
 
 
 class Invoice(BaseModel, OwnedModel, NamedModel):
+  class Meta:
+    ordering = ['-id']
 
   bill_to = models.ForeignKey(
     BillTo,
@@ -83,6 +85,26 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
     editable = True,
     null     = True
     )
+
+
+  def hours(self):
+    if not hasattr(self,'_hours'):
+      print("{}.hours(): not cached".format(self.__class__.__name__))
+      hours = 0.0
+      items = []
+      try:
+        items = LineItem.objects.filter(owner=self.owner, invoice=self.id)
+      except Exception as e:
+        print(e)
+      for item in items:
+        print("hours: {}".format(item.quantity))
+        hours += float(item.quantity)
+      self._hours = hours
+    else:
+      print("{}.hours(): cached".format(self.__class__.__name__))
+
+    print("hours: {}".format(self._hours))
+    return self._hours
 
 
   def total(self):
