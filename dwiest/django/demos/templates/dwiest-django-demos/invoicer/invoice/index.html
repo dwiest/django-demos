@@ -1,8 +1,36 @@
+{% load humanize %}
 <Html>
   <Head>
     <Title>Invoices</Title>
     {% include 'dwiest-django-demos/invoicer/invoice.css' %}
     <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+* {
+  box-sizing: border-box;
+}
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 0px;
+}
+
+.left, .right {
+  width: 15%;
+  background: white;
+}
+
+.middle {
+  width: 70%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+</style>
     </Head>
 
   <Body>
@@ -13,31 +41,61 @@ Invoices
 
   {% include "dwiest-django-demos/hamburgernav.html" %}
 
-<Div align="center" style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;">
-<Table style="width:100%;">
+<!--Table border="0" style="width:60%;">
   <Tr>
-    <Td align="left">
+    <Td align="right">
       <A href="{% url 'demos:invoicer:home' %}">Home</A>
       |
       <A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A>
-      </Td>
-    <Td align="right">
-      </Td>
-    </Tr>
-  </Table>
-</Div>
+    </Td>
+  </Tr>
+</Table-->
 
+<Div class="row">
+  <Div class="column left" style="vertical-align:middle;font-size:1.8vw;">
+    <Div style="text-align:center;padding-top:10px;padding-bottom:10px;">
+      <A href="{% url 'demos:invoicer:home' %}">Home</A>
+    </Div>
+    <Div style="text-align:center;padding-top:10px;">
+      <A href="{% url 'demos:invoicer:invoice_add' %}">Add Invoice</A>
+    </Div>
+  </Div>
 
+  <Div class="column middle">
 {% if items %}
-<Div style="width:80%;margin-left:auto;margin-right:auto;">
-<Ul>
+<Table style="border:1px solid;width:100%;height:80%;padding:10px;">
+<Tr>
+  <Th style="text-align:left;">Invoice</Th>
+  <Th style="text-align:left;">Client</Th>
+  <Th style="text-align:left;">Description</Th>
+  <Th style="text-align:right;">Hours</Th>
+  <Th style="text-align:right;">Amount</Th>
+</Tr>
 {% for item in items %}
-  <Li>{{item.bill_to.name}} - <A href="{% url 'demos:invoicer:invoice_view' %}?id={{item.id}}">{{item.name}}</A></Li>
+<Tr>
+  <Td>
+    <A href="{% url 'demos:invoicer:invoice_view' %}?id={{item.id}}">{{item.name}}</A>
+  </Td>
+  <Td>
+  {{item.bill_to.name}}
+  </Td>
+  <Td style="text-align:left;">
+    {{item.description}}
+  </Td>
+  <Td style="text-align:right;">
+    {{item.hours}}
+  </Td>
+  <Td style="text-align:right;">
+    ${{item.total|intcomma}}
+  </Td>
+</Tr>
 {% endfor %}
-</Ul>
-</Div>
+</Table>
 {% else %}
-<Div>
 No invoices found.
-</Div>
 {% endif %}
+  </Div>
+  <Div class="column right" style="text-align:right;">
+    &nbsp;
+  </Div>
+</Div>
