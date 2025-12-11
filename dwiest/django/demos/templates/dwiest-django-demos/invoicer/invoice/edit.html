@@ -109,13 +109,18 @@
 	  Delete
 	  </Th>
 	</Tr>
-    {% for f in formset %}
+    {% for f, instance in form_and_instances %}
       <Tr>
         {{f.id}}
         <Td>{% if f.id.value %}{{f.id.value}}{%else%}NEW!{%endif%}</Td>
         <Td>{{f.status}}</Td>
         <Td>{{f.date}}</Td>
-        <Td>{{f.description}}</Td>
+        <Td><div class="timeworked-wrapper" style="position: relative; display: inline-block;">
+  {{ f.timeworked }}
+  <span class="calc-hours">{{ instance.calculate_pseudo_hours }} {% if instance.get_rolled_over_minutes > 0 %}({{instance.get_rolled_over_minutes}}){% endif %}</span>
+         </div>
+
+<div><span>{{f.description}}</span></div></Td>
         <Td>{{f.rate}}</Td>
         <Td>{{f.quantity}}</Td>
         <Td>{{f.DELETE}}</Td>
