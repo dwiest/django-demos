@@ -1,25 +1,8 @@
-<Div align="left" style="margin-left:10px;margin-right:10px;margin-top:5px;align:right;">
-  <Table width="60%" style="border-spacing:0px;margin-left:auto;margin-right:auto">
-    {% if entry.date|date:'l' == 'Sunday' %}
-    <Tr style="background-color:#AEAEAC;">
-    {% else %}
-    <Tr style="background-color:#FEFEAC;">
-    {%endif%}
-      <Td style="padding-left:10px;vertical-align:top;">
-        <Span style="font-size:1.8vw;font-family:Times New Roman;">
-          <A style="text-decoration:none;color:black;" href="{% url 'demos:journal:entry_edit' %}?id={{entry.id}}">{{entry.date|date:'l -  F j, Y'}}</A>
-        </Span>
-      </Td>
-      <Td style="width: 1%;white-space:nowrap;padding-right:10px;">
-        <Div style="font-size:1vw;align:left;">
-          {% include 'dwiest-django-demos/journal/journal-stats.html' %}
-        </Div>
-      </Td>
-    </Tr>
-    <Tr>
-      <Td colspan="2">
-        <Div style="font-family:Helvetica;margin-top:5px;margin-left:10px;">{{entry.content|linebreaks}}</Div>
-      </Td>
-    </Tr>
-  </Table>
-</Div>
+<article class="panel journal-entry">
+  <header class="entry-heading">
+    <h2><a href="{% url 'demos:journal:entry_edit' %}?id={{ entry.id }}">{{ entry.date|date:'l, F j, Y'|default:'Undated entry' }}</a></h2>
+    <span class="tag">{% if entry.status == -1 %}Deleted{% elif entry.status == 1 %}Hidden{% else %}Active{% endif %}</span>
+  </header>
+  <div class="entry-content">{{ entry.content|default:'No content yet.'|linebreaks }}</div>
+  {% include 'dwiest-django-demos/journal/journal-stats.html' %}
+</article>

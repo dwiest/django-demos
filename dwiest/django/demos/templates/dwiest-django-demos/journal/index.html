@@ -1,39 +1,18 @@
-<!doctype html>
-<Html>
-
-<Head>
-  <Title>Journal</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
-  {% include 'dwiest-django-demos/bookmarks/bookmarks.css' %}
-  {% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='Journal' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
+{% extends "dwiest-django-demos/journal/base.html" %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>Journals</h1><p class="muted">A place for daily notes, ideas, and reflections.</p></div>
+  <a class="button primary" href="{% url 'demos:journal:create' %}">Create journal</a>
+</div>
+<div class="journal-list">
+  {% for journal in journals %}
+  <article class="panel">
+    <h2><a href="{% url 'demos:journal:view' %}?id={{ journal.id }}">{{ journal.name }}</a></h2>
+    {% if journal.description %}<div class="journal-description">{{ journal.description|linebreaks }}</div>{% endif %}
+    <p class="timestamps">Updated {{ journal.last_modified|date:'M j, Y' }}</p>
+  </article>
+  {% empty %}
+  <div class="empty"><h2>No journals yet</h2><p class="muted">Create a journal to start writing your first entry.</p></div>
+  {% endfor %}
+</div>
 {% endblock %}
-
-{% include 'dwiest-django-demos/journal/django-messages.html' %}
-
-{% include 'dwiest-django-demos/journal/errors.html' %}
-
-<Div class="journals">
-<A href="{% url 'demos:journal:create' %}">Create Journal</A>
-
-<Div class="journal_list">
-<Ol>
-{% for journal in journals %}
-<LI><A href="{% url 'demos:journal:view' %}?id={{journal.id}}">{{journal.name}} - {{journal.description}}</A>
-{% endfor %}
-</Ol>
-</Div>
-</Div>

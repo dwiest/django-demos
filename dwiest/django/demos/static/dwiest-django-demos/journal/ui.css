@@ -1,0 +1,39 @@
+/* Journal uses the shared bookmarks palette, typography, and controls. */
+main.container { max-width: 1120px; }
+.nav { flex-wrap: wrap; }
+.nav-actions, .actions { display: flex; flex-wrap: wrap; gap: 16px; }
+.page-heading p { margin: 8px 0 0; }
+.panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; min-width: 0; }
+.panel h2 { margin: 0 0 10px; font-size: 20px; }
+.journal-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.journal-list .panel { margin: 0; }
+.journal-list .empty { grid-column: 1 / -1; }
+.entry-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.entry-content { max-width: 85ch; line-height: 1.7; margin-top: 12px; }
+h1, h2, .entry-content, .journal-description { overflow-wrap: anywhere; }
+.timestamps { margin-top: 16px; }
+.journal-filter { background: var(--surface); }
+.journal-filter fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.journal-filter legend { font-weight: 600; margin-bottom: 12px; }
+.filter-options { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.filter-options label { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+input[type=radio] { accent-color: var(--teal); }
+.date-options { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 10px; }
+.date-options .field { margin: 0; min-width: 120px; }
+.visibility-options { margin-top: 10px; }
+.field input:not([type=checkbox]), .field select, .field textarea { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #bdc8d5; border-radius: var(--radius); padding: 10px 12px; background: #fff; color: var(--ink); }
+.journal-editor { max-width: 900px; }
+.journal-editor textarea { min-height: 140px; resize: vertical; }
+.journal-editor #id_content { min-height: 360px; line-height: 1.7; }
+.journal-editor .field:last-child { margin-bottom: 0; }
+.result-count { font-size: 14px; margin: 18px 0 12px; }
+@media (max-width: 650px) {
+  .nav { gap: 12px; padding-block: 8px; }
+  .nav-actions { gap: 12px; font-size: 14px; }
+  .journal-list { grid-template-columns: minmax(0, 1fr); }
+  .panel { padding: 16px; }
+  .entry-heading { flex-wrap: wrap; gap: 6px; }
+  .entry-heading h2 { font-size: 18px; }
+  .date-options .field { flex: 1; }
+  .actions { gap: 8px; }
+}

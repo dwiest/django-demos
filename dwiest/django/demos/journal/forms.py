@@ -20,6 +20,10 @@ class JournalForm(forms.ModelForm):
 
     fields = ['id', 'name', 'description', 'status', 'owner']
 
+    widgets = {
+      'status': forms.Select(choices=[(-1, 'Deleted'), (0, 'Active'), (1, 'Hidden')]),
+    }
+
   class Fields(str, Enum):
     NAME = 'name'
     OWNER = 'owner'
@@ -79,6 +83,7 @@ class JournalEntryForm(BaseJournalEntryForm):
 
     widgets = {
       BaseJournalEntryForm.Fields.DATE: BaseJournalEntryForm.DateInput(
+        format="%Y-%m-%d",
 #        attrs = {
 #          'class': settings.DEMOS_BOOKMARKS_ARTICLE_DATE_CLASS,
 #          'max' : date.today(),
@@ -138,14 +143,13 @@ class JournalFilterForm(forms.Form):
 
   filter = forms.CharField(
     label=None,
-    initial='Untitled',
+    initial='none',
     required=False,
 #    widget=forms.RadioSelect(
     widget=widgets.RadioSelect(
       choices=[
         ('none', 'None'),
         ('undated', 'Undated'),
-        ('untitled', 'Untitled'),
         ('date', 'date')
         ],
       attrs={
@@ -233,3 +237,9 @@ class JournalFilterForm(forms.Form):
   def process(self):
     pass
 
+
+  def clean(self):
+    cleaned = super().clean()
+    if cleaned.get('filter') == 'date' and not cleaned.get('year'):
+      self.add_error('year', 'Choose a year to filter by date.')
+    return cleaned

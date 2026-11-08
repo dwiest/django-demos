@@ -1,17 +1,15 @@
+{% if page_obj %}
 <div class="pagination">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?id={{id}}&page=1">&laquo; first</a>
-            <a href="?id={{id}}&page={{ page_obj.previous_page_number }}">previous</a>
-        {% endif %}
-
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-
-        {% if page_obj.has_next %}
-            <a href="?id={{id}}&page={{ page_obj.next_page_number }}">next</a>
-            <a href="?id={{id}}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-        {% endif %}
-    </span>
+  <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  <nav aria-label="Entry pages">
+    {% if page_obj.has_previous %}
+    <a href="?{{ pagination_query }}&page=1">First</a>
+    <a href="?{{ pagination_query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a href="?{{ pagination_query }}&page={{ page_obj.next_page_number }}">Next</a>
+    <a href="?{{ pagination_query }}&page={{ page_obj.paginator.num_pages }}">Last</a>
+    {% endif %}
+  </nav>
 </div>
+{% endif %}
