@@ -1,9 +1,62 @@
 {% load static %}
-<script src="{% static 'demos/sidebar.js' %}"></script>
-<script src="{% static 'demos/demo_landing.js' %}"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", ()=>{
-    injectSidebar("body"); // or a div#nav if you prefer
-  });
-</script>
-
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo applications | Wiest.World</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='home' %}
+  <main id="main" class="container">
+    <div class="demo-intro">
+      <p class="demo-eyebrow">Wiest.World · Application demos</p>
+      <h1>Everyday tools, built with Django.</h1>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore three practical applications below.</p>
+    </div>
+    <section class="demo-grid" aria-label="Featured applications">
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4Z"/></svg></span>
+        <h2>Bookmarks</h2>
+        <p>A searchable home for the links you want to keep.</p>
+        <ul><li>Organize links with tags</li><li>Search and filter your collection</li><li>Add notes and export bookmarks</li></ul>
+        <a class="button primary" href="{% url 'demos:bookmarks:home' %}">Open Bookmarks <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6Z M14 3v5h5 M9 12h7 M9 16h7"/></svg></span>
+        <h2>Invoicer</h2>
+        <p>Turn your work into clear, professional invoices.</p>
+        <ul><li>Manage clients and invoices</li><li>Record line items, time, and rates</li><li>Preview and print invoices</li></ul>
+        <a class="button primary" href="{% url 'demos:invoicer:home' %}">Open Invoicer <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5Z M9 3v18 M12 8h4 M12 12h4"/></svg></span>
+        <h2>Journal</h2>
+        <p>Keep your thoughts and project notes in one place.</p>
+        <ul><li>Create journals for different topics</li><li>Write and edit dated entries</li><li>Browse entries by date</li></ul>
+        <a class="button primary" href="{% url 'demos:journal:home' %}">Open Journal <span aria-hidden="true">→</span></a>
+      </article>
+    </section>
+    <details class="older-demos">
+      <summary>Other demos</summary>
+      <ul>
+        <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
+        <li><a href="{% url 'demos:qrcode:home' %}">QR code generator</a></li>
+        <li><a href="{% url 'demos:otp:home' %}">Time-based OTP</a></li>
+        <li><a href="{% url 'demos:expenses:home' %}">Expense Tracker</a></li>
+        <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
+        <li><a href="{% url 'demos:inventory:home' %}">Inventory Tracker</a></li>
+        <li><a href="{% url 'demos:news:home' %}">Websockets</a></li>
+        <li><a href="{% url 'demos:selenium:home' %}">Selenium</a></li>
+      </ul>
+    </details>
+    <footer class="demo-footer">
+      <span>Practical tools. Purposeful automation.</span>
+      <a href="https://wiest.world/">Back to Wiest.World</a>
+    </footer>
+  </main>
+</body>
+</html>

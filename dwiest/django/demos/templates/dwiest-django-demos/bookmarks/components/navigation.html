@@ -1,1 +1,16 @@
-<header class="site-header"><nav class="nav container" aria-label="Main navigation"><a class="brand" href="{% url 'demos:bookmarks:home' %}"><svg width="22" height="26" viewBox="0 0 22 26" fill="none" aria-hidden="true"><path d="M3 2h16v22l-8-5-8 5V2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Bookmarks</span></a><a class="nav-link {% if nav_section != 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:home' %}">Bookmarks</a><a class="nav-link {% if nav_section == 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:tags' %}">Tags</a><div class="nav-actions"><a class="button secondary" href="{% url 'demos:bookmarks:export' %}">Export</a>{% block nav_action %}{% endblock %}</div></nav></header>
+<header class="site-header">
+  <nav class="nav app-navigation container" aria-label="Bookmarks navigation">
+    <a class="brand" href="{% url 'demos:bookmarks:home' %}">
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="none" aria-hidden="true">
+        <path d="M3 2h16v22l-8-5-8 5V2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <span>Bookmarks</span>
+    </a>
+    <a class="nav-link {% if nav_section != 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
+    <a class="nav-link {% if nav_section == 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:tags' %}">Tags</a>
+    <div class="nav-actions">
+      <a class="button secondary" href="{% url 'demos:bookmarks:export' %}">Export</a>
+      {% block nav_action %}{% endblock %}
+    </div>
+  </nav>
+</header>

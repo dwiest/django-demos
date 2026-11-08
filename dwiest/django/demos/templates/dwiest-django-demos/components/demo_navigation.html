@@ -1,0 +1,11 @@
+<header class="demo-header">
+  <div class="demo-header-inner container">
+    <a class="demo-brand" href="{% url 'demos:home' %}">Django Demos</a>
+    <nav class="demo-nav" aria-label="Demo applications">
+      <a href="{% url 'demos:home' %}"{% if demo_section == 'home' %} aria-current="page"{% endif %}>Home</a>
+      <a href="{% url 'demos:bookmarks:home' %}"{% if demo_section == 'bookmarks' %} aria-current="true"{% endif %}>Bookmarks</a>
+      <a href="{% url 'demos:invoicer:home' %}"{% if demo_section == 'invoicer' %} aria-current="true"{% endif %}>Invoicer</a>
+      <a href="{% url 'demos:journal:home' %}"{% if demo_section == 'journal' %} aria-current="true"{% endif %}>Journal</a>
+    </nav>
+  </div>
+</header>

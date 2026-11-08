@@ -7,17 +7,16 @@
   <title>{% block title %}Journal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/journal/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='journal' %}
   <header class="site-header">
-    <nav class="nav container" aria-label="Journal navigation">
+    <nav class="nav app-navigation container" aria-label="Journal navigation">
       <a class="brand" href="{% url 'demos:journal:home' %}">Journal</a>
       <a class="nav-link selected" href="{% url 'demos:journal:home' %}">Journals</a>
-      <div class="nav-actions">
-        <a href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
-        <a href="{% url 'demos:invoicer:home' %}">Invoicer</a>
-      </div>
+
     </nav>
   </header>
   <main id="main" class="container">
