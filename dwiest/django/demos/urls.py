@@ -20,7 +20,7 @@ app_name='demos'
 urlpatterns = [
   path('',
     TemplateView.as_view(
-      template_name="dwiest-django-demos/home.html"), name='home'
+      template_name="dwiest-django-demos/demo_landing.html"), name='home'
     ),
   path('bookmarks/',
     include('dwiest.django.demos.bookmarks.urls', namespace='bookmarks')),
