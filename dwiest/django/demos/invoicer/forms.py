@@ -118,6 +118,7 @@ class InvoiceForm(forms.ModelForm):
     initial=date.today(),
     required=False,
     widget=DateInput(
+      format='%Y-%m-%d',
       attrs={
         'class': None,
         }
@@ -164,7 +165,7 @@ class LineItemForm(forms.ModelForm):
 #        ),
       'description': widgets.Textarea(
         attrs = {
-          'rows' : 12,
+          'rows' : 3,
           'cols' : 70,
           'class' : 'inv_li_description'
           }
@@ -215,6 +216,7 @@ class LineItemForm(forms.ModelForm):
     required=False,
 #    widget=forms.SelectDateWidget(
     widget=DateInput(
+      format='%Y-%m-%d',
       attrs={
 #        'max' : date.today(),
         'class' : 'inv_li_date'
