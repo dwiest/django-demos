@@ -1,0 +1,1 @@
+<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required" aria-label="required"> *</span>{% endif %}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}</div>

@@ -1,0 +1,5 @@
+{% load static %}
+<link rel="manifest" href="{% url 'demos:bookmarks:pwa_manifest' %}">
+<meta name="theme-color" content="#182d35">
+<link rel="icon" type="image/png" href="{% static 'bookmarks/icon-192.png' %}">
+<script defer src="{% static 'bookmarks/pwa.js' %}" data-worker="{% url 'demos:bookmarks:pwa_worker' %}"></script>

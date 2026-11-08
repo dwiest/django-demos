@@ -1,28 +1,8 @@
-<html>
-<H2>Tags</H2>
-<A href="{% url 'demos:bookmarks:tag_create' %}">Create Tag</A>
-<B>id, owner_id, created_at, last_modified, description, style</B>
-{% for tag in tags %}
-<P>
-{{tag.id}}, 
-{{tag.owner_id}}, 
-{{tag.created_at}}, 
-{{tag.last_modified}}, 
-{{tag.description}}, 
-{{tag.style}}, 
-<A href="{% url 'demos:bookmarks:tag_edit' %}?id={{tag.id}}">Edit Tag</A>
-</P>
-{% endfor %}
-
-<H2>Tagged Bookmarks</H2>
-<A href="{% url 'demos:bookmarks:tag' %}">Create BookmarkTag</A>
-<B>id, created_at, bookmark_id, tag_id</B>
-{% for tag in bookmark_tags %}
-<P>
-<A href="{% url 'demos:bookmarks:tag' %}?id={{tag.id}}">{{tag.id}}</A>, 
-{{tag.created_at}}, 
-{{tag.bookmark_id}}, 
-{{tag.tag_id}}
-</P>
-{% endfor %}
-</html>
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}Tags{% endblock %}
+{% block content %}<div class="page-heading"><h1>Tags</h1><a class="button primary" href="{% url 'demos:bookmarks:tag_create' %}?next={{ next_url|urlencode }}">＋ Add tag</a></div>
+<form method="get" class="tag-search"><input type="hidden" name="page_size" value="{{ page_obj.paginator.per_page }}">{{ query.term }}{{ query.sort }}<button class="button secondary">Search</button></form>
+{% if query.errors %}<div class="notice error" role="alert">Please check your search or sort settings.{{ query.errors }}</div>{% endif %}
+<p class="muted tag-count">{{ page_obj.paginator.count }} tag{{ page_obj.paginator.count|pluralize }}{% if query.term.value %} matching “{{ query.term.value }}” · <a href="{% url 'demos:bookmarks:tags' %}">Clear search</a>{% endif %}</p>
+<table class="tag-table"><caption class="sr-only">Tags and active bookmark counts</caption><thead><tr><th scope="col">Tag</th><th scope="col">Description</th><th scope="col">Bookmarks</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>{% for tag in page_obj %}{% include 'dwiest-django-demos/bookmarks/components/tag_row.html' %}{% empty %}<tr><td colspan="4" class="empty">No tags found. Try another search or add a tag.</td></tr>{% endfor %}</tbody></table>
+{% include 'dwiest-django-demos/bookmarks/components/pagination.html' %}{% endblock %}

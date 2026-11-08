@@ -1,0 +1,27 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}Save bookmark · Wiest{% endblock %}
+{% block content %}
+<section style="max-width:38rem;margin:1.5rem auto">
+{% if saved %}
+<h1>Bookmark saved.</h1><p>{{ saved.title|default:saved.url }}</p>
+<p>You can return to the app you were reading.</p>
+<a href="{% url 'demos:bookmarks:bookmark' %}?id={{ saved.pk }}">Edit bookmark</a> · <a href="{% url 'demos:bookmarks:home' %}">Browse bookmarks</a>
+{% elif existing %}
+<h1>Already saved.</h1><p>{{ existing.title|default:existing.url }}</p>
+<p>This bookmark is already in your collection{% if existing.status != 0 %} (hidden or deleted){% endif %}.</p>
+<a href="{% url 'demos:bookmarks:bookmark' %}?id={{ existing.pk }}">Edit existing bookmark</a> · <a href="{% url 'demos:bookmarks:capture' %}">Add another</a>
+{% else %}
+<h1>Save bookmark</h1><p>Capture it now. Organize it whenever you like.</p>
+<form method="post" action="{% url 'demos:bookmarks:capture' %}">{% csrf_token %}
+{{ form.non_field_errors }}
+<p>{{ form.url.label_tag }}{{ form.url }}{{ form.url.errors }}</p>
+<p>{{ form.title.label_tag }}{{ form.title }}{{ form.title.errors }}</p>
+<p>{{ form.article_date.label_tag }}{{ form.article_date }}{{ form.article_date.errors }}<small>Optional — leave blank if the publication date is unknown.</small></p>
+<button type="submit" class="button" style="min-height:44px;padding:.7rem 1.4rem">Save bookmark</button>
+<details style="margin-top:1.5rem"><summary>Tags and notes (optional)</summary>
+<p>{{ form.tag_ids.label_tag }}{{ form.tag_ids }}{{ form.tag_ids.errors }}</p>
+<p>{{ form.notes.label_tag }}{{ form.notes }}{{ form.notes.errors }}</p></details>
+</form>
+{% endif %}
+</section>
+{% endblock %}

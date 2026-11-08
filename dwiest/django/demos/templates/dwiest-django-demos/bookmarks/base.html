@@ -1,0 +1,3 @@
+{% load static %}<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}Bookmarks{% endblock %}</title><link rel="stylesheet" href="{% static 'bookmarks/ui.css' %}?v=4"><script type="module" src="{% static 'bookmarks/app.js' %}?v=4"></script>{% include 'dwiest-django-demos/bookmarks/pwa_head.html' %}</head>
+<body><a class="skip" href="#main">Skip to content</a>{% include 'dwiest-django-demos/bookmarks/components/navigation.html' %}<main id="main" class="container">{% for message in messages %}<div role="status" class="notice">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main></body></html>
