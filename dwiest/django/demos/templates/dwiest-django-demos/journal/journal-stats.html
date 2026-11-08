@@ -1,20 +1,3 @@
-<Div style="text-align:right;">
-  <Span>
-    Created:
-    {{entry.created_at}}<Br>
-</Span>
-</Div>
-<Div style="text-align:right;">
-  <Span>
-    Last Modified:
-    {{entry.last_modified}}<Br>
-  </Span>
-</Div>
-<!--
-<Div>
-  <Span>
-    Status:
-    {{entry.status}}
-  </Span>
-</Div>
--->
+<div class="timestamps">
+  <p>Created {{ entry.created_at|date:'M j, Y, g:i a' }} · Updated {{ entry.last_modified|date:'M j, Y, g:i a' }}</p>
+</div>

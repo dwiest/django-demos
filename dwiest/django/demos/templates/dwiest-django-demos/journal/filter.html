@@ -1,35 +1,19 @@
-<Div align="center">
-<Form class="filter" action="{% url 'demos:journal:view' %}?id={{id}}" method="GET">
-  <Table style="outline-color:black;outline-style:inset;margin-bottom:10px;">
-    <Tr>
-      <Td>
-{% for choice in filter.filter %}
-  {% if choice.choice_label == 'date' %}
-      <Br>
-      {{choice.tag}}</Input>
-      {{filter.month}}
-      {{filter.year}}
-  {% else %}
-      {{choice.tag}}</Input>
-      {{choice.choice_label}}
-  {% endif %}
-{% endfor %}
-      </Td>
-      <Td>
-        <Input class="submit" type="submit" value="Filter"/>
-      </Td>
-    </Tr>
-    <Tr>
-      <Td colspan="2">
-        {{filter.show_hidden}}
-        {{filter.show_hidden.label}}
-        {{filter.show_deleted}}
-        {{filter.show_deleted.label}}
-        {{filter.hide_read}}
-        {{filter.hide_read.label}}
-        {{filter.id.as_hidden}}
-      </Td>
-    </Tr>
-  </Table>
-</Form>
-</Div>
+<form class="panel journal-filter" action="{% url 'demos:journal:view' %}" method="get">
+  <input type="hidden" name="id" value="{{ id }}">
+  <fieldset>
+    <legend>Filter entries</legend>
+    <div class="filter-options">
+      {% for choice in filter.filter %}<label for="{{ choice.id_for_label }}">{{ choice.tag }} {% if choice.choice_label == 'None' %}All entries{% else %}{{ choice.choice_label|capfirst }}{% endif %}</label>{% endfor %}
+    </div>
+    <div class="date-options">
+      <div class="field"><label for="{{ filter.month.id_for_label }}">Month</label>{{ filter.month }}</div>
+      <div class="field"><label for="{{ filter.year.id_for_label }}">Year</label>{{ filter.year }}</div>
+      <button class="button secondary" type="submit">Apply filters</button>
+    </div>
+    <div class="filter-options visibility-options">
+      <label for="{{ filter.show_hidden.id_for_label }}">{{ filter.show_hidden }} Show hidden</label>
+      <label for="{{ filter.show_deleted.id_for_label }}">{{ filter.show_deleted }} Show deleted</label>
+    </div>
+    {{ filter.errors }}
+  </fieldset>
+</form>

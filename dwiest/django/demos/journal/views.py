@@ -1,8 +1,8 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, reverse
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render, reverse
 from django.template.context import RequestContext
 from django.views.generic import FormView, TemplateView, ListView
 from django.views.generic.base import TemplateResponseMixin
@@ -83,7 +83,7 @@ class JournalView(ListView):
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
-        return render(request, self.template_name, self.response_dict)
+        raise Http404("Journal not found")
     else:
       self.journal = Journal()
       #self.entries = []
@@ -125,7 +125,7 @@ class JournalView(ListView):
 
         if month and int(month) > 0:
           start_dt = datetime(int(year), int(month), 1)
-          if month == 12:
+          if int(month) == 12:
             end_dt = datetime(int(year) + 1, 1, 1)
           else:
             end_dt = datetime(int(year), int(month) + 1, 1)
@@ -170,7 +170,7 @@ class JournalView(ListView):
     else:
       owner_q = Q(owner=None)
 
-    entries = JournalEntry.objects.filter(owner_q)
+    entries = JournalEntry.objects.filter(owner_q, journal=self.journal)
 
     if hasattr(self, 'filter_q'):
       entries = entries.filter(self.filter_q)
@@ -182,6 +182,9 @@ class JournalView(ListView):
     context[self.ResponseDict.FILTER] = self.filter
     context[self.ResponseDict.JOURNAL] = self.journal
     context[self.ResponseDict.ENTRIES] = self.get_queryset()
+    query = self.request.GET.copy()
+    query.pop('page', None)
+    context['pagination_query'] = query.urlencode()
 
     return context
 
@@ -231,7 +234,7 @@ class JournalEditView(TemplateView):
       if request.user and request.user.id:
         journal = Journal.objects.get(owner=request.user, id=journal_id)
       else:
-        journal = Journal(owner=None, id=journal_id)
+        journal = get_object_or_404(Journal, owner=None, id=journal_id)
     else:
       if request.user and request.user.id:
         journal = Journal(owner=request.user)
@@ -270,7 +273,7 @@ class JournalEditView(TemplateView):
       #return HttpResponseRedirect(reverse(self.success_page) + query_string)
       return HttpResponseRedirect(reverse(self.success_page))
     else:
-      print("not_valid()")
+      self.response_dict[self.ResponseDict.FORM] = form
       return render(request, self.template_name, self.response_dict)
 
 
@@ -289,7 +292,7 @@ class JournalEntryView(TemplateView):
 
     if entry_id:
       try:
-        entry = JournalEntry.objects.get(id=entry_id)
+        entry = get_object_or_404(JournalEntry, id=entry_id, owner=request.user if request.user.is_authenticated else None)
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
@@ -315,6 +318,7 @@ class JournalEntryEditView(TemplateView):
     self.response_dict = {}
 
   def get(self, request, *args, **kwargs):
+    self.response_dict['journal_id'] = request.GET.get('journal', '')
     entry_id = request.GET.get('id')
 
     if entry_id:
@@ -322,7 +326,7 @@ class JournalEntryEditView(TemplateView):
         if request.user and request.user.id:
           entry = JournalEntry.objects.get(owner=request.user, id=entry_id)
         else:
-          entry = JournaEntry.objects.get(owner=None, id=entry_id)
+          entry = JournalEntry.objects.get(owner=None, id=entry_id)
       except Exception as e:
         print(str(e))
         messages.error(request, str(e))
@@ -330,6 +334,7 @@ class JournalEntryEditView(TemplateView):
     else:
       entry = JournalEntry()
 
+    self.response_dict['journal_id'] = entry.journal_id or request.GET.get('journal', '')
     form = self.form_class(instance=entry)
 
     self.response_dict[self.ResponseDict.FORM] = form
@@ -337,11 +342,13 @@ class JournalEntryEditView(TemplateView):
     return render(request, self.template_name, self.response_dict)
 
   def post(self, request, *args, **kwargs):
+    owner = request.user if request.user.is_authenticated else None
     if request.POST.get('id'):
-      entry = JournalEntry.objects.get(owner=request.user, id=request.POST.get('id'))
+      entry = get_object_or_404(JournalEntry, owner=owner, id=request.POST.get('id'))
     else:
-      journal = Journal.objects.get(owner=request.user, id=request.POST.get('journal'))
-      entry = JournalEntry(owner=request.user, journal=journal)
+      journal = get_object_or_404(Journal, owner=owner, id=request.POST.get('journal'))
+      entry = JournalEntry(owner=owner, journal=journal)
+    self.response_dict['journal_id'] = entry.journal_id
     form = self.form_class(instance=entry, data=request.POST)
 
     if form.is_valid():
@@ -351,5 +358,5 @@ class JournalEntryEditView(TemplateView):
       query_string = "?id={}".format(form.instance.journal.id)
       return HttpResponseRedirect(reverse(self.success_page) + query_string)
     else:
-      print("not_valid()")
+      self.response_dict[self.ResponseDict.FORM] = form
       return render(request, self.template_name, self.response_dict)

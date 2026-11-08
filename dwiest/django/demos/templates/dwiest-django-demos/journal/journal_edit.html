@@ -1,63 +1,23 @@
-<Html>
+{% extends "dwiest-django-demos/journal/base.html" %}
+{% block content %}
+<div class="page-heading"><h1>{% if form.instance.id %}Edit journal{% else %}New journal{% endif %}</h1></div>
+{% if form %}
+<form class="journal-editor" method="post" action="{% url 'demos:journal:edit' %}">
+  {% csrf_token %}
+  {% if form.instance.id %}<input type="hidden" name="id" value="{{ form.instance.id }}">{% endif %}
+  {{ form.owner.as_hidden }}
+  {{ form.non_field_errors }}
+  <section class="panel">
+    {% include "dwiest-django-demos/bookmarks/components/field.html" with field=form.name %}
+    {% include "dwiest-django-demos/bookmarks/components/field.html" with field=form.description %}
+    {% include "dwiest-django-demos/bookmarks/components/field.html" with field=form.status %}
 
-<Head>
-  <Title>Journal Edit</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
-  {% include 'dwiest-django-demos/journal/journal.css' %}
-  {% load dwiest_django_demos.tags%}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-<Div>
-{% block header %}
-{% with title='Journal Edit' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
-</Div>
-
-<Div class="filler"></Div>
-
-{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
-
-{% include 'dwiest-django-demos/bookmarks/errors.html' %}
-
-<Form method="POST" action={% url 'demos:journal:edit' %}>
-{% csrf_token %}
-{% if form.instance.id %}
-<Input type="hidden" name="id" value="{{form.instance.id}}"/>
+  </section>
+  {% if form.instance.id %}<p class="timestamps">Created {{ form.instance.created_at }} · Updated {{ form.instance.last_modified }}</p>{% endif %}
+  <div class="save-actions">
+    <button class="button primary" type="submit">Save journal</button>
+    <a class="button secondary" href="{% url 'demos:journal:home' %}">Cancel</a>
+  </div>
+</form>
 {% endif %}
-<Input type="hidden" name="owner" value="{{form.instance.owner.id}}"/>
-<Div>
-{{form.name.label}}: {{form.name}}
-</Div>
-<Div>
-{{form.description.label}}: {{form.description}}
-</Div>
-<Div>
-Created at:
-{{form.created_at}}
-</Div>
-<Div>
-Last modified:
-{{form.last_modified}}
-</Div>
-<Div>
-Status:
-{{form.status.label}}: {{form.status}}
-</Div>
-<Input type="submit"></Input>
-</Form>
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>
+{% endblock %}

@@ -1,70 +1,21 @@
-<Html>
-
-<Head>
-  <Title>Journal</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
-  {% include 'dwiest-django-demos/journal/journal.css' %}
-  {% include 'dwiest-django-demos/journal/filter.css' %}
-  {% include 'dwiest-django-demos/journal/pagination.css' %}
-  {% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-<Div>
-{% block header %}
-{% with title='Journal' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
-</Div>
-
-{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
-
-{% include 'dwiest-django-demos/bookmarks/errors.html' %}
-
-<Div style="margin-left:50px;">
-<A style="text-decoration:none;color:black;" href="{% url 'demos:journal:edit' %}?id={{journal.id}}">
-{% include 'dwiest-django-demos/journal/journal-info.html' %}
-</A>
-</Div>
-
-<Div class="toolbar" align="center">
-<Table style="width:100%;text-align:center;">
-<Tr>
-<Td>
-{% block filter %}
-{% with id=journal.id %}
-{% include 'dwiest-django-demos/journal/filter.html' %}
-{% endwith %}
-{% endblock %}
-</Td>
-</Tr>
-</Table>
-</Div>
-
-<P>
-<Div style="margin-left:100px;font-size:2vw;">
-<A href="{% url 'demos:journal:entry_edit' %}?journal={{journal.id}}">Add Entry</A>
-</Div>
-
+{% extends "dwiest-django-demos/journal/base.html" %}
+{% block content %}
+<a class="back" href="{% url 'demos:journal:home' %}">&larr; All journals</a>
+<div class="page-heading">
+  <div><h1>{{ journal.name|default:'Journal' }}</h1><div class="muted">{{ journal.description|default:''|linebreaks }}</div></div>
+  {% if journal.id %}
+  <div class="actions">
+    <a class="button secondary" href="{% url 'demos:journal:edit' %}?id={{ journal.id }}">Edit journal</a>
+    <a class="button primary" href="{% url 'demos:journal:entry_edit' %}?journal={{ journal.id }}">Add entry</a>
+  </div>
+  {% endif %}
+</div>
+{% include 'dwiest-django-demos/journal/filter.html' with id=journal.id %}
+<p class="muted result-count">{{ page_obj.paginator.count }} entr{{ page_obj.paginator.count|pluralize:'y,ies' }}</p>
 {% for entry in page_obj %}
-{% include 'dwiest-django-demos/journal/journal-entry.html' %}
+  {% include 'dwiest-django-demos/journal/journal-entry.html' %}
+{% empty %}
+  <div class="empty"><h2>No entries to show</h2><p class="muted">Add an entry or adjust the filters.</p></div>
 {% endfor %}
-
-<Div class="filler"></Div>
-
-{% block paginator %}
-{% with id=journal.id %}
-{% include 'dwiest-django-demos/journal/paginator.html' %}
-{% endwith %}
+{% include 'dwiest-django-demos/journal/paginator.html' with id=journal.id %}
 {% endblock %}
-
-{% footer %}
-</Body>
-</Html>
