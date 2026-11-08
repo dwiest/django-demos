@@ -5,6 +5,7 @@
 <p class="muted">{{ invoice.description }}</p>
 <section class="panel overview"><div><h2>Bill to</h2><p>{{ invoice.bill_to }}</p></div><div><h2>Invoice date</h2><p>{{ invoice.invoice_date }}</p><span class="muted">Due {{ invoice.due_date }}</span></div><div><h2>Total</h2><p class="total">${{ invoice.total|floatformat:2|intcomma }}</p></div></section>
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Description</th><th class="number">Rate</th><th class="number">Hours</th><th class="number">Amount</th></tr></thead><tbody>
-{% for line_item in line_items %}<tr><td>{{ line_item.date }}</td><td>{{ line_item.description|linebreaksbr }}</td><td class="number">${{ line_item.rate|floatformat:2 }}</td><td class="number">{{ line_item.quantity }}</td><td class="number">${{ line_item.total|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="5">No line items.</td></tr>{% endfor %}
+{% for line_item in line_items %}<tr><td data-label="Date">{{ line_item.date }}</td><td class="description-cell" data-label="Description">{{ line_item.description|linebreaksbr }}</td><td class="number" data-label="Rate">${{ line_item.rate|floatformat:2 }}</td><td class="number" data-label="Hours">{{ line_item.quantity }}</td><td class="number" data-label="Amount">${{ line_item.total|floatformat:2|intcomma }}</td></tr>{% empty %}<tr><td colspan="5">No line items.</td></tr>{% endfor %}
 </tbody></table></div><p class="timestamps">Created {{ invoice.created_at }} · Updated {{ invoice.last_modified }}</p>
 {% endblock %}
+

@@ -1,1 +1,52 @@
-body{max-width:1100px;margin:0 auto;padding:24px;background:white;font-size:15px}.print-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}.inv_title{font-size:34px!important;font-weight:700;color:var(--teal)}.inv_header,.inv_header td,.inv_header th,.bill_to td,.bill_to th,.line_items td,.line_items th,.total td,.total th{font-size:15px!important}.inv_header{display:flow-root}.vendor{line-height:1.6}.bill_to th,.line_items th{background:#f0f5f6!important;color:#172234;padding:10px!important}.line_items td{padding:12px 8px!important}.bill_to td{padding:10px!important}.inv_data td,.inv_data th{padding:3px 6px}.total{font-size:18px!important}@media print{@page{size:letter;margin:15mm}body{padding:0;max-width:none}.print-actions{display:none}.inv_title,.inv_header,.bill_to,.line_items{width:100%!important}tr{break-inside:avoid}thead{display:table-header-group}}@media(max-width:650px){body{padding:12px}.inv_header{display:grid;gap:20px}.inv_data{float:none}.line_items{overflow:auto}.inv_title{font-size:28px!important}}
+/* Invoice document: compact on paper, readable as stacked records on phones. */
+body { max-width: 960px; margin: 0 auto; padding: 20px 24px; font-size: 14px; }
+.print-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; }
+.invoice-document { overflow-wrap: anywhere; }
+.document-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; border-bottom: 1px solid #b9c3ce; padding-bottom: 12px; }
+.vendor { line-height: 1.4; }
+.invoice-meta h1 { font-size: 26px; text-align: right; margin: 0 0 6px; color: var(--teal); }
+.invoice-meta dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; margin: 0; font-size: 13px; }
+.invoice-meta dt { font-weight: 600; text-align: right; }
+.invoice-meta dd { margin: 0; text-align: right; }
+.bill-to { display: flex; align-items: flex-start; gap: 20px; padding: 12px 0; }
+.bill-to h2 { font-size: 13px; margin: 0; min-width: 48px; }
+.bill-to address { font-style: normal; line-height: 1.35; }
+.invoice-lines { width: 100%; border-collapse: collapse; font-size: 13px; }
+.invoice-lines th { text-align: left; background: #f0f5f6; border-block: 1px solid #b9c3ce; }
+.invoice-lines th, .invoice-lines td { padding: 6px 8px; vertical-align: top; }
+.invoice-lines td { border-bottom: 1px solid #e0e4e9; }
+.invoice-lines .description { display: table-cell; width: 100%; margin: 0; color: inherit; font-size: inherit; line-height: inherit; max-width: none; overflow-wrap: anywhere; }
+.invoice-lines .number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.invoice-lines td:first-child { white-space: nowrap; }
+.invoice-total { display: flex; justify-content: flex-end; gap: 16px; font-size: 16px; margin: 10px 0 0; }
+@media screen and (max-width: 650px) {
+  body { padding: 12px; }
+  .document-header { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .invoice-meta h1, .invoice-meta dt, .invoice-meta dd { text-align: left; }
+  .invoice-meta h1 { font-size: 24px; }
+  .bill-to { gap: 12px; }
+  .invoice-lines, .invoice-lines tbody { display: block; }
+  .invoice-lines thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .invoice-lines tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 12px 0; border-top: 1px solid #b9c3ce; }
+  .invoice-lines td, .invoice-lines .description { display: block; width: auto; min-width: 0; padding: 0; border: 0; text-align: left; white-space: normal; }
+  .invoice-lines td::before { content: attr(data-label); display: block; color: var(--muted); font-size: 12px; }
+  .invoice-lines td:first-child, .invoice-lines .description, .invoice-lines td[colspan] { grid-column: 1 / -1; }
+}
+@media print {
+  @page { size: letter; margin: 12mm; }
+  :root { color: #111; }
+  body { max-width: none; padding: 0; margin: 0; font-size: 9pt; }
+  .vendor, .bill-to address { line-height: 1.25; }
+  .print-actions { display: none; }
+  .document-header { gap: 12mm; padding-bottom: 3mm; }
+  .invoice-meta h1 { color: #111; font-size: 18pt; }
+  .invoice-meta dl { font-size: 9pt; gap: 1pt 8pt; }
+  .bill-to { padding: 3mm 0; }
+  .bill-to h2 { font-size: 9pt; }
+  .invoice-lines { font-size: 9pt; }
+  .invoice-lines th, .invoice-lines td { padding: 4pt 5pt; }
+  .invoice-lines thead { display: table-header-group; }
+  .invoice-lines tr { break-inside: avoid; }
+  .document-header, .bill-to { break-inside: avoid; }
+  .invoice-total { font-size: 11pt; break-inside: avoid; }
+}
