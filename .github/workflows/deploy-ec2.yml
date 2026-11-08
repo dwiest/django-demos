@@ -1,0 +1,60 @@
+name: Deploy demos to EC2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ec2-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: ec2-production
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Build dependency-free application wheel
+        run: |
+          python -m pip install build==1.2.2.post1 setuptools==67.8.0 wheel==0.42.0
+          python -m build --wheel --no-isolation
+          python - <<'PY'
+          import pathlib, zipfile
+          wheels = list(pathlib.Path('dist').glob('*.whl'))
+          assert len(wheels) == 1
+          with zipfile.ZipFile(wheels[0]) as wheel:
+              names = wheel.namelist()
+              assert any('/invoicer/' in name and name.endswith('.html') for name in names)
+              assert 'dwiest/django/demos/invoicer/views.py' in names
+          PY
+      - name: Upload and deploy
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$EC2_HOST"
+          test -n "$EC2_SSH_KEY"
+          test -n "$EC2_KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
+          target="ec2-user@$EC2_HOST"
+          opts=(-i "$HOME/.ssh/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          release="django-deploy-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ssh "${opts[@]}" "$target" "umask 077; mkdir -p ~/$release"
+          scp "${opts[@]}" dist/*.whl deploy/install-demos.sh "$target:$release/"
+          ssh "${opts[@]}" "$target" "bash ~/$release/install-demos.sh ~/$release '$GITHUB_SHA'"

@@ -1,0 +1,17 @@
+[Unit]
+Description=Django site behind HAProxy
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user
+ExecStart=/home/ec2-user/app_3.7/bin/python /home/ec2-user/django-wiest.world/manage.py runserver 0.0.0.0:8000 --noreload
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
