@@ -1,73 +1,60 @@
-<Html>
-
-<Head>
-  <Title>OTP</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time-Based OTP | Django Demos</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
   {% include 'dwiest-django-demos/otp/otp.css' %}
-  {% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='Time-Based OTP' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
-
-<Div class="filler"></Div>
-
-{% if form.non_field_errors %}
-<P>
-{% for error in form.non_field_errors %}
-<Div class="error" align="center">{{error}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.errors %}
-<P>
-{% for field in form %}
-  {% for error in field.errors %}
-<Div class="error" align="center">{{error}}</Div>
-  {% endfor %}
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.otp %}
-<Img class="otp" src="data:image/png;base64,{{form.qrcode}}"/>
-{% endif %}
-
-<Div class="secret-value" align="center">{{form.otp}}</Div>
-
-<Div class="filler"></Div>
-
-<Form class="otp" method="post" action="{% url 'demos:otp:home' %}">
-{% csrf_token %}
-  <Table class="otp">
-    <Tr>
-      <Th>{{form.name.label}}:</Th>
-      <Td>{{form.name}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.issuer.label}}:</Th>
-      <Td>{{form.issuer}}</Td>
-      </Tr>
-    <Tr>
-      <Th>{{form.secret_key.label}}:</Th>
-      <Td>{{form.secret_key}}</Td>
-      </Tr>
-    </Table>
-    <Div align="center"><Input class="otp-button" type="submit" name="submit" value="Get Password"></Input></Div>
-</Form>
-
-{% footer %}
-</Body>
-</Html>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='otp' %}
+  <main id="main" class="container">
+    <div class="page-heading">
+      <h1>Time-Based OTP</h1>
+    </div>
+    <p class="muted otp-intro">Explore time-based one-time passwords and set up a demo account in your authenticator app.</p>
+    <div class="otp-layout">
+      <section class="otp-panel" aria-labelledby="otp-input-heading">
+        <h2 id="otp-input-heading">Set up your demo</h2>
+        <form method="post" action="{% url 'demos:otp:home' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div role="alert">{{ form.non_field_errors }}</div>{% endif %}
+          {% for field in form %}
+            <div class="field">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}<div role="alert">{{ field.errors }}</div>{% endif %}
+            </div>
+          {% endfor %}
+          <p class="otp-help muted">The account name and issuer identify this entry in your authenticator. Leave the secret key blank to generate a new one.</p>
+          <button class="button primary" type="submit">Get Password</button>
+        </form>
+      </section>
+      <section class="otp-panel otp-preview" aria-labelledby="otp-preview-heading">
+        <h2 id="otp-preview-heading">Authenticator preview</h2>
+        {% if form.otp %}
+          <div class="otp-image-wrap">
+            <img class="otp-image" src="data:image/png;base64,{{ form.qrcode }}" alt="QR code to add this demo account to an authenticator app">
+          </div>
+          <p class="muted">Scan this QR code with your authenticator app.</p>
+          <div class="otp-password">
+            <span class="muted">Password at generation time</span>
+            <output class="otp-code" aria-label="Generated one-time password">{{ form.otp }}</output>
+          </div>
+          <p class="otp-help muted">Codes change every 30 seconds. Select Get Password again to get the current code with the same secret key.</p>
+        {% else %}
+          <div class="otp-empty">
+            <p>Your QR code and password will appear here.</p>
+            <p class="muted">Check the form, then select Get Password.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+    <p class="otp-note muted">For demonstration only. Use a test secret key, never a secret from a real account. Anyone with this QR code or secret can generate the same passwords.</p>
+  </main>
+</body>
+</html>

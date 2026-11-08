@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore four practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore five practical applications below.</p>
     </div>
     <section class="demo-grid" aria-label="Featured applications">
       <article class="demo-card">
@@ -46,12 +46,18 @@
         <ul><li>Encode a URL or text</li><li>Preview your generated QR code</li><li>Scan it with your phone camera</li></ul>
         <a class="button primary" href="{% url 'demos:qrcode:home' %}">Open QR Code Generator <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2 M9 2h6 M12 2v3"/></svg></span>
+        <h2>Time-Based OTP</h2>
+        <p>Explore how authenticator apps generate one-time passwords.</p>
+        <ul><li>Set up a demo account and secret key</li><li>Scan a QR code with your authenticator</li><li>Generate a time-based password</li></ul>
+        <a class="button primary" href="{% url 'demos:otp:home' %}">Open Time-Based OTP <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
-        <li><a href="{% url 'demos:otp:home' %}">Time-based OTP</a></li>
         <li><a href="{% url 'demos:expenses:home' %}">Expense Tracker</a></li>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
         <li><a href="{% url 'demos:inventory:home' %}">Inventory Tracker</a></li>
