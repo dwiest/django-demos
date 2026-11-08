@@ -10,9 +10,10 @@ The workflow must be on main before it appears under Actions.
 ## One-time EC2 setup
 
 Confirm the paths below against your actual server. Install `curl`, `tar` and
-`flock` if absent. The deployment account is ec2-user. Keep SSH reachable from
-the runner using your approved network access route; a private-only host needs
-a suitable runner/network route before this workflow can connect.
+`flock`, `sha256sum`, `runuser` and AWS CLI if absent. The deployment account is
+ec2-user. SSM Agent must be online. The instance must reach S3 as well as SSM
+through outbound connectivity or VPC endpoints. No inbound SSH is needed.
+The AWS CLI must be available to the root SSM shell and use the instance role.
 
 1. Install `deploy/django.service` as `/etc/systemd/system/django.service`.
    This deliberately preserves your current development server for compatibility;
@@ -44,17 +45,42 @@ a suitable runner/network route before this workflow can connect.
 
 ## GitHub setup and operation
 
-Create environment `ec2-production` in django-demos, restricted to main, with:
+The workflow targets instance `i-0169208b66edd709c` in `us-east-1` and uploads
+releases under `s3://dwiest-artifacts/django-demos/`. It sends AWS-RunShellScript
+to that instance and waits for its individual command invocation, checking both
+status and exit code. SSM downloads as root, verifies SHA-256 digests, then runs
+the existing installer as ec2-user. Application deployment code is trusted code:
+SendCommand through this document grants root command execution on this instance.
 
-| Environment secret | Value |
-| --- | --- |
-| `EC2_HOST` | Reachable hostname or IP, without username |
-| `EC2_SSH_KEY` | Dedicated private SSH key authorized for ec2-user |
-| `EC2_KNOWN_HOSTS` | Verified SSH known_hosts entry for that host |
+### AWS IAM setup
 
-Verify the SSH host key independently on EC2. Do not blindly trust a key
-retrieved over the same network connection. Apply any desired environment
-review requirement. No AWS credentials are required for this SSH workflow.
+The existing `wiest-world-github-production` and `wiest-world-github-staging`
+roles may belong to the marketing website. Leave them unchanged. In IAM →
+Identity providers, check for `token.actions.githubusercontent.com`.
+
+Deploy `deploy/github-oidc-role.json` as a CloudFormation template in the
+instance's AWS account. Choose **Template is ready → Upload a template file**
+and upload that JSON file. A selected default template does not configure OIDC.
+Leave `CreateGitHubProvider=false` when the provider already exists; set it true
+only if absent. Acknowledge IAM resource creation. The stack creates a dedicated
+role and outputs `DeployRoleArn`, without changing the website roles.
+
+The trust policy matches `repo:dwiest/django-demos:environment:ec2-production`
+and audience `sts.amazonaws.com`. If this repository has opted into immutable
+OIDC subjects, update the subject to its actual format before deployment.
+Create GitHub environment `ec2-production`, **restrict deployment branches to
+main**, and add environment **variable** `AWS_DEPLOY_ROLE_ARN` from the stack's
+`DeployRoleArn` output. The role ARN is not a secret. No access keys or SSH
+secrets are used. The role can write only this S3 prefix, send shell commands
+only to this instance using AWS-RunShellScript, and read invocation results.
+
+Attach `deploy/instance-artifacts-policy.json` to the instance's existing IAM
+role, retaining its SSM permissions. This allows reads only from the release
+prefix. Confirm AWS CLI credentials resolve to the instance role in the root
+SSM shell. Bucket policies, endpoint policies and organization policies must
+also permit these operations. Artifacts use SSE-S3; an enforced customer KMS
+key policy requires corresponding workflow and IAM changes. Keep the bucket
+private. No ListBucket or access to other prefixes is needed.
 
 After merging the workflow and UI PRs, choose Actions → Deploy demos to EC2 →
 Run workflow → main. Merging alone does not deploy. The workflow builds a pure
@@ -64,7 +90,7 @@ Selenium dependency mismatch. Build checks confirm invoicer templates are includ
 
 Deployment briefly stops Django, takes a consistent SQLite backup, installs
 the wheel, checks Django and pending migrations, restarts, and checks HTTP.
-Backups and uploaded wheels remain on EC2; monitor disk usage and prune only
+Backups and downloaded wheels remain on EC2, and releases remain in S3; monitor disk usage and prune only
 after confirming a working release. Backups contain sensitive application data.
 Static files currently continue to use the existing DEBUG/runserver arrangement;
 this workflow intentionally does not run collectstatic without STATIC_ROOT.
