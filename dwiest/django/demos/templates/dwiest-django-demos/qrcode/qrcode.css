@@ -1,95 +1,17 @@
-<Style>
-form.qrcode {
-  color: black;
-  width: 80%;
-  border: 0px solid;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  text-align: center;
-  }
-
- img.qrcode {
-   margin-left: auto;
-   margin-right: auto;
-   vertical-align: middle;
- }
-
-.label {
-  color: black;
-  }
-
-.qrcode-button {
-  color: black;
-  margin-top: 10px;
-  }
-
-.qrcode-input{
-  color: blue;
-  margin-top: 10px;
-  width: 80%;
-  }
-
-@media only screen and (max-width: 600px) {
-  .qrcode-button {
-    font-size: 3vw;
-    }
-  .qrcode-input {
-    font-size: 3vw;
-    }
-  .label {
-    font-size: 3vw;
-    }
+<style>
+.qr-intro { margin-bottom: 26px; }
+.qr-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.qr-panel { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.qr-panel h2 { margin: 0 0 24px; }
+.qr-panel input[type="text"] { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc8d5; border-radius: var(--radius); background: #fff; color: var(--ink); }
+.qr-help { margin: 10px 0 0; font-size: 14px; }
+.qr-preview { text-align: center; }
+.qr-image-wrap { background: #fff; padding: 12px; margin: 0 auto 20px; max-width: 344px; }
+.qr-image { display: block; width: auto; max-width: 100%; height: auto; margin: auto; }
+.qr-preview > p { font-size: 14px; }
+.qr-empty { padding: 48px 12px; background: var(--surface); border-radius: var(--radius); }
+@media (max-width: 750px) {
+  .qr-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .qr-panel { padding: 20px; }
 }
-
-@media only screen and (min-width: 600px) {
-  .qrcode-button {
-    font-size: 3vw;
-    }
-  .qrcode-input {
-    font-size: 3vw;
-    }
-  .label {
-    font-size: 3vw;
-    }
-}
-
-@media only screen and (min-width: 768px) {
-  .qrcode-button {
-    font-size: 2.5vw;
-    }
-  .qrcode-input {
-    font-size: 2.5vw;
-    }
-  .label {
-    font-size: 2.5vw;
-    }
-}
-
-@media only screen and (min-width: 992px) {
-  .qrcode-button {
-    font-size: 2.25vw;
-    }
-  .qrcode-input {
-    font-size: 2.25vw;
-    }
-  .label {
-    font-size: 2.25vw;
-    }
-}
-
-@media only screen and (min-width: 1200px) {
-  .qrcode-button {
-    font-size: 2vw;
-    }
-  .qrcode-input {
-    font-size: 2vw;
-    }
-  .label {
-    font-size: 2vw;
-    }
-}
-</Style>
+</style>

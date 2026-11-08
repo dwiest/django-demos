@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore three practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore four practical applications below.</p>
     </div>
     <section class="demo-grid" aria-label="Featured applications">
       <article class="demo-card">
@@ -39,12 +39,18 @@
         <ul><li>Create journals for different topics</li><li>Write and edit dated entries</li><li>Browse entries by date</li></ul>
         <a class="button primary" href="{% url 'demos:journal:home' %}">Open Journal <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h6v6H3Z M15 3h6v6h-6Z M3 15h6v6H3Z M15 15h3v3h3v3h-6Z M12 3v9H3 M15 12h6 M12 15v6"/></svg></span>
+        <h2>QR Code Generator</h2>
+        <p>Make a scannable code for a link or a short piece of text.</p>
+        <ul><li>Encode a URL or text</li><li>Preview your generated QR code</li><li>Scan it with your phone camera</li></ul>
+        <a class="button primary" href="{% url 'demos:qrcode:home' %}">Open QR Code Generator <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
-        <li><a href="{% url 'demos:qrcode:home' %}">QR code generator</a></li>
         <li><a href="{% url 'demos:otp:home' %}">Time-based OTP</a></li>
         <li><a href="{% url 'demos:expenses:home' %}">Expense Tracker</a></li>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
