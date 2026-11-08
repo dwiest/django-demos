@@ -1,195 +1,21 @@
-<Style>
-form.otp {
-  padding-top: 10px;
+<style>
+.otp-intro { margin-bottom: 26px; }
+.otp-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.otp-panel { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.otp-panel h2 { margin: 0 0 24px; }
+.otp-panel input[type="text"] { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc8d5; border-radius: var(--radius); background: #fff; color: var(--ink); }
+.otp-help { margin: 10px 0 20px; font-size: 14px; }
+.otp-preview { text-align: center; }
+.otp-image-wrap { background: #fff; padding: 12px; margin: 0 auto 20px; max-width: 344px; }
+.otp-image { display: block; width: auto; max-width: 100%; height: auto; margin: auto; }
+.otp-preview > p { font-size: 14px; }
+.otp-password { padding: 20px 12px; margin-top: 20px; background: var(--surface); border-radius: var(--radius); }
+.otp-password > span { font-size: 14px; }
+.otp-code { display: block; color: var(--teal); font-family: ui-monospace, monospace; font-size: clamp(32px, 6vw, 44px); font-weight: 700; letter-spacing: .12em; overflow-wrap: anywhere; }
+.otp-empty { padding: 48px 12px; background: var(--surface); border-radius: var(--radius); }
+.otp-note { margin-top: 24px; max-width: 90ch; font-size: 14px; }
+@media (max-width: 750px) {
+  .otp-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .otp-panel { padding: 20px; }
 }
-
-img.otp {
-  margin-left: auto;
-  margin-right: auto;
-  vertical-align: middle;
-  width: 60%;
-  }
-
-table.otp {
-  color: black;
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-size: 1.5vw;
-  margin-left: auto;
-  margin-right: auto;
-  border: 0px solid;
-  border-collapse: collapse;
-  }
-
-table.otp th {
-  text-align: left;
-  border: 0px solid;
-  width: 1px;
-  white-space: nowrap;
-  }
-
-table.otp td {
-  text-align: left;
-  border: 0px solid;
-  background: white;
-  }
-
-.secret-value {
-  color: blue;
-  }
-
-.otp-button {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  }
-
-.provisioning-issuer {
-  color: black;
-  width: 100%;
-  }
-
-.provisioning-name {
-  color: black;
-  width: 100%;
-  }
-
-.secret-key {
-  color: black;
-  width: 100%;
-  }
-
-@media only screen and (max-width: 600px) {
-  img.otp {
-    width: 300px;
-    }
-  table.otp {
-    width: 85%;
-    }
-  table.otp th {
-    font-size: 3vw;
-    }
-  .otp-button {
-    font-size: 3vw;
-    }
-  .provisioning-issuer {
-    font-size: 3vw;
-    }
-  .provisioning-name{
-    font-size: 3vw;
-    }
-  .secret-key{
-    font-size: 3vw;
-    }
-  .secret-value {
-    font-size: 4vw;
-    }
-}
-
-@media only screen and (min-width: 600px) {
-  img.otp {
-    width: 350px;
-    }
-  table.otp {
-    width: 80%;
-    }
-  table.otp th {
-    font-size: 2.7vw;
-    }
-  .otp-button {
-    font-size: 2.7vw;
-    }
-  .provisioning-issuer {
-    font-size: 2.7vw;
-    }
-  .provisioning-name{
-    font-size: 2.7vw;
-    }
-  .secret-key {
-    font-size: 2.7vw;
-    }
-  .secret-value {
-    font-size: 3.6vw;
-    }
-}
-
-@media only screen and (min-width: 768px) {
-  img.otp {
-    width: 350px;
-    }
-  table.otp {
-    width: 75%;
-    }
-  table.otp th {
-    font-size: 2.4vw;
-    }
-  .otp-button {
-    font-size: 2.4vw;
-    }
-  .provisioning-issuer {
-    font-size: 2.4vw;
-    }
-  .provisioning-name{
-    font-size: 2.4vw;
-    }
-  .secret-key {
-    font-size: 2.4vw;
-    }
-  .secret-value {
-    font-size: 3.2vw;
-    }
-}
-
-@media only screen and (min-width: 992px) {
-  img.otp{
-    width: 350px;
-    }
-  table.otp {
-    width: 70%;
-    }
-  table.otp th {
-    font-size: 2.2vw;
-    }
-  .otp-button {
-    font-size: 2.2vw;
-    }
-  .provisioning-issuer {
-    font-size: 2.2vw;
-    }
-  .provisioning-name{
-    font-size: 2.2vw;
-    }
-  .secret-key {
-    font-size: 2.2vw;
-    }
-  .secret-value {
-    font-size: 2.9vw;
-    }
-}
-
-@media only screen and (min-width: 1200px) {
-  img.otp{
-    width: 350px;
-    }
-  table.otp {
-    width: 65%;
-    }
-  table.otp th {
-    font-size: 2vw;
-    }
-  .otp-button {
-    font-size: 2vw;
-    }
-  .provisioning-issuer {
-    font-size: 2vw;
-    }
-  .provisioning-name{
-    font-size: 2vw;
-    }
-  .secret-key {
-    font-size: 2vw;
-    }
-  .secret-value {
-    font-size: 2.6vw;
-    }
-}
-</Style>
+</style>
