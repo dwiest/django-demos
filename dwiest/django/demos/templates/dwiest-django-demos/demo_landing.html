@@ -1,0 +1,9 @@
+{% load static %}
+<script src="{% static 'demos/sidebar.js' %}"></script>
+<script src="{% static 'demos/demo_landing.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", ()=>{
+    injectSidebar("body"); // or a div#nav if you prefer
+  });
+</script>
+
