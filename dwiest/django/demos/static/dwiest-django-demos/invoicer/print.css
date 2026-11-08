@@ -33,7 +33,7 @@ body { max-width: 960px; margin: 0 auto; padding: 20px 24px; font-size: 14px; }
   .invoice-lines td:first-child, .invoice-lines .description, .invoice-lines td[colspan] { grid-column: 1 / -1; }
 }
 @media print {
-  @page { size: letter; margin: 12mm; }
+  @page { size: letter; margin: 18mm 14mm 12mm; }
   :root { color: #111; }
   body { max-width: none; padding: 0; margin: 0; font-size: 9pt; }
   .vendor, .bill-to address { line-height: 1.25; }
@@ -79,7 +79,7 @@ body { max-width: 960px; margin: 0 auto; padding: 20px 24px; font-size: 14px; }
   /* Reserve footer space on every page so entries cannot be covered. */
   @page {
     size: letter;
-    margin: 12mm;
+    margin: 18mm 14mm 12mm;
     @bottom-right {
       content: "Page " counter(page) " of " counter(pages);
       font: 8pt Arial, sans-serif;
@@ -103,4 +103,10 @@ body { max-width: 960px; margin: 0 auto; padding: 20px 24px; font-size: 14px; }
 @media print {
   .print-layout > tfoot { display: table-footer-group; }
   .footer-space { display: block; height: 39mm; }
+}
+
+@media print {
+  /* Keep the cloud's raised outline and the title glyphs inside the header box. */
+  .document-header { padding-top: 4mm; padding-right: 2mm; }
+  .invoice-meta h1 { line-height: 1.3; padding: 1mm 1mm 0 0; }
 }
