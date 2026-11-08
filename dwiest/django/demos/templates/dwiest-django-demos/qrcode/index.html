@@ -1,60 +1,52 @@
-<Html>
-
-<Head>
-  <Title>QR Code Generator</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Code Generator | Django Demos</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
   {% include 'dwiest-django-demos/qrcode/qrcode.css' %}
-  {% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='QR Code Generator' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
-
-{% if form.non_field_errors %}
-<P align="center">
-{% for error in form.non_field_errors %}
-<Div>{{error}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.errors %}
-<P align="center">
-{% for field in form %}
-  {% for error in field.errors %}
-<Div class="error">{{error}}</Div>
-  {% endfor %}
-{% endfor %}
-</P>
-{% endif %}
-
-<Div class="filler"></Div>
-
-{% if form.qrcode %}
-<Img class="qrcode" src="data:image/png;base64,{{form.qrcode}}"/>
-{% endif %}
-<Div class="filler"></Div>
-
-<Form class="qrcode" method="post" action="{% url 'demos:qrcode:home' %}">
-  {% csrf_token %}
-  <Span style="white-space:nowrap;"><Span class="label">{{form.text.label}}:</Span> {{form.text}}</Span>
-  <Div><Input class="qrcode-button" type="submit" name="submit" value="Generate QR Code"></Input></Div>
-</Form>
-
-<Div class="filler"></Div>
-
-{% footer %}
-
-</Body>
-</Html>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='qrcode' %}
+  <main id="main" class="container">
+    <div class="page-heading">
+      <h1>QR Code Generator</h1>
+    </div>
+    <p class="muted qr-intro">Turn a URL or text into a code you can scan with your phone.</p>
+    <div class="qr-layout">
+      <section class="qr-panel" aria-labelledby="qr-input-heading">
+        <h2 id="qr-input-heading">Create your QR code</h2>
+        <form method="post" action="{% url 'demos:qrcode:home' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div role="alert">{{ form.non_field_errors }}</div>{% endif %}
+          <div class="field">
+            <label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+            {{ form.text }}
+            {% if form.text.errors %}<div role="alert">{{ form.text.errors }}</div>{% endif %}
+            <p class="qr-help muted">Enter a full URL (including https://) or the text you want to share.</p>
+          </div>
+          <button class="button primary" type="submit">Generate QR Code</button>
+        </form>
+      </section>
+      <section class="qr-panel qr-preview" aria-labelledby="qr-preview-heading">
+        <h2 id="qr-preview-heading">QR code preview</h2>
+        {% if form.qrcode %}
+          <div class="qr-image-wrap">
+            <img class="qr-image" src="data:image/png;base64,{{ form.qrcode }}" alt="QR code for the URL or text entered in the form">
+          </div>
+          <p class="muted">Point your phone camera at the code to scan it.</p>
+        {% else %}
+          <div class="qr-empty">
+            <p>Your QR code will appear here.</p>
+            <p class="muted">Enter a URL or text, then select Generate QR Code.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </main>
+</body>
+</html>

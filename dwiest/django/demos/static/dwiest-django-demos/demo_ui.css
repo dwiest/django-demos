@@ -11,7 +11,7 @@
 .demo-eyebrow { color: var(--teal); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .demo-intro h1 { margin-bottom: 16px; font-size: clamp(30px, 4vw, 44px); }
 .demo-intro p:last-child { color: var(--muted); font-size: 18px; }
-.demo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.demo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .demo-card { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 24px; min-width: 0; }
 .demo-card h2 { margin: 16px 0 10px; font-size: 24px; }
 .demo-card p { color: var(--muted); }
@@ -31,7 +31,7 @@
 }
 @media (max-width: 650px) {
   .demo-nav { width: 100%; gap: 0; justify-content: space-between; }
-  .demo-nav a { font-size: 14px; min-height: 48px; }
+  .demo-nav a { padding-inline: 6px; font-size: 14px; min-height: 48px; }
   .app-navigation { gap: 12px; }
   .app-navigation .nav-actions { margin-left: auto; }
   .demo-card { padding: 20px; }
