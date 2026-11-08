@@ -1,5 +1,117 @@
-/* Invoicer uses the Bookmarks palette, type, and controls. */
-.panel{border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:24px;background:#fff}
-.panel h2,.panel h3{margin:0 0 18px}.overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;margin-top:24px}.overview .panel{margin:0}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.field input:not([type=checkbox]),.field select,.field textarea{width:100%;min-height:44px;border:1px solid #bdc8d5;border-radius:6px;padding:10px 12px;background:white;color:var(--ink)}.field textarea{min-height:90px;resize:vertical}.field small{display:block;margin-top:6px}.field{min-width:0}.line-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 20px}.field-description,.field-timeworked{grid-column:span 2}.line-item{background:var(--surface)}.line-item h3{font-size:16px}.field-DELETE{align-self:end}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}.data-table{border-collapse:collapse;width:100%;text-align:left}.data-table th{background:var(--surface);color:var(--muted);font-size:14px;font-weight:600}.data-table th,.data-table td{padding:14px 18px;border-bottom:1px solid var(--line);vertical-align:top}.data-table tr:last-child td{border-bottom:0}.data-table tbody tr:hover{background:var(--surface)}.number{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.total{font-size:28px;font-weight:700;color:var(--teal)}address{font-style:normal}.actions{display:flex;gap:10px}output{font-weight:600;font-variant-numeric:tabular-nums}.nav{flex-wrap:wrap}.nav-actions{font-size:14px}
-@media(max-width:650px){.form-grid,.line-grid{grid-template-columns:1fr}.field-description,.field-timeworked{grid-column:auto}.panel{padding:18px}.nav{gap:12px}.brand{font-size:17px}.nav-actions{margin-left:0}.data-table th,.data-table td{padding:12px}.actions{flex-wrap:wrap}}
+/* Shared invoicer layout: compact desktop forms, stacked mobile records. */
+main.container { max-width: 1120px; }
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff;
+  min-width: 0;
+}
+.panel h2, .panel h3 { margin: 0 0 12px; }
+.overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.overview h2 { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+.overview p { margin: 0; }
+.overview .total { font-size: 24px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+.field { min-width: 0; margin: 0; }
+.field label { margin-bottom: 4px; font-size: 13px; }
+.field input:not([type=checkbox]), .field select, .field textarea {
+  width: 100%; max-width: 100%; min-width: 0; min-height: 38px;
+  border: 1px solid #bdc8d5; border-radius: 5px;
+  padding: 6px 9px; background: white; color: var(--ink);
+}
+.field textarea { height: 64px; min-height: 64px; resize: vertical; }
+.field small { display: block; margin-top: 3px; font-size: 12px; }
+.field .errorlist { margin: 4px 0; }
+.invoice-details .form-grid { grid-template-columns: 80px repeat(3, minmax(0, 1fr)); }
+.invoice-details .field-description { grid-column: 1 / -1; grid-row: 2; }
+.line-grid {
+  display: grid;
+  grid-template-columns: 66px minmax(140px, 1fr) minmax(0, 2fr) 88px 88px;
+  gap: 10px 12px;
+  align-items: start;
+}
+.line-item { background: var(--surface); padding: 12px 14px; margin-bottom: 10px; }
+.line-item h3 { font-size: 14px; margin-bottom: 8px; }
+.field-status { grid-column: 1; }
+.line-grid .field-date { grid-column: 2; }
+.line-grid .field-timeworked { grid-column: 3; }
+.line-grid .field-rate { grid-column: 4; }
+.line-grid .field-quantity { grid-column: 5; }
+.line-grid .field-description { grid-column: 1 / 5; grid-row: 2; }
+.line-grid .field-DELETE { grid-column: 5; grid-row: 2; align-self: center; }
+.field-DELETE label { font-weight: 400; }
+.table-wrap { border: 1px solid var(--line); border-radius: 6px; margin-top: 12px; }
+.data-table { border-collapse: collapse; width: 100%; text-align: left; table-layout: auto; }
+.data-table th { background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 600; }
+.data-table th, .data-table td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.data-table td { overflow-wrap: anywhere; }
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table tbody tr:hover { background: var(--surface); }
+.number { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.total { font-weight: 700; color: var(--teal); }
+address { font-style: normal; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+output { font-weight: 600; font-variant-numeric: tabular-nums; }
+.nav { flex-wrap: wrap; }
+.nav-actions { font-size: 14px; }
+.save-actions { padding-top: 14px; }
+.page-heading, .page-heading > div { min-width: 0; }
+h1, p, address, .panel { overflow-wrap: anywhere; }
+#invoice-search { margin-bottom: 4px; }
+@media (max-width: 850px) {
+  .line-grid { grid-template-columns: 66px minmax(0, 1fr) minmax(0, 1fr); }
+  .line-grid .field-timeworked { grid-column: 3; }
+  .line-grid .field-description { grid-column: 1 / -1; grid-row: 2; }
+  .line-grid .field-rate { grid-column: 1; grid-row: 3; }
+  .line-grid .field-quantity { grid-column: 2; grid-row: 3; }
+  .line-grid .field-DELETE { grid-column: 3; grid-row: 3; }
+  .invoice-details .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .invoice-details .field-description { grid-row: auto; }
+}
+@media (max-width: 650px) {
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .invoice-details .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .panel { padding: 12px; }
+  .overview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .overview > :last-child { grid-column: 1 / -1; }
+  .line-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .line-grid .field { grid-column: auto; grid-row: auto; }
+  .line-grid .field-description { grid-column: 1 / -1; grid-row: 1; }
+  .line-grid .field-timeworked { grid-column: 1 / -1; }
+  .line-grid .field-DELETE { grid-column: 1 / -1; }
+  .field-DELETE { display: flex; align-items: center; gap: 8px; }
+  .field-DELETE label { margin: 0; }
+  .field input:not([type=checkbox]), .field select, .field textarea { font-size: 16px; min-height: 44px; }
+  .field textarea { min-height: 72px; }
+  .nav { gap: 12px; }
+  .brand { font-size: 17px; }
+  .nav-actions { margin-left: 0; }
+  .page-heading { align-items: flex-start; }
+  /* Keep each record together; descriptions get a whole row, not a table column. */
+  .table-wrap { border: 0; margin-top: 12px; }
+  .data-table, .data-table tbody { display: block; width: 100%; }
+  .data-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .data-table tbody tr {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px; padding: 12px; margin-bottom: 10px;
+    border: 1px solid var(--line); border-radius: 6px;
+  }
+  .data-table td, .data-table tr:last-child td {
+    display: block; min-width: 0; padding: 0; border: 0; text-align: left; white-space: normal;
+  }
+  .data-table td::before { content: attr(data-label); display: block; font-size: 12px; color: var(--muted); }
+  .data-table td:first-child, .data-table .description-cell, .data-table .wide-cell { grid-column: 1 / -1; }
+  .data-table td[colspan] { grid-column: 1 / -1; }
+  .data-table tr[hidden] { display: none !important; }
+}

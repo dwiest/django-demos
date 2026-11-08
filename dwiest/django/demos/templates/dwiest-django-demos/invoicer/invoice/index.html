@@ -4,7 +4,8 @@
 <div class="page-heading"><div><h1>Invoices</h1></div><a class="button primary" href="{% url 'demos:invoicer:invoice_add' %}">New invoice</a></div>
 <div class="field"><label for="invoice-search">Find an invoice</label><input id="invoice-search" class="control" type="search" placeholder="Search invoice, client, or description"></div>
 <div class="table-wrap"><table class="data-table" id="invoice-list"><thead><tr><th>Invoice</th><th>Client</th><th>Description</th><th class="number">Hours</th><th class="number">Amount</th></tr></thead><tbody>
-{% for item in items %}<tr><td><a href="{% url 'demos:invoicer:invoice_view' %}?id={{ item.id }}">{{ item.name }}</a></td><td>{{ item.bill_to.name }}</td><td>{{ item.description }}</td><td class="number">{{ item.hours }}</td><td class="number">${{ item.total|floatformat:2|intcomma }}</td></tr>
+{% for item in items %}<tr><td data-label="Invoice"><a href="{% url 'demos:invoicer:invoice_view' %}?id={{ item.id }}">{{ item.name }}</a></td><td class="wide-cell" data-label="Client">{{ item.bill_to.name }}</td><td class="description-cell" data-label="Description">{{ item.description }}</td><td class="number" data-label="Hours">{{ item.hours }}</td><td class="number" data-label="Amount">${{ item.total|floatformat:2|intcomma }}</td></tr>
 {% empty %}<tr><td colspan="5" class="empty">No invoices yet. Create your first invoice.</td></tr>{% endfor %}
 </tbody></table></div><p id="search-empty" class="empty" hidden>No invoices match your search.</p>
 {% endblock %}
+

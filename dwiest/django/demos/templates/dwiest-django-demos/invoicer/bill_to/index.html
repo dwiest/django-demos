@@ -2,7 +2,8 @@
 {% block content %}
 <div class="page-heading"><div><h1>Clients</h1></div><a class="button primary" href="{% url 'demos:invoicer:bill_to_add' %}">Add client</a></div>
 <div class="table-wrap"><table class="data-table"><thead><tr><th>Client</th><th>Description</th><th>Location</th></tr></thead><tbody>
-{% for item in items %}<tr><td><a href="{% url 'demos:invoicer:bill_to_view' %}?id={{ item.id }}">{{ item.name }}</a></td><td>{{ item.description }}</td><td>{{ item.city }}, {{ item.state }}</td></tr>
+{% for item in items %}<tr><td class="wide-cell" data-label="Client"><a href="{% url 'demos:invoicer:bill_to_view' %}?id={{ item.id }}">{{ item.name }}</a></td><td class="description-cell" data-label="Description">{{ item.description }}</td><td class="wide-cell" data-label="Location">{{ item.city }}, {{ item.state }}</td></tr>
 {% empty %}<tr><td colspan="3" class="empty">No clients yet. Add a client to start invoicing.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}
+

@@ -3,14 +3,15 @@
 <div class="page-heading"><div><h1>{% if invoice.id %}Edit invoice{% else %}New invoice{% endif %}</h1></div></div>
 <form method="post" action="{% url 'demos:invoicer:invoice_edit' %}" id="invoice-editor">
 {% csrf_token %}<input type="hidden" name="id" value="{{ invoice.id|default_if_none:'' }}">
-<section class="panel"><h2>Invoice details</h2>{% include "dwiest-django-demos/invoicer/fields.html" %}</section>
+<section class="panel invoice-details"><h2>Invoice details</h2>{% include "dwiest-django-demos/invoicer/fields.html" %}</section>
 <div class="page-heading"><h2>Line items</h2><output id="amount" aria-live="polite"></output></div>
 {{ formset.management_form }}{{ formset.non_form_errors }}
 {% for f in formset %}
 <section class="panel line-item">
   <h3>{% if f.instance.pk %}Entry {{ forloop.counter }}{% else %}New entry {{ forloop.counter }}{% endif %}</h3>
   {{ f.non_field_errors }}{% for hidden in f.hidden_fields %}{{ hidden }}{{ hidden.errors }}{% endfor %}
-  <div class="line-grid">{% for field in f.visible_fields %}<div class="field field-{{ field.name }}"><label for="{{ field.id_for_label }}">{% if field.name == 'DELETE' %}Remove entry{% else %}{{ field.label }}{% endif %}</label>{{ field }}{{ field.errors }}{% if field.name == 'timeworked' %}<small>Time ranges, e.g. 9:30 -&gt; 11:30. Calculated: {{ f.instance.calculate_pseudo_hours }}</small>{% endif %}</div>{% endfor %}</div>
+  <div class="line-grid">{% for field in f.visible_fields %}<div class="field field-{{ field.name }}"><label for="{{ field.id_for_label }}">{% if field.name == 'DELETE' %}Remove{% else %}{{ field.label }}{% endif %}</label>{{ field }}{{ field.errors }}{% if field.name == 'timeworked' %}<small>Time ranges, e.g. 9:30 -&gt; 11:30. Calculated: {{ f.instance.calculate_pseudo_hours }}</small>{% endif %}</div>{% endfor %}</div>
 </section>{% endfor %}
 <div class="save-actions"><button type="submit" class="button primary">Save invoice</button><a class="button secondary" href="{% url 'demos:invoicer:invoice_index' %}">Cancel</a></div></form>
 {% endblock %}
+
