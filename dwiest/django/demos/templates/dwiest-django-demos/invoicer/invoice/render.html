@@ -1,6 +1,8 @@
-<Html>
+<!doctype html>
+<html lang="en">
 
 <Head>
+  {% load static %}
   <Title>Invoice - {{invoice.name}}</Title>
   {% include 'dwiest-django-demos/default.css' %}
   {% include 'dwiest-django-demos/django-messages.css' %}
@@ -8,9 +10,12 @@
   {% load dwiest_django_demos.tags %}
   {% load humanize %}
   <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/invoicer/print.css' %}">
   </Head>
 
 <Body>
+<div class="print-actions"><a href="{% url 'demos:invoicer:invoice_view' %}?id={{ invoice.id }}">← Back to invoice</a><button class="button primary" type="button" onclick="window.print()">Print invoice</button></div>
 
 <Div class="inv_title">
   INVOICE
