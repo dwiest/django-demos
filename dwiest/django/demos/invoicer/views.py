@@ -225,7 +225,7 @@ class InvoiceView(TemplateView):
       try:
         if request.user and request.user.id:
           item = Invoice.objects.get(owner=request.user, id=id)
-          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id)
+          line_items = LineItem.objects.filter(owner=request.user, invoice_id=id )
         else:
           print("No invoice: {}".format(id))
           item = Invoice.objects.get(owner=None, id=id)
@@ -290,11 +290,28 @@ class InvoiceEditView(TemplateView):
     self.response_dict[self.ResponseDict.FORM] = form
     self.response_dict[self.ResponseDict.INVOICE] = invoice
 
-    formset = modelformset_factory(LineItem, form=LineItemForm, extra=3,exclude=['id','owner','invoice'],can_delete=True)
+    FormSetClass = modelformset_factory(
+      LineItem,
+      form=LineItemForm,
+      extra=3,
+      exclude=['id','owner','invoice'],
+      can_delete=True
+    )
+
+    formset = FormSetClass(
+      queryset=LineItem.objects.filter(invoice=invoice),
+      initial=[{'invoice': invoice, 'description': ''}]
+    )
+
+    # Pair each form with its corresponding model instance
+    form_and_instances = list(zip(formset.forms, [f.instance for f in formset.forms]))
+
 #    formset = modelformset_factory(LineItem, form=LineItemForm, extra=3,exclude=['id','owner','invoice'],can_delete=True,widgets={'status':forms.NumberInput(attrs={'max':0,'min':-1}),'date':DateInput(attrs={'max': date.today()}),'description':forms.Textarea(attrs={'cols':40,'rows':2}),'quantity':forms.NumberInput(attrs={'min':0.25,'step':0.25})})
 
 #    self.response_dict[self.ResponseDict.FORMSET] = formset(queryset=LineItem.objects.filter(expense=invoice),initial=[{'date':date.today(),'invoice':invoice,'description':'initial description'}])
-    self.response_dict[self.ResponseDict.FORMSET] = formset(queryset=LineItem.objects.filter(invoice=invoice),initial=[{'invoice':invoice,'description':''}])
+    #self.response_dict[self.ResponseDict.FORMSET] = formset(queryset=LineItem.objects.filter(invoice=invoice),initial=[{'invoice':invoice,'description':''}])
+    self.response_dict[self.ResponseDict.FORMSET] = formset
+    self.response_dict['form_and_instances'] = form_and_instances
 
     return render(request, self.template_name, self.response_dict)
 
@@ -341,7 +358,8 @@ class InvoiceEditView(TemplateView):
         'status':forms.NumberInput(attrs={'max':0,'min':-1}),
 #        'date':DateInput(attrs={'max': date.today()}),
         'date':DateInput(attrs={}),
-        'description':forms.Textarea(attrs={'cols':40,'rows':2}),
+        'timeworked':forms.Textarea(attrs={'cols':40,'rows':2}),
+        'description':forms.Textarea(attrs={'cols':40,'rows':4}),
         'quantity':forms.NumberInput(attrs={'min':0.25,'step':0.25})
         }
       )

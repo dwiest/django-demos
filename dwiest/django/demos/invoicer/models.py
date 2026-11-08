@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
-from datetime import timedelta
+from datetime import datetime, timedelta
+import re
 
 class BaseModel(models.Model):
   class Meta:
@@ -147,35 +148,112 @@ class Invoice(BaseModel, OwnedModel, NamedModel):
 
 
 class LineItem(BaseModel, OwnedModel):
-  class Meta:
-    ordering = ['date']
+    class Meta:
+        ordering = ['date']
 
-  invoice = models.ForeignKey(
-    Invoice,
-    on_delete=models.CASCADE,
-    blank = False,
-    null = False,
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
     )
 
-  date = models.DateField(
-    #auto_now_add=True, # doesn't show on form
-    #blank = True,
-    #null = True,
-    editable=True,
+    date = models.DateField(editable=True)
+
+    timeworked = models.CharField(
+        max_length=75,
+        null=True,
+        blank=True,  # optional but recommended
     )
 
-  description = models.CharField(max_length=255)
-  rate = models.IntegerField(default=80)
+    description = models.TextField()
 
-  quantity = models.DecimalField(
-    default        = 1,
-    max_digits     = 4,
-    decimal_places = 2
+    rate = models.IntegerField(default=80)
+
+    quantity = models.DecimalField(
+        default=1,
+        max_digits=4,
+        decimal_places=2,
     )
 
-  def total(self):
-    return self.quantity * self.rate
+    def total(self):
+        return self.quantity * self.rate
 
+    def calculate_decimal_hours(self):
+        """
+        Returns hours as a true decimal, e.g., 5.25 for 5 hours 15 minutes.
+        """
+        if not self.timeworked:
+            return None
+
+        first_line = self.timeworked.strip().splitlines()[0]
+        timeworked = re.sub(r"\(.*?\)", "", first_line).strip()
+        intervals = [i.strip() for i in timeworked.split(";")]
+        total_minutes = 0
+
+        for interval in intervals:
+            if "->" not in interval:
+                continue
+            start_str, end_str = [x.strip() for x in interval.split("->")]
+            try:
+                start = datetime.strptime(start_str, "%H:%M")
+                end = datetime.strptime(end_str, "%H:%M")
+                diff = (end - start).total_seconds() / 60
+                if diff < 0:
+                    diff += 24 * 60  # handle overnight times
+                total_minutes += int(diff)
+            except ValueError:
+                continue
+
+        return round(total_minutes / 60, 2)
+
+    def calculate_pseudo_hours(self):
+        """
+        Returns time in HH.MM format (e.g., 5.15 for 5h15m) — not true decimal.
+        """
+        if not self.timeworked:
+            return ""
+
+        first_line = self.timeworked.strip().splitlines()[0]
+        timeworked = re.sub(r"\(.*?\)", "", first_line).strip()
+        intervals = [i.strip() for i in timeworked.split(";")]
+        total_minutes = 0
+
+        for interval in intervals:
+            if "->" not in interval:
+                continue
+            start_str, end_str = [x.strip() for x in interval.split("->")]
+            try:
+                start = datetime.strptime(start_str, "%H:%M")
+                end = datetime.strptime(end_str, "%H:%M")
+                diff = (end - start).total_seconds() / 60
+                if diff < 0:
+                    diff += 24 * 60  # handle overnight
+                total_minutes += int(diff)
+            except ValueError:
+                continue
+
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+        return f"{hours}.{minutes:02d}"
+
+
+    def get_rolled_over_minutes(self):
+        """
+        Extracts rolled over minutes from timeworked string in format (.15),
+        and returns as an integer number of minutes (e.g., 9 for .15).
+        """
+        if not self.timeworked:
+            return 0
+
+        first_line = self.timeworked.strip().splitlines()[0]
+        match = re.search(r"\((?:0\.|\.)?(\d{1,2})\)", first_line)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                return 0
+        return 0
 
 
 class Address(BaseModel, OwnedModel, NamedModel, models.Model):

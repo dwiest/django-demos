@@ -149,9 +149,22 @@ class LineItemForm(forms.ModelForm):
           'class' : 'inv_li_status'
           }
         ),
+      'timeworked': widgets.TextInput(
+        attrs = {
+          'size' : 70,
+          'class' : 'inv_li_timeworked'
+          }
+        ),
+#      'timeworked': widgets.Textarea(
+#        attrs = {
+#          'rows' : 1,
+#          'cols' : 70,
+#          'class' : 'inv_li_timeworked'
+#          }
+#        ),
       'description': widgets.Textarea(
         attrs = {
-          'rows' : 2,
+          'rows' : 12,
           'cols' : 70,
           'class' : 'inv_li_description'
           }

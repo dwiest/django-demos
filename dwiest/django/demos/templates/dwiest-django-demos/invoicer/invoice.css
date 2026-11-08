@@ -197,9 +197,45 @@ div.qrcode img {
    font-size: 1.5vw;
    }
 
+ input.inv_li_timeworked {
+   font-size: 1vw;
+   width: 40vw; /* sets the input width to 40% of viewport width */
+   max-width: 600px; /* optional: max width to prevent it from growing too big */
+   min-width: 300px; /* optional: minimum width */
+   }
+
  textarea.inv_li_description {
    font-size: 1vw;
+   width: 40vw; /* sets the input width to 40% of viewport width */
+   max-width: 600px; /* optional: max width to prevent it from growing too big */
+   min-width: 300px; /* optional: minimum width */
    }
+
+ .timeworked-wrapper {
+   position: relative;
+   display: inline-block; /* or block, depending on layout */
+   width: 100%; /* match your input width */
+ }
+
+ .inv_li_timeworked {
+   width: 100%;  /* fill wrapper */
+   padding-right: 4.5em; /* space for overlay text */
+   box-sizing: border-box;
+ }
+
+ .calc-hours {
+   position: absolute;
+   right: 0.75em;  /* space from right edge */
+   top: 50%;
+   transform: translateY(-50%);
+   font-size: 0.9em;
+   color: #999;
+   pointer-events: none; /* allows clicks through the overlay */
+   user-select: none;     /* prevents selection of overlay text */
+   background: white; /* match input background to avoid overlap artifacts */
+   padding-left: 0.25em;
+ }
+
 
  input.inv_li_rate {
    width: 3em;

@@ -85,7 +85,9 @@
     <Th>Hours</Th>
     <Th>Amount</Th>
     </Tr>
-{% for line_item in line_items %}
+{# {% with cutoff="20251021" %} #}
+  {% for line_item in line_items %}
+    {# {% if line_item.date|date:"Ymd" > cutoff %} #}
   <Tr>
     <Td class="left">{{line_item.date|date:'m/d/Y'}}</Td>
     <Td class="left">{{line_item.description|linebreaks}}</Td>
@@ -93,7 +95,9 @@
     <Td>{{line_item.quantity|intcomma}}</Td>
     <Td>${{line_item.total|floatformat:2|intcomma}}</Td>
     </Tr>
+    {# {% endif %} #}
   {% endfor %}
+    {# {% endwith %} #}
   </Table>
 </Div>
 
