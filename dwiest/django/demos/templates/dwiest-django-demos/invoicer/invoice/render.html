@@ -13,9 +13,11 @@
     <a href="{% url 'demos:invoicer:invoice_view' %}?id={{ invoice.id }}">← Back to invoice</a>
     <button class="button primary" type="button" onclick="window.print()">Print invoice</button>
   </nav>
+  <table class="print-layout" role="presentation"><tbody><tr><td>
   <main class="invoice-document">
     <header class="document-header">
       <div class="vendor">
+        <span class="cloud-outline" aria-hidden="true"></span>
         <strong>Damian Wiest</strong><br>
         DBA: Wiest.World<br>
         800 Saint Marys St., Apt. 403<br>
@@ -56,5 +58,23 @@
     </table>
     <p class="invoice-total">Total <strong>${{ invoice.total|floatformat:2|intcomma }}</strong></p>
   </main>
+  </td></tr></tbody><tfoot><tr><td><div class="footer-space"></div></td></tr></tfoot></table>
+  <footer class="print-footer" aria-label="Wiest.World contact information">
+    <div class="footer-wave" aria-hidden="true"></div>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a class="footer-logo" href="https://wiest.world/" aria-label="Wiest.World">Wiest<span>.</span>World</a>
+        <div class="footer-contact">
+          <a href="mailto:damian@wiest.world">damian@wiest.world</a><br>
+          <a href="tel:+19193864934">(919) 386-4934</a>
+        </div>
+      </div>
+      <figure class="footer-qr">
+        <a href="https://wiest.world/"><img src="{% static 'dwiest-django-demos/invoicer/website-qr.png' %}" width="88" height="88" alt="QR code linking to Wiest.World"></a>
+        <figcaption>Visit Wiest.World</figcaption>
+      </figure>
+    </div>
+    <div class="footer-invoice">Invoice {{ invoice.name }}</div>
+  </footer>
 </body>
 </html>

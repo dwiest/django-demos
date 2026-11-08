@@ -50,3 +50,57 @@ body { max-width: 960px; margin: 0 auto; padding: 20px 24px; font-size: 14px; }
   .document-header, .bill-to { break-inside: avoid; }
   .invoice-total { font-size: 11pt; break-inside: avoid; }
 }
+
+/* Approved printed stationery. */
+.vendor { position: relative; isolation: isolate; }
+.cloud-outline { position: absolute; width: 100px; height: 32px; right: 8px; top: 12px; border: 1px solid #d3d9de; border-radius: 22px; z-index: -1; }
+.cloud-outline::before { content: ''; position: absolute; width: 44px; height: 44px; left: 23px; top: -24px; border: 1px solid #d3d9de; border-bottom-color: transparent; border-right-color: transparent; border-radius: 50%; background: #fff; transform: rotate(40deg); }
+.cloud-outline::after { content: ''; position: absolute; width: 27px; height: 27px; left: 58px; top: -13px; border: 1px solid #d3d9de; border-bottom-color: transparent; border-left-color: transparent; border-radius: 50%; background: #fff; transform: rotate(-18deg); }
+.invoice-meta h1 { color: #20252b; }
+.invoice-meta h1::before { content: ''; display: inline-block; height: .8em; margin-right: 9px; border-left: 4px solid #b48324; border-radius: 2px; }
+.print-footer { margin-top: 48px; color: #20252b; break-inside: avoid; }
+.footer-wave { position: relative; height: 14px; margin-bottom: 8px; }
+.footer-wave::before { content: ''; position: absolute; width: 65%; height: 30px; left: -4%; top: 7px; border-top: 1px solid #9caab6; border-radius: 50%; transform: rotate(1deg); }
+.footer-wave::after { content: ''; position: absolute; width: 65%; height: 30px; right: -4%; bottom: 7px; border-bottom: 1px solid #b48324; border-radius: 50%; transform: rotate(1deg); }
+.footer-content { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.footer-brand { min-width: 0; }
+.footer-logo { font: 700 25px/1.2 Arial, sans-serif; letter-spacing: -1px; color: #20252b; text-decoration: none; white-space: nowrap; }
+.footer-logo span { color: #b48324; }
+.footer-contact { font-size: 12px; line-height: 1.5; margin-top: 5px; }
+.footer-contact a { color: inherit; text-decoration: none; }
+.footer-qr { margin: 0; text-align: center; }
+.footer-qr img { display: block; width: 88px; height: 88px; margin: 0 auto; }
+.footer-qr figcaption { font-size: 11px; color: #485460; }
+.footer-invoice { font-size: 11px; color: #63707a; margin-top: 4px; }
+@media screen and (max-width: 650px) {
+  .cloud-outline { right: 0; top: 25px; }
+}
+@media print {
+  /* Reserve footer space on every page so entries cannot be covered. */
+  @page {
+    size: letter;
+    margin: 12mm;
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font: 8pt Arial, sans-serif;
+      color: #63707a;
+      vertical-align: bottom;
+      padding-bottom: 4mm;
+    }
+  }
+  .print-footer { position: fixed; bottom: 0; left: 0; right: 0; height: 36mm; margin: 0; }
+  .footer-wave { height: 10px; margin-bottom: 4px; }
+  .footer-logo { font-size: 18pt; }
+  .footer-contact { font-size: 8pt; line-height: 1.4; margin-top: 3px; }
+  .footer-qr img { width: 21mm; height: 21mm; }
+  .footer-qr figcaption, .footer-invoice { font-size: 8pt; }
+  .footer-invoice { margin-top: 2px; }
+}
+
+.print-layout { width: 100%; border-collapse: collapse; }
+.print-layout > tbody > tr > td, .print-layout > tfoot > tr > td { padding: 0; border: 0; }
+.footer-space { display: none; }
+@media print {
+  .print-layout > tfoot { display: table-footer-group; }
+  .footer-space { display: block; height: 39mm; }
+}
