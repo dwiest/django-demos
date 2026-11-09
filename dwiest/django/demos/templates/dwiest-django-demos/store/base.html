@@ -11,11 +11,16 @@
 <body class="storefront">
   <a class="skip" href="#main">Skip to content</a>
   <header class="store-header">
-    <div class="container store-header-inner">
+    <div class="store-masthead">
       <a class="store-brand" href="{% url 'demos:store:home' %}">
-        {% if store_branding.header_image_url %}<img src="{{ store_branding.header_image_url }}" alt="{{ store_branding.header_image_alt }}" class="store-header-image">{% endif %}
-        <span>{{ store_branding.name }}</span>
+        {% if store_branding.header_image_url %}
+          <img src="{{ store_branding.header_image_url }}" alt="{{ store_branding.header_image_alt|default:store_branding.name }}" class="store-header-image" fetchpriority="high">
+        {% else %}
+          <span>{{ store_branding.name }}</span>
+        {% endif %}
       </a>
+    </div>
+    <div class="container store-header-inner">
       <nav class="store-header-links" aria-label="Store navigation">
         <a href="{% url 'demos:store:home' %}">Shop</a>
         {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}

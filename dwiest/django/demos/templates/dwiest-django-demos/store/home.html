@@ -2,7 +2,7 @@
 {% block content %}
   <div class="page-heading">
     <div>
-      <p class="demo-eyebrow">{{ store_branding.name }}</p>
+      {% if not store_branding.header_image_url %}<p class="demo-eyebrow">{{ store_branding.name }}</p>{% endif %}
       <h1>{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
     </div>
   </div>
