@@ -34,6 +34,12 @@ class Product(models.Model):
     def cover_photo(self):
         return next(iter(self.photos.all()), None)
 
+    @property
+    def featured_photos(self):
+        photos = list(self.photos.all())
+        featured = [photo for photo in photos if photo.sort_order == 0]
+        return featured or photos[:1]
+
     def __str__(self):
         return self.name
 
@@ -75,3 +81,46 @@ class ProductPhoto(models.Model):
     def url(self):
         from .media import photo_url
         return photo_url(self)
+
+
+class StoreBranding(models.Model):
+    """One storefront configuration; image bytes remain in S3."""
+    name = models.CharField(max_length=100, default='Oddment Supply')
+    tagline = models.CharField(max_length=180, default='Good finds. A little unexpected.')
+    introduction = models.TextField(blank=True, default='Explore the collection and find your next favorite.')
+    header_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
+    header_image_key = models.CharField(max_length=1024, blank=True, editable=False)
+    header_image_alt = models.CharField(max_length=255, blank=True)
+    footer_heading = models.CharField(max_length=120, default='Made for the everyday.')
+    footer_text = models.TextField(blank=True, default='Small discoveries. Lasting favorites.')
+    footer_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
+    footer_image_key = models.CharField(max_length=1024, blank=True, editable=False)
+    footer_image_alt = models.CharField(max_length=255, blank=True)
+    contact_email = models.EmailField(blank=True)
+    footer_link_label = models.CharField(max_length=80, blank=True)
+    footer_link_url = models.URLField(blank=True)
+    copyright_text = models.CharField(max_length=180, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Store branding'
+        constraints = [models.CheckConstraint(check=models.Q(pk=1), name='demo_store_single_branding')]
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        return super().save(*args, **kwargs)
+
+    def image_url(self, location):
+        from types import SimpleNamespace
+        from .media import photo_url
+        key = getattr(self, location + '_image_key')
+        if not key:
+            return ''
+        return photo_url(SimpleNamespace(bucket=getattr(self, location + '_image_bucket'), key=key))
+
+    @cached_property
+    def header_image_url(self):
+        return self.image_url('header')
+
+    @cached_property
+    def footer_image_url(self):
+        return self.image_url('footer')

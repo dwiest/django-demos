@@ -7,9 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .cart import KEY, cart_context
-from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm
-from .models import Catalog, Product, ProductPhoto
-from .media import delete_image, upload_image
+from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm
+from .models import Catalog, Product, ProductPhoto, StoreBranding
+from .media import delete_image, upload_image, upload_asset
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ PREFIX = 'dwiest-django-demos/store/'
 
 
 def page(request, template, **context):
+    context['store_branding'] = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
     context.update(cart_context(request))
     return render(request, PREFIX + template, context)
 
@@ -156,3 +157,41 @@ def delete_photo(request, pk, photo_pk):
     photo = get_object_or_404(ProductPhoto, pk=photo_pk, product_id=pk)
     photo.delete()
     return redirect('demos:store:product_edit', pk=pk)
+
+
+@permission_required('demo_store.change_storebranding', raise_exception=True)
+def branding(request):
+    instance = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    form = StoreBrandingForm(request.POST if request.method == 'POST' else None,
+                             request.FILES if request.method == 'POST' else None, instance=instance)
+    uploaded = []
+    if request.method == 'POST' and form.is_valid():
+        try:
+            with transaction.atomic():
+                previous = StoreBranding.objects.select_for_update().filter(pk=1).first()
+                item = form.save(commit=False)
+                for location in ('header', 'footer'):
+                    bucket_field, key_field = location + '_image_bucket', location + '_image_key'
+                    old_bucket = getattr(previous, bucket_field, '')
+                    old_key = getattr(previous, key_field, '')
+                    prepared = form.cleaned_data.get(location + '_image')
+                    remove = form.cleaned_data.get('remove_' + location + '_image')
+                    if prepared:
+                        bucket, key = upload_asset('branding', prepared)
+                        uploaded.append((bucket, key))
+                    elif remove:
+                        bucket, key = '', ''
+                    else:
+                        bucket, key = old_bucket, old_key
+                    setattr(item, bucket_field, bucket)
+                    setattr(item, key_field, key)
+                    if old_key and (prepared or remove):
+                        transaction.on_commit(lambda bucket=old_bucket, key=old_key: delete_image(bucket, key))
+                item.save()
+            return redirect('demos:store:home')
+        except Exception:
+            logger.exception('Store branding update failed')
+            for bucket, key in uploaded:
+                delete_image(bucket, key)
+            form.add_error(None, 'Store settings could not be saved. Please try again or check the S3 configuration.')
+    return page(request, 'branding.html', form=form)

@@ -2,12 +2,12 @@
 {% block content %}
   <div class="page-heading">
     <div>
-      <p class="demo-eyebrow">RottenWorld · Merchandise demo</p>
-      <h1>{% if catalog %}{{ catalog.name }}{% else %}The RottenWorld shop{% endif %}</h1>
+      <p class="demo-eyebrow">{{ store_branding.name }}</p>
+      <h1>{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
     </div>
   </div>
-  <p class="muted">{% if catalog %}{{ catalog.description }}{% else %}Hats, pins, and posters. Browse the collection and try the cart.{% endif %}</p>
-  <p class="store-demo-note">Demo store · Sample products and USD prices. Checkout is coming soon.</p>
+  <p class="muted">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
+  <p class="store-demo-note">Prices in USD · Checkout coming soon.</p>
   <nav class="store-catalogs" aria-label="Product catalogs">
     <a class="button secondary" href="{% url 'demos:store:home' %}"{% if not catalog %} aria-current="page"{% endif %}>All products</a>
     {% for collection in catalogs %}
@@ -16,11 +16,22 @@
   </nav>
   <section class="store-grid" aria-label="Products">
     {% for product in products %}
-      <article class="store-card">
+      <article class="store-card" data-product-card>
         <a href="{% url 'demos:store:product' product.slug %}">
           {% include 'dwiest-django-demos/store/image.html' %}
           <h2>{{ product.name }}</h2>
         </a>
+        {% with choices=product.featured_photos %}
+          {% if choices|length > 1 %}
+            <div class="store-card-choices" role="group" aria-label="Featured photos of {{ product.name }}">
+              {% for photo in choices %}
+                <button type="button" class="store-photo-choice" data-card-photo data-src="{{ photo.url }}" data-alt="{{ photo.alt_text|default:product.name }}" aria-label="{{ photo.alt_text|default:product.name }} — photo {{ forloop.counter }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+                  <img src="{{ photo.url }}" alt="" loading="lazy">
+                </button>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
         <p class="muted">{{ product.description|truncatewords:22 }}</p>
         <p>{% if product.starting_price != None %}From ${{ product.starting_price|floatformat:2 }} USD{% else %}Currently unavailable{% endif %}</p>
         <a href="{% url 'demos:store:product' product.slug %}">View product →</a>

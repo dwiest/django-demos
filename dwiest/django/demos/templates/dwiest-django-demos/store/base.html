@@ -4,27 +4,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Store | Django Demos{% endblock %}</title>
+  <title>{% block title %}{{ store_branding.name }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
-  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/ui.css' %}">
 </head>
-<body>
+<body class="storefront">
   <a class="skip" href="#main">Skip to content</a>
-  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='store' %}
-  <header class="site-header">
-    <nav class="nav container store-nav" aria-label="Store navigation">
-      <a class="brand" href="{% url 'demos:store:home' %}">Store</a>
-      <a href="{% url 'demos:store:home' %}">Browse</a>
-      {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}
-        <a href="{% url 'demos:store:manage' %}">Manage store</a>
-      {% endif %}
-      <a class="button secondary nav-actions" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>
-    </nav>
+  <header class="store-header">
+    <div class="container store-header-inner">
+      <a class="store-brand" href="{% url 'demos:store:home' %}">
+        {% if store_branding.header_image_url %}<img src="{{ store_branding.header_image_url }}" alt="{{ store_branding.header_image_alt }}" class="store-header-image">{% endif %}
+        <span>{{ store_branding.name }}</span>
+      </a>
+      <nav class="store-header-links" aria-label="Store navigation">
+        <a href="{% url 'demos:store:home' %}">Shop</a>
+        {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}
+        {% if perms.demo_store.change_storebranding %}<a href="{% url 'demos:store:branding' %}">Store settings</a>{% endif %}
+        <a class="button secondary" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>
+      </nav>
+    </div>
   </header>
   <main id="main" class="container">
     {% block content %}{% endblock %}
   </main>
-  {% include 'dwiest-django-demos/components/site_footer.html' %}
+  <footer class="store-footer">
+    <div class="container store-footer-inner">
+      <div>
+        {% if store_branding.footer_image_url %}<img src="{{ store_branding.footer_image_url }}" alt="{{ store_branding.footer_image_alt }}" class="store-footer-image">{% endif %}
+        <h2>{{ store_branding.footer_heading }}</h2>
+        <div class="store-footer-copy">{{ store_branding.footer_text|linebreaks }}</div>
+      </div>
+      <nav aria-label="Store footer">
+        <a href="{% url 'demos:store:home' %}">Shop all</a>
+        <a href="{% url 'demos:store:cart' %}">Your cart</a>
+        {% if store_branding.contact_email %}<a href="mailto:{{ store_branding.contact_email }}">{{ store_branding.contact_email }}</a>{% endif %}
+        {% if store_branding.footer_link_url %}<a href="{{ store_branding.footer_link_url }}">{{ store_branding.footer_link_label }}</a>{% endif %}
+      </nav>
+    </div>
+    <div class="container store-copyright">{% if store_branding.copyright_text %}{{ store_branding.copyright_text }}{% else %}© {% now 'Y' %} {{ store_branding.name }}{% endif %}</div>
+  </footer>
+  <script src="{% static 'dwiest-django-demos/store/cards.js' %}" defer></script>
 </body>
 </html>

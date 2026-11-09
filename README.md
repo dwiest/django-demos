@@ -16,7 +16,7 @@ order. The hook does not change authentication or application routes.
 
 ## Store demo
 
-`/django/demos/store/` provides a simple RottenWorld merchandise storefront,
+`/django/demos/store/` provides a simple independent merchandise storefront,
 product catalogs, variant selection, and a session cart. It includes a Store
 card on the demo homepage and a shared navigation entry. Anonymous visitors
 can browse and use the cart. No checkout, payments, orders, inventory tracking,
@@ -127,8 +127,8 @@ Before deploying this revision:
    the metadata table. The current schema-neutral deploy workflow will not apply
    this migration automatically.
 4. Give the Shop administrators group the new Product photo permissions. Running
-   `python manage.py seed_store` updates the group too, but also creates any
-   missing sample merchandise. Alternatively grant its four Product photo
+   `python manage.py seed_store` updates the group too; it only creates sample
+   merchandise when the product table is empty. Alternatively grant its four Product photo
    permissions in Django admin. Existing superusers already have access.
 5. Run `python manage.py collectstatic --noinput` and restart Django.
 
@@ -148,3 +148,42 @@ The isolated test command above now also covers photo uploads, gallery/cover
 ordering, metadata edits, permissions and CSRF, file validation, rollback and
 object cleanup, and real SDK URL signing for a dotted bucket. S3 writes/deletes
 are mocked in the tests; live IAM and bucket access must be checked after deployment.
+
+### Independent storefront branding
+
+Store pages use their own header and footer, without the host-site navigation,
+demo switcher, or host footer. The default brand is **Oddment Supply**. Your
+existing products, catalog names, and uploaded photos are not renamed or changed.
+The demo homepage still links into the store.
+
+After installing this update, back up the database and run:
+
+```sh
+python manage.py migrate demo_store
+python manage.py seed_store
+python manage.py collectstatic --noinput
+```
+
+Migration 0003 creates a singleton `StoreBranding` settings table. The seed command
+refreshes the Shop administrators group's permissions, including
+`change_storebranding`; it now seeds sample Oddment Supply merchandise only when
+the product table is empty, preserving populated catalogs. Superusers already
+have access. The schema-neutral deployment script does not run this migration.
+
+Use **Store settings** in the store header (`/django/demos/store/manage/branding/`)
+to edit the name, tagline, introduction, header image and alt text, footer heading,
+footer copy, footer image and alt text, contact email, optional HTTPS footer link,
+and copyright line. Text is escaped; HTML is not accepted. Blank copyright text
+uses the current year and configured store name. The images use the same
+validation and private S3 delivery as product photos, under
+`store/products/branding/`, so the existing media IAM policy already covers them.
+Replacing or removing artwork attempts deletion of the old S3 object after the
+settings commit. No image bytes are stored in the database.
+
+Catalog cards show clickable round photo thumbnails when a product has multiple
+photos with **Display order = 0**. These are photo previews, not purchase-option
+selectors; they do not change cart variants or prices. Use each photo's alt text
+to label its color or view. The first uploaded photo among those tied at zero is
+the initial cover. If no photo is marked zero, only the first ordered photo is
+shown on the card. Product pages retain their full photo galleries regardless
+of order. There is no automatic rotation.

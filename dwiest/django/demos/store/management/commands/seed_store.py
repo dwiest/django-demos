@@ -8,24 +8,27 @@ from ...models import Catalog, Product, ProductVariant
 
 
 class Command(BaseCommand):
-    help = 'Create sample RottenWorld products and the Shop administrators group, without overwriting edits.'
+    help = 'Create sample Oddment Supply products and the Shop administrators group, without overwriting edits.'
 
     @transaction.atomic
     def handle(self, *args, **options):
         group, _ = Group.objects.get_or_create(name='Shop administrators')
         group.permissions.add(*Permission.objects.filter(content_type__app_label='demo_store'))
+        if Product.objects.exists():
+            self.stdout.write(self.style.SUCCESS('Shop administrator permissions updated; existing catalog preserved.'))
+            return
         for slug, name, description, product_name, product_slug, price, variants in [
-            ('accessories', 'Accessories', 'Everyday RottenWorld essentials.',
-             'RottenWorld hat', 'rottenworld-hat', '25.00', ['Black', 'Charcoal']),
+            ('accessories', 'Accessories', 'Everyday Oddment Supply essentials.',
+             'Oddment Supply hat', 'oddment-hat', '25.00', ['Black', 'Charcoal']),
             ('collectibles', 'Collectibles', 'Small pieces with plenty of personality.',
-             'RottenWorld enamel pin', 'rottenworld-enamel-pin', '10.00', ['Standard']),
+             'Oddment Supply enamel pin', 'oddment-enamel-pin', '10.00', ['Standard']),
             ('posters', 'Posters', 'Make some room on your wall.',
-             'RottenWorld poster', 'rottenworld-poster', '20.00', ['12 × 18 inches', '18 × 24 inches']),
+             'Oddment Supply poster', 'oddment-poster', '20.00', ['12 × 18 inches', '18 × 24 inches']),
         ]:
             catalog, _ = Catalog.objects.get_or_create(slug=slug, defaults={
                 'name': name, 'description': description, 'published': True})
             product, created = Product.objects.get_or_create(slug=product_slug, defaults={
-                'name': product_name, 'description': 'Sample RottenWorld merchandise. Details and artwork coming soon.',
+                'name': product_name, 'description': 'Sample Oddment Supply merchandise. Details and artwork coming soon.',
                 'published': True})
             if created:
                 product.catalogs.add(catalog)

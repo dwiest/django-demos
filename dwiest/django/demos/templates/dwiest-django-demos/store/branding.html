@@ -1,0 +1,14 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <div class="page-heading"><h1>Store settings</h1></div>
+  <p class="muted">Set the name, header, introduction, and footer for your storefront. Images save to S3. Text is displayed as plain text.</p>
+  <form method="post" enctype="multipart/form-data" class="store-form store-editor">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <p>{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</p>
+    {% endfor %}
+    <button class="button primary" type="submit">Save store settings</button>
+    <a class="button secondary" href="{% url 'demos:store:home' %}">Cancel</a>
+  </form>
+{% endblock %}

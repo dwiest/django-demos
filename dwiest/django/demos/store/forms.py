@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Catalog, Product, ProductVariant, ProductPhoto
+from .models import Catalog, Product, ProductVariant, ProductPhoto, StoreBranding
 
 
 class QuantityForm(forms.Form):
@@ -67,3 +67,40 @@ class PhotoDetailsForm(forms.ModelForm):
     class Meta:
         model = ProductPhoto
         fields = ['alt_text', 'sort_order']
+
+
+class StoreBrandingForm(forms.ModelForm):
+    header_image = forms.FileField(required=False, help_text='Optional logo or header artwork. JPEG, PNG, or WebP; up to 10 MB.')
+    remove_header_image = forms.BooleanField(required=False, label='Remove current header image')
+    footer_image = forms.FileField(required=False, help_text='Optional footer artwork. JPEG, PNG, or WebP; up to 10 MB.')
+    remove_footer_image = forms.BooleanField(required=False, label='Remove current footer image')
+
+    class Meta:
+        model = StoreBranding
+        fields = ['name', 'tagline', 'introduction', 'header_image_alt',
+                  'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
+                  'footer_link_label', 'footer_link_url', 'copyright_text']
+
+    def clean_footer_link_url(self):
+        value = self.cleaned_data['footer_link_url']
+        if value and not value.startswith('https://'):
+            raise forms.ValidationError('Use an HTTPS link.')
+        return value
+
+    def clean(self):
+        from .media import prepare_image
+        cleaned = super().clean()
+        if bool(cleaned.get('footer_link_label')) != bool(cleaned.get('footer_link_url')):
+            raise forms.ValidationError('Provide both a footer link label and URL, or leave both blank.')
+        for location in ('header', 'footer'):
+            field = location + '_image'
+            upload = cleaned.get(field)
+            if upload:
+                if cleaned.get('remove_' + field):
+                    self.add_error(field, 'Choose either a new image or removal.')
+                else:
+                    try:
+                        cleaned[field] = prepare_image(upload)
+                    except forms.ValidationError as error:
+                        self.add_error(field, error)
+        return cleaned
