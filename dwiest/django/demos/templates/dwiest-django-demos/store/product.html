@@ -1,0 +1,32 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block title %}{{ product.name }} | Store{% endblock %}
+{% block content %}
+  <p><a href="{% url 'demos:store:home' %}">← All products</a></p>
+  <div class="store-detail">
+    {% include 'dwiest-django-demos/store/image.html' %}
+    <section>
+      <h1>{{ product.name }}</h1>
+      <div class="store-description">{{ product.description|linebreaks }}</div>
+      {% if form.fields.variant.queryset %}
+        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="field">
+            <label for="{{ form.variant.id_for_label }}">Option and price (USD)</label>
+            <select id="{{ form.variant.id_for_label }}" name="variant" required>
+              {% for variant in form.fields.variant.queryset %}
+                <option value="{{ variant.pk }}"{% if form.variant.value|stringformat:'s' == variant.pk|stringformat:'s' %} selected{% endif %}>{{ variant.name }} — ${{ variant.price|floatformat:2 }}</option>
+              {% endfor %}
+            </select>
+            {{ form.variant.errors }}
+          </div>
+          <div class="field">
+            {{ form.quantity.label_tag }} {{ form.quantity }} {{ form.quantity.errors }}
+          </div>
+          <button class="button primary" type="submit">Add to cart</button>
+        </form>
+      {% else %}<p>Currently unavailable.</p>{% endif %}
+      <p class="store-demo-note">Demo only. No purchases or payments can be made.</p>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,34 @@
+/* Store demo: shared colors and controls, simple responsive merchandise layouts. */
+.store-nav,.store-catalogs{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.store-nav{padding-block:10px}
+.store-catalogs{margin-block:20px}
+.store-catalogs [aria-current]{border-color:var(--teal);background:#e3f2f1}
+.store-demo-note{color:var(--muted);font-size:14px;margin-block:16px}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:20px}
+.store-card{border:1px solid var(--line);border-radius:8px;padding:16px}
+.store-card h2{margin-block:14px 8px}
+.store-image,.store-placeholder{width:100%;aspect-ratio:4/3;object-fit:contain;border-radius:6px;background:var(--surface)}
+.store-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted)}
+.store-placeholder span{font-size:48px;font-weight:800;letter-spacing:-4px;color:var(--teal)}
+.store-placeholder small{font-size:13px}
+.store-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;margin-top:24px;align-items:start}
+.store-description{margin-top:20px;overflow-wrap:anywhere}
+.store-form label{display:block;font-weight:600;margin-bottom:6px}
+.store-form input:not([type=checkbox]):not([type=hidden]),.store-form select,.store-form textarea{width:100%;padding:9px;border:1px solid #bdc8d5;border-radius:6px;min-height:44px;background:white}
+.store-form textarea{min-height:120px}
+.store-form .field{margin-bottom:16px}
+.store-form input[type=number]{max-width:140px}
+.store-editor{max-width:760px}
+.store-editor p{margin-bottom:18px}
+.store-editor fieldset{margin-block:16px;border:1px solid var(--line);border-radius:6px;padding:16px}
+.store-editor .helptext{display:block;color:var(--muted);font-size:14px}
+.errorlist{color:#a22b40}
+.store-cart-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-block:18px;border-bottom:1px solid var(--line)}
+.store-cart-row h2{margin:0 0 8px}
+.store-cart-row form{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.store-cart-row input{width:80px;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:6px}
+.store-summary{margin-top:24px;padding:20px;background:var(--surface);border-radius:6px}
+.store-management-row{display:flex;justify-content:space-between;gap:16px;padding-block:12px;border-bottom:1px solid var(--line)}
+.store-management-row+section,section+section{margin-top:28px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:650px){.store-detail{grid-template-columns:1fr;gap:20px}.store-nav .nav-actions{margin-left:0}.store-cart-row form{width:100%}}
