@@ -37,3 +37,18 @@
   .demo-card { padding: 20px; }
 }
 @media print { .demo-header { display: none; } }
+
+/* Compact homepage cards expand into as many columns as the viewport allows. */
+.container.demo-home { width: min(1920px, calc(100% - 48px)); }
+.demo-catalog { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.demo-catalog .demo-card { padding: 20px; }
+.demo-catalog .demo-card h2 { margin: 12px 0 8px; font-size: 21px; }
+.demo-catalog .demo-card p, .demo-catalog .demo-card ul { font-size: 15px; }
+.demo-catalog .demo-card ul { margin-bottom: 18px; }
+.demo-catalog .demo-icon { width: 40px; height: 40px; }
+.demo-catalog .demo-icon svg { width: 23px; height: 23px; }
+.demo-header-inner { flex-wrap: wrap; }
+@media (max-width: 650px) {
+  .container.demo-home { width: calc(100% - 24px); }
+  .demo-nav { justify-content: flex-start; gap: 0 12px; }
+}
