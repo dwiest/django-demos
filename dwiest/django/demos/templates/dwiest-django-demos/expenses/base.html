@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Expense Tracker{% endblock %}</title>
+  <title>{% block title %}Expenses{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/expenses/ui.css' %}">
@@ -13,8 +13,8 @@
   <a class="skip" href="#main">Skip to content</a>
   {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='expenses' %}
   <header class="site-header">
-    <nav class="nav app-navigation container" aria-label="Expense tracker navigation">
-      <a class="brand" href="{% url 'demos:expenses:home' %}">Expense Tracker</a>
+    <nav class="nav app-navigation container" aria-label="Expenses navigation">
+      <a class="brand" href="{% url 'demos:expenses:home' %}">Expenses</a>
       <div class="expense-actions nav-actions">
         <a class="button secondary" href="{% url 'demos:expenses:list_add' %}">Create list</a>
         <a class="button primary" href="{% url 'demos:expenses:category_add' %}">Create category</a>

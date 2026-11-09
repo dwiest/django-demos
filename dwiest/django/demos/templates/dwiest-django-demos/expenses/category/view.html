@@ -1,7 +1,7 @@
 {% extends 'dwiest-django-demos/expenses/base.html' %}
 {% block title %}Expense category{% endblock %}
 {% block content %}
-<a class="back" href="{% url 'demos:expenses:home' %}">← Expense Tracker</a>
+<a class="back" href="{% url 'demos:expenses:home' %}">← Expenses</a>
 {% if expense_category %}
 <div class="page-heading">
   <h1>{{ expense_category.name }}</h1>
