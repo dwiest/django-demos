@@ -1,71 +1,70 @@
-<Html>
-
-<Head>
-  <Title>Selenium</Title>
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-{% include 'dwiest-django-demos/default.css' %}
-{% include 'dwiest-django-demos/django-messages.css' %}
-{% include 'dwiest-django-demos/selenium/selenium.css' %}
-{% load dwiest_django_demos.tags %}
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='Selenium' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
-{% endblock %}
-
-<Div class="filler"></Div>
-
-{% if form.image %}
-<Div align="center">
-<Img class="selenium" src="data:image/png;base64,{{form.image}}"/>
-</Div>
-
-<Div class="filler"></Div>
-{% endif %}
-
-{% if messages %}
-<P>
-{% for message in messages %}
-  <Div class="error" align="center">{{message}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.non_field_errors %}
-<P>
-{% for error in form.non_field_errors %}
-  <Div class="error" align="center">{{error}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% if form.errors %}
-<P>
-{% for field in form %}
-  {% for error in field.errors %}
-  <Div class="error" align="center">{{error}}</Div>
-  {% endfor %}
-{% endfor %}
-</P>
-{% endif %}
-
-<Form class="selenium" method="post" action="{% url 'demos:selenium:home' %}">
-  {% csrf_token %}
-  <Div><Span class="selenium-url-label">{{form.url.label}}:</Span> {{form.url}}</Div>
-  <Div><Span class="selenium-width-label">{{form.width.label}}:</Span> {{form.width}} <Span class="selenium-height-label">{{form.height.label}}:</Span> {{form.height}}</Div>
-  <Input class="selenium-button" type="submit" name="submit" value="Get Screenshot"></Input>
-</Form>
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Selenium | Django Demos</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
+  {% include 'dwiest-django-demos/selenium/selenium.css' %}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='selenium' %}
+  <main id="main" class="container">
+    <div class="page-heading">
+      <h1>Selenium</h1>
+    </div>
+    <p class="muted selenium-intro">Capture a webpage with an automated browser. Enter a URL and choose the browser window size.</p>
+    {% for message in messages %}
+      <div class="notice" role="status">{{ message }}</div>
+    {% endfor %}
+    <div class="selenium-layout">
+      <section class="selenium-panel" aria-labelledby="capture-heading">
+        <h2 id="capture-heading">Capture a webpage</h2>
+        <form method="post" action="{% url 'demos:selenium:home' %}">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div role="alert">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="field">
+            <label for="{{ form.url.id_for_label }}">{{ form.url.label }}</label>
+            {{ form.url }}
+            {% if form.url.errors %}<div role="alert">{{ form.url.errors }}</div>{% endif %}
+            <p class="muted selenium-help">Enter the full address, including https://.</p>
+          </div>
+          <div class="selenium-dimensions">
+            <div class="field">
+              <label for="{{ form.width.id_for_label }}">{{ form.width.label }} (px)</label>
+              {{ form.width }}
+              {% if form.width.errors %}<div role="alert">{{ form.width.errors }}</div>{% endif %}
+            </div>
+            <div class="field">
+              <label for="{{ form.height.id_for_label }}">{{ form.height.label }} (px)</label>
+              {{ form.height }}
+              {% if form.height.errors %}<div role="alert">{{ form.height.errors }}</div>{% endif %}
+            </div>
+          </div>
+          <button class="button primary" type="submit" name="submit" value="Get Screenshot">Get Screenshot</button>
+          <p class="muted selenium-help">The page may take a few moments to load and capture.</p>
+        </form>
+      </section>
+      <section class="selenium-panel selenium-preview" aria-labelledby="preview-heading">
+        <h2 id="preview-heading">Screenshot preview</h2>
+        {% if form.image %}
+          <div class="selenium-image-wrap">
+            <img class="selenium-image" src="data:image/png;base64,{{ form.image }}" alt="Screenshot of {{ form.url.value }}">
+          </div>
+          <a class="button secondary" href="data:image/png;base64,{{ form.image }}" download="selenium-screenshot.png">Download PNG</a>
+        {% else %}
+          <div class="selenium-empty">
+            <p>Your screenshot will appear here.</p>
+            <p class="muted">Enter a URL and window size, then select Get Screenshot.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </main>
+</body>
+</html>
