@@ -61,13 +61,18 @@ def prepare_image(upload):
             'width': width, 'height': height}
 
 
-def upload_image(product, prepared):
+def upload_asset(directory, prepared):
     bucket = getattr(settings, 'STORE_MEDIA_BUCKET', 'rotten.world')
     prefix = getattr(settings, 'STORE_MEDIA_PREFIX', 'store/products').strip('/')
-    key = '{}/{}/{}.{}'.format(prefix, product.pk, uuid4().hex, prepared['extension'])
+    key = '{}/{}/{}.{}'.format(prefix, directory, uuid4().hex, prepared['extension'])
     s3_client().put_object(Bucket=bucket, Key=key, Body=prepared['data'],
                            ContentType=prepared['content_type'], CacheControl='private, max-age=300')
     return bucket, key
+
+
+
+def upload_image(product, prepared):
+    return upload_asset(str(product.pk), prepared)
 
 
 def photo_url(photo):

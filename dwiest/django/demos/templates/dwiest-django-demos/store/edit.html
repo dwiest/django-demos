@@ -25,7 +25,7 @@
     <section class="store-photo-editor" aria-labelledby="photos-heading">
       <h2 id="photos-heading">Product photos</h2>
       {% if form.instance.pk %}
-        <p class="muted">The lowest order number appears first and is used in the catalog. Photos save separately from product details.</p>
+        <p class="muted">Photos marked 0 appear as selectable featured images in the catalog. The first photo is the default cover. Photos save separately from product details.</p>
         {% include 'dwiest-django-demos/store/photo_upload.html' with product=form.instance %}
         <div class="store-photo-grid">
           {% for photo in form.instance.photos.all %}

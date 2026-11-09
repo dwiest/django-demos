@@ -129,8 +129,9 @@ class StoreTests(TestCase):
         self.assertTrue(Catalog.objects.get(slug='art').published)
 
     def test_seed_is_repeatable_and_preserves_edits(self):
+        Product.objects.all().delete()
         call_command('seed_store', stdout=StringIO())
-        hat = Product.objects.get(slug='rottenworld-hat')
+        hat = Product.objects.get(slug='oddment-hat')
         hat.name = 'My edited hat'
         hat.save()
         count = ProductVariant.objects.count()
