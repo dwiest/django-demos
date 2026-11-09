@@ -24,5 +24,6 @@
     {% for message in messages %}<div class="notice" role="status">{{ message }}</div>{% endfor %}
     {% block content %}{% endblock %}
   </main>
+  {% include 'dwiest-django-demos/components/site_footer.html' %}
 </body>
 </html>
