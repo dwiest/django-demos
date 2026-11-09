@@ -55,12 +55,12 @@
 .store-header-links{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .store-header-links>a:not(.button){color:var(--ink)}
 .store-footer{background:#182c2b;color:#f4f5ed;margin-top:32px;padding-block:32px 20px}
-.store-footer-inner{display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:start}
-.store-footer h2{margin:8px 0 12px}
+.store-footer-inner{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:32px;align-items:baseline}
+.store-footer h2{margin:0 0 12px}
 .store-footer-copy{max-width:60ch}
 .store-footer nav{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .store-footer a{color:#e0eee6}
-.store-footer-image{max-width:220px;max-height:100px;object-fit:contain}
+.store-footer-image{display:block;width:420px;max-width:100%;height:auto;object-fit:contain;margin-bottom:16px}
 .store-copyright{font-size:13px;border-top:1px solid #ffffff30;margin-top:24px;padding-top:16px;color:#c7d2cc}
 .store-card-choices{display:flex;gap:8px;flex-wrap:wrap;margin-block:12px}
 .store-photo-choice{width:46px;height:46px;padding:3px;border:2px solid var(--line);border-radius:50%;background:white}
