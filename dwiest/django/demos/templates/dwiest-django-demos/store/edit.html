@@ -21,4 +21,34 @@
       <a class="button secondary" href="{% url 'demos:store:manage' %}">Cancel</a>
     </div>
   </form>
+  {% if kind == 'product' %}
+    <section class="store-photo-editor" aria-labelledby="photos-heading">
+      <h2 id="photos-heading">Product photos</h2>
+      {% if form.instance.pk %}
+        <p class="muted">The lowest order number appears first and is used in the catalog. Photos save separately from product details.</p>
+        {% include 'dwiest-django-demos/store/photo_upload.html' with product=form.instance %}
+        <div class="store-photo-grid">
+          {% for photo in form.instance.photos.all %}
+            <article class="store-card">
+              <a href="{{ photo.url }}" target="_blank" rel="noopener"><img class="store-image" src="{{ photo.url }}" alt="{{ photo.alt_text|default:form.instance.name }}" loading="lazy"></a>
+              {% if perms.demo_store.change_productphoto %}
+                <form method="post" action="{% url 'demos:store:photo_edit' form.instance.pk photo.pk %}" class="store-form">
+                  {% csrf_token %}
+                  <p><label for="alt-{{ photo.pk }}">Alt text</label><input id="alt-{{ photo.pk }}" name="alt_text" value="{{ photo.alt_text }}" maxlength="255"></p>
+                  <p><label for="order-{{ photo.pk }}">Display order</label><input id="order-{{ photo.pk }}" name="sort_order" type="number" min="0" value="{{ photo.sort_order }}" required></p>
+                  <button class="button secondary" type="submit">Save photo details</button>
+                </form>
+              {% endif %}
+              {% if perms.demo_store.delete_productphoto %}
+                <form method="post" action="{% url 'demos:store:photo_delete' form.instance.pk photo.pk %}" class="store-photo-remove">
+                  {% csrf_token %}
+                  <button class="button secondary" type="submit">Remove photo</button>
+                </form>
+              {% endif %}
+            </article>
+          {% empty %}<p>No uploaded photos yet.</p>{% endfor %}
+        </div>
+      {% else %}<p>Save the product first, then reopen it to upload photos.</p>{% endif %}
+    </section>
+  {% endif %}
 {% endblock %}

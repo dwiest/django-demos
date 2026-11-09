@@ -1,0 +1,11 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <h1>Edit photo for {{ photo.product.name }}</h1>
+  <img class="store-photo-preview" src="{{ photo.url }}" alt="{{ photo.alt_text|default:photo.product.name }}">
+  <form method="post" class="store-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button primary" type="submit">Save photo details</button>
+    <a href="{% url 'demos:store:product_edit' photo.product_id %}">Back to product</a>
+  </form>
+{% endblock %}

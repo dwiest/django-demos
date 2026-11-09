@@ -1,9 +1,22 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
 {% block title %}{{ product.name }} | Store{% endblock %}
 {% block content %}
   <p><a href="{% url 'demos:store:home' %}">← All products</a></p>
   <div class="store-detail">
-    {% include 'dwiest-django-demos/store/image.html' %}
+    <section aria-label="Product photos" data-photo-gallery>
+      {% include 'dwiest-django-demos/store/image.html' %}
+      {% if product.photos.all %}
+        <div class="store-photo-thumbnails">
+          {% for photo in product.photos.all %}
+            <a href="{{ photo.url }}" data-photo-link data-alt="{{ photo.alt_text|default:product.name }}" aria-label="View photo {{ forloop.counter }} of {{ product.name }}">
+              <img src="{{ photo.url }}" alt="{{ photo.alt_text|default:product.name }}" loading="lazy" referrerpolicy="no-referrer">
+            </a>
+          {% endfor %}
+        </div>
+        <p class="muted">Select a photo to enlarge it.</p>
+      {% endif %}
+    </section>
     <section>
       <h1>{{ product.name }}</h1>
       <div class="store-description">{{ product.description|linebreaks }}</div>
@@ -29,4 +42,5 @@
       <p class="store-demo-note">Demo only. No purchases or payments can be made.</p>
     </section>
   </div>
+  <script src="{% static 'dwiest-django-demos/store/gallery.js' %}" defer></script>
 {% endblock %}

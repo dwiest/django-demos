@@ -1,0 +1,7 @@
+{% if perms.demo_store.add_productphoto and perms.demo_store.change_product %}
+  <form method="post" enctype="multipart/form-data" action="{% url 'demos:store:photo_upload' product.pk %}" class="store-form store-photo-upload">
+    {% csrf_token %}
+    {{ photo_upload.as_p }}
+    <button class="button primary" type="submit">Upload photos</button>
+  </form>
+{% endif %}
