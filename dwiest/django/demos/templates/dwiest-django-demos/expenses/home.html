@@ -1,63 +1,48 @@
-<Html>
-  <Head>
-    <Title>Expense Tracker</Title>
-    {% include 'dwiest-django-demos/django-messages.css' %}
-    {% include 'dwiest-django-demos/expenses/expenses.css' %}
-    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    </Head>
-  <Body>
-    {% include "dwiest-django-demos/hamburgernav.html" %}
-
-    <Div class="page_title">
-      Expense Tracker
-      </Div>
-
-
-    <Div style="width:80%;margin-left:auto;margin-right:auto;">
-      {% include 'dwiest-django-demos/django-messages.html' %}
-
-      <Div class="actions" style="text-align:center;">
-        <Div>
-	  A
-	  |
-	  B
-	  </Div>
-      <Div style="float:right;">
-        <A href="{% url 'demos:expenses:list_add' %}">Create List</A>
-	|
-        <A href="{% url 'demos:expenses:category_add' %}">Create Category</A>
-	</Div>
-
-    <Div>
-    <P>
-    Expense Lists
-    {% if expense_lists %}
-    <Ul>
+{% extends 'dwiest-django-demos/expenses/base.html' %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <h1>Expense Tracker</h1>
+    <p class="muted expense-subtitle">Organize spending into lists and categories.</p>
+  </div>
+</div>
+<div class="demo-grid">
+  <section class="expense-panel" aria-labelledby="lists-heading">
+    <div class="expense-panel-heading">
+      <h2 id="lists-heading">Expense lists</h2>
+      <span class="tag">{{ expense_lists|length }}</span>
+    </div>
     {% for list in expense_lists %}
-      <Li><A href="{% url 'demos:expenses:list_view' %}?id={{list.id}} ">{{list.name}}</A></Li>
+    <article class="expense-row">
+      <h3><a href="{% url 'demos:expenses:list_view' %}?id={{ list.id }}">{{ list.name }}</a></h3>
+      <p class="muted">{{ list.description }}</p>
+    </article>
+    {% empty %}
+    <div class="empty">
+      <h3>No expense lists yet</h3>
+      <p class="muted">Create a list to group related expenses.</p>
+      <a class="button primary" href="{% url 'demos:expenses:list_add' %}">Create your first list</a>
+    </div>
     {% endfor %}
-      </Ul>
-    {% else %}
-    <P>
-    Create your first list!
-    {% endif %}
-      </Div>
-
-    <P>
-    Expense Categories
-    {% if expense_categories %}
-    <Ul>
+  </section>
+  <section class="expense-panel" aria-labelledby="categories-heading">
+    <div class="expense-panel-heading">
+      <h2 id="categories-heading">Categories</h2>
+      <span class="tag">{{ expense_categories|length }}</span>
+    </div>
     {% for category in expense_categories %}
-      <Li><A href="{% url 'demos:expenses:category_view' %}?id={{category.id}} ">{{category.name}}</A></Li>
+    <article class="expense-row">
+      <h3><a href="{% url 'demos:expenses:category_view' %}?id={{ category.id }}">{{ category.name }}</a></h3>
+      <p class="muted">{{ category.description }}</p>
+      <span class="tag">{{ category.code }}</span>
+    </article>
+    {% empty %}
+    <div class="empty">
+      <h3>No categories yet</h3>
+      <p class="muted">Create categories to describe your spending.</p>
+      <a class="button primary" href="{% url 'demos:expenses:category_add' %}">Create your first category</a>
+    </div>
     {% endfor %}
-      </Ul>
-    {% else %}
-    <P>
-    Create your expense category!
-    {% endif %}
-      </Div>
-
-
-      </Div>
-    </Body>
-  </Html>
+  </section>
+</div>
+{% endblock %}
