@@ -1,29 +1,32 @@
-<Html>
-<Head>
-  <Title>Inventory Tracker</Title>
-</Head>
-<Body>
-<Div align="center">
-<H1>Inventory Tracker</H1>
-</Div>
-<H2>Inventory Lists</H2>
-<P>
-{% for list in lists %}
-<Div name="list">
-<A href="{% url 'demos:inventory:list_view' %}?id={{list.id}}">{{list.name}}</A> - {{list.description}}, <A href="{% url 'demos:inventory:list_edit' %}?id={{list.id}}">edit</A>
-</Div>
-{% endfor %}
-<P>
-<A href="{% url 'demos:inventory:list_create' %}">Create List</A>
-<Hr>
-<H2>Inventory Items</H2>
-{% for item in items %}
-<Div name="item">
-<A href="{% url 'demos:inventory:item_view' %}?id={{item.id}}">{{item.name}}</A> - {{item.description}}, <A href="{% url 'demos:inventory:item_edit' %}?id={{item.id}}">edit</A>
-{% endfor %}
-</Div>
-<P>
-<A href="{% url 'demos:inventory:item_create' %}">Create Item</A>
-
-</Body>
-</Html>
+{% extends 'dwiest-django-demos/inventory/base.html' %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>Inventory Tracker</h1><p class="muted inventory-subtitle">Organize items into lists and keep track of quantities.</p></div>
+</div>
+<div class="demo-grid">
+  <section class="inventory-panel" aria-labelledby="lists-heading">
+    <div class="inventory-panel-heading"><h2 id="lists-heading">Inventory lists</h2><span class="tag">{{ lists|length }}</span></div>
+    {% for list in lists %}
+    <article class="inventory-row">
+      <h3><a href="{% url 'demos:inventory:list_view' %}?id={{ list.id }}">{{ list.name }}</a></h3>
+      <p class="muted">{{ list.description }}</p>
+      <a href="{% url 'demos:inventory:list_edit' %}?id={{ list.id }}">Edit list</a>
+    </article>
+    {% empty %}
+    <div class="empty"><h3>No inventory lists yet</h3><p class="muted">Create a list for a room, project, or collection.</p><a class="button primary" href="{% url 'demos:inventory:list_create' %}">Create your first list</a></div>
+    {% endfor %}
+  </section>
+  <section class="inventory-panel" aria-labelledby="items-heading">
+    <div class="inventory-panel-heading"><h2 id="items-heading">Item catalog</h2><span class="tag">{{ items|length }}</span></div>
+    {% for item in items %}
+    <article class="inventory-row">
+      <h3><a href="{% url 'demos:inventory:item_view' %}?id={{ item.id }}">{{ item.name }}</a></h3>
+      <p class="muted">{{ item.description }}</p>
+      <a href="{% url 'demos:inventory:item_edit' %}?id={{ item.id }}">Edit item</a>
+    </article>
+    {% empty %}
+    <div class="empty"><h3>No items yet</h3><p class="muted">Create an item, then add it to a list with a quantity.</p><a class="button primary" href="{% url 'demos:inventory:item_create' %}">Create your first item</a></div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

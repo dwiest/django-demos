@@ -181,6 +181,10 @@ class InventoryListEditView(TemplateView):
 
     delete_list = request.POST.get('delete')
 
+    if not form.is_valid():
+      self.response_dict[self.ResponseDict.FORM] = form
+      return render(request, self.template_name, self.response_dict)
+
     if form.is_valid():
       try:
         if delete_list:
@@ -297,6 +301,10 @@ class InventoryItemEditView(TemplateView):
 
     delete_item = request.POST.get('delete')
 
+    if not form.is_valid():
+      self.response_dict[self.ResponseDict.FORM] = form
+      return render(request, self.template_name, self.response_dict)
+
     if form.is_valid():
       try:
         if delete_item:
@@ -410,6 +418,10 @@ class InventoryEntryEditView(TemplateView):
     form = self.form_class(instance=item, data=request.POST)
 
     delete_entry = request.POST.get('delete')
+
+    if not form.is_valid():
+      self.response_dict[self.ResponseDict.FORM] = form
+      return render(request, self.template_name, self.response_dict)
 
     if form.is_valid():
       try:
