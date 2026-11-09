@@ -1,53 +1,15 @@
-<Html>
-<Head>
-  <Title>Today's News</Title>
-{% include "dwiest-django-demos/default.css" %}
-{% include "dwiest-django-demos/header.css" %}
-{% include "dwiest-django-demos/django-messages.css" %}
-{% include "dwiest-django-demos/news/news.css" %}
-{% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</Head>
-
-<Body>
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div class="header">Today's News</Div>
-
-{% include "dwiest-django-demos/news/websocket.html" %}
-
-{% include "dwiest-django-demos/django-messages.html" %}
-
-{% if news %}
-<Ul class="news_list">
-{%for item in news %}
-  <Li>
-  {% if item.status == 0 %}
-    <A href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A></Li>
-  {% else %}
-    <A class="deleted" href="{% url 'demos:news:view' %}?id={{item.id}}">{{item.name}}</A></Li>
-  {% endif %}
-  </Li>
-{%endfor%}
-</Ul>
-{% else %}
-<Div class="no_items">
-Didn't find any news, why not add something?
-</Div>
-{% endif %}
-
-<Div align="center">
-<Span>
-<A class="new_item" href="{% url 'demos:news:create' %}">Create news item</A>
-{% if news %}
--
-<A class="delete" href="{% url 'demos:news:delete' %}">Delete inactive items</A>
-{% endif %}
-</Span>
-</Div>
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>
+{% extends 'dwiest-django-demos/news/base.html' %}
+{% block content %}
+  <div class="page-heading"><div><h1>Live news feed</h1><p class="muted">Connect to cycle through news items without reloading the page.</p></div></div>
+  {% include 'dwiest-django-demos/news/websocket.html' %}
+  <section class="news-panel" aria-labelledby="items-heading">
+    <div class="page-heading"><h2 id="items-heading">Your news items</h2><a href="{% url 'demos:news:delete' %}">Delete inactive items</a></div>
+    <ul class="news-list">
+      {% for item in news %}
+      <li><a href="{% url 'demos:news:view' %}?id={{ item.id }}">{{ item.name }}</a><span class="tag">{% if item.status == 0 %}Active{% else %}Inactive{% endif %}</span></li>
+      {% empty %}
+      <li class="empty"><div><h2>No news items yet</h2><p class="muted">Create an item to get started with your news collection.</p><a class="button primary" href="{% url 'demos:news:create' %}">Create news item</a></div></li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endblock %}
