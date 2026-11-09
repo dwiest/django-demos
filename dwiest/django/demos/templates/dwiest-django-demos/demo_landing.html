@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore ten practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore the applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
@@ -87,6 +87,13 @@
         <p>Capture a webpage with an automated browser.</p>
         <ul><li>Enter a webpage URL</li><li>Choose the browser window size</li><li>Preview and download a PNG screenshot</li></ul>
         <a class="button primary" href="{% url 'demos:selenium:home' %}">Open Selenium <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-1 14H5Z M8 7V5a4 4 0 0 1 8 0v2"/></svg></span>
+        <h2>Store</h2>
+        <p>Explore a merchandise shop featuring RottenWorld.</p>
+        <ul><li>Browse products and catalogs</li><li>Choose options and build a cart</li><li>Manage products with administrator permissions</li></ul>
+        <a class="button primary" href="{% url 'demos:store:home' %}">Open Store <span aria-hidden="true">→</span></a>
       </article>
     </section>
     <details class="older-demos">

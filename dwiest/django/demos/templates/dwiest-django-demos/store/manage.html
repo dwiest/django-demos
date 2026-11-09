@@ -1,0 +1,28 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <div class="page-heading"><h1>Manage store</h1></div>
+  <section>
+    <div class="page-heading">
+      <h2>Products</h2>
+      {% if perms.demo_store.add_product and perms.demo_store.add_productvariant %}<a class="button primary" href="{% url 'demos:store:product_create' %}">Add product</a>{% endif %}
+    </div>
+    {% for product in products %}
+      <div class="store-management-row">
+        <span>{{ product.name }} · {% if product.published %}Published{% else %}Draft{% endif %}</span>
+        {% if perms.demo_store.change_product and perms.demo_store.change_productvariant and perms.demo_store.add_productvariant and perms.demo_store.delete_productvariant %}<a href="{% url 'demos:store:product_edit' product.pk %}">Edit <span class="sr-only">{{ product.name }}</span></a>{% endif %}
+      </div>
+    {% empty %}<p>No products yet.</p>{% endfor %}
+  </section>
+  <section>
+    <div class="page-heading">
+      <h2>Catalogs</h2>
+      {% if perms.demo_store.add_catalog %}<a class="button secondary" href="{% url 'demos:store:catalog_create' %}">Add catalog</a>{% endif %}
+    </div>
+    {% for catalog in catalogs %}
+      <div class="store-management-row">
+        <span>{{ catalog.name }} · {% if catalog.published %}Published{% else %}Draft{% endif %}</span>
+        {% if perms.demo_store.change_catalog %}<a href="{% url 'demos:store:catalog_edit' catalog.pk %}">Edit <span class="sr-only">{{ catalog.name }}</span></a>{% endif %}
+      </div>
+    {% empty %}<p>No catalogs yet.</p>{% endfor %}
+  </section>
+{% endblock %}

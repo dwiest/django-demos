@@ -1,0 +1,28 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <div class="page-heading"><h1>Your cart</h1><a href="{% url 'demos:store:home' %}">Continue shopping</a></div>
+  {% if cart_error %}<p class="notice" role="alert">{{ cart_error }}</p>{% endif %}
+  {% for row in cart_rows %}
+    <article class="store-cart-row">
+      <div>
+        <h2><a href="{% url 'demos:store:product' row.variant.product.slug %}">{{ row.variant.product.name }}</a></h2>
+        <p>{{ row.variant.name }} · ${{ row.variant.price|floatformat:2 }} USD each</p>
+      </div>
+      <form method="post" action="{% url 'demos:store:update' row.variant.pk %}">
+        {% csrf_token %}
+        <label for="quantity-{{ row.variant.pk }}">Quantity <span class="sr-only">for {{ row.variant }}</span></label>
+        <input id="quantity-{{ row.variant.pk }}" name="quantity" type="number" min="1" max="99" value="{{ row.quantity }}" required>
+        <button class="button secondary" type="submit">Update</button>
+        <button class="button secondary" type="submit" name="action" value="remove" formnovalidate>Remove</button>
+      </form>
+      <strong>${{ row.subtotal|floatformat:2 }} USD</strong>
+    </article>
+  {% empty %}<p>Your cart is empty. <a href="{% url 'demos:store:home' %}">Explore the shop.</a></p>{% endfor %}
+  {% if cart_rows %}
+    <section class="store-summary" aria-label="Cart total">
+      <h2>Subtotal: ${{ cart_total|floatformat:2 }} USD</h2>
+      <p class="muted">Shipping and tax are not calculated in this demo.</p>
+      <p>Checkout coming soon.</p>
+    </section>
+  {% endif %}
+{% endblock %}

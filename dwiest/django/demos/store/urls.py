@@ -1,0 +1,18 @@
+from django.urls import path
+
+from . import views
+
+app_name = 'store'
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('catalog/<slug:slug>/', views.home, name='catalog'),
+    path('product/<slug:slug>/', views.product, name='product'),
+    path('product/<slug:slug>/add/', views.add, name='add'),
+    path('cart/', views.cart, name='cart'),
+    path('cart/<int:pk>/', views.update, name='update'),
+    path('manage/', views.manage, name='manage'),
+    path('manage/products/new/', views.product_create, name='product_create'),
+    path('manage/products/<int:pk>/', views.product_edit, name='product_edit'),
+    path('manage/catalogs/new/', views.catalog_create, name='catalog_create'),
+    path('manage/catalogs/<int:pk>/', views.catalog_edit, name='catalog_edit'),
+]

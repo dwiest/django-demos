@@ -1,0 +1,24 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <div class="page-heading"><h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} {{ kind }}</h1></div>
+  <form method="post" class="store-form store-editor">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if variants %}
+      <h2>Variants and prices (USD)</h2>
+      <p class="muted">Use one Standard variant for products without options. Save and reopen the product to add more variants.</p>
+      {{ variants.management_form }}
+      {{ variants.non_form_errors }}
+      {% for variant_form in variants %}
+        <fieldset>
+          <legend>Variant {{ forloop.counter }}</legend>
+          {{ variant_form.as_p }}
+        </fieldset>
+      {% endfor %}
+    {% endif %}
+    <div class="store-catalogs">
+      <button class="button primary" type="submit">Save {{ kind }}</button>
+      <a class="button secondary" href="{% url 'demos:store:manage' %}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Store | Django Demos{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/ui.css' %}">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='store' %}
+  <header class="site-header">
+    <nav class="nav container store-nav" aria-label="Store navigation">
+      <a class="brand" href="{% url 'demos:store:home' %}">Store</a>
+      <a href="{% url 'demos:store:home' %}">Browse</a>
+      {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}
+        <a href="{% url 'demos:store:manage' %}">Manage store</a>
+      {% endif %}
+      <a class="button secondary nav-actions" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>
+    </nav>
+  </header>
+  <main id="main" class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% include 'dwiest-django-demos/components/site_footer.html' %}
+</body>
+</html>
