@@ -1,100 +1,57 @@
-<Html>
-<Head>
-  <Title>File Demo</Title>
-{% include "dwiest-django-demos/default.css" %}
-{% include "dwiest-django-demos/django-messages.css" %}
-{% include "dwiest-django-demos/tooltips.css" %}
-{% include "dwiest-django-demos/file/file.css" %}
+{% extends 'dwiest-django-demos/file/base.html' %}
 {% load dwiest_django_demos.file.filters %}
-{% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='File Manager' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>Your files</h1><p class="muted file-subtitle">Upload files, review their details, and keep them within reach.</p></div>
+</div>
+<div class="file-overview">
+  <section class="file-panel" id="upload" aria-labelledby="upload-heading">
+    <h2 id="upload-heading">Upload a file</h2>
+    <form method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="field">
+        <label for="{{ form.file.id_for_label }}">Choose file</label>
+        {{ form.file }}
+        {{ form.file.errors }}
+      </div>
+      <button class="button primary" type="submit">Upload file</button>
+    </form>
+  </section>
+  <section class="file-panel" aria-labelledby="storage-heading">
+    <h2 id="storage-heading">Storage overview</h2>
+    <dl class="file-details">
+      <div><dt>Files</dt><dd>{{ summary.files }} / {{ quota.max_files }}</dd></div>
+      <div><dt>Storage used</dt><dd>{{ summary.size|format_bytes:2 }} / {{ quota.max_total_filesize|format_bytes:2 }}</dd></div>
+      <div><dt>Maximum file size</dt><dd>{{ quota.max_filesize|format_bytes:2 }}</dd></div>
+    </dl>
+  </section>
+</div>
+<section class="file-panel" aria-labelledby="files-heading">
+  <h2 id="files-heading">Uploaded files</h2>
+  {% if files %}
+  <div class="file-table-scroll" role="region" aria-label="Uploaded files" tabindex="0">
+    <table class="file-table">
+      <thead><tr><th scope="col">Filename</th><th scope="col">Content type</th><th scope="col">Size</th><th scope="col">Uploaded</th><th scope="col">Actions</th></tr></thead>
+      <tbody>
+        {% for file in files %}
+        <tr>
+          <th scope="row"><a href="{% url 'demos:file:details' %}?path={{ file.path|urlencode }}">{{ file.name }}</a></th>
+          <td>{{ file.content_type }}</td>
+          <td class="file-size">{{ file.size|format_bytes:2 }}</td>
+          <td><time datetime="{{ file.created_at|date:'c' }}" title="{{ file.created_at|date:'M j, Y, H:i:s T' }}">{{ file.created_at|date:'M j, Y' }}</time></td>
+          <td><div class="file-actions">
+            <a class="button secondary" href="{% url 'demos:file:open' %}?path={{ file.path|urlencode }}" target="_blank" rel="noopener">Open<span class="sr-only"> {{ file.name }} in a new tab</span></a>
+            <a class="button secondary" href="{% url 'demos:file:download' %}?path={{ file.path|urlencode }}">Download<span class="sr-only"> {{ file.name }}</span></a>
+            <a class="button file-danger" href="{% url 'demos:file:delete' %}?path={{ file.path|urlencode }}">Delete<span class="sr-only"> {{ file.name }}</span></a>
+          </div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><h3>No files yet</h3><p class="muted">Choose a file above to upload your first one.</p><a class="button secondary" href="#upload">Upload a file</a></div>
+  {% endif %}
+</section>
 {% endblock %}
-
-<Div class="filler"></Div>
-
-{% if messages %}
-<P>
-{% for message in messages %}
-  <Div class="{{message.tags}}">{{message}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-{% for error in form.non_field_errors %}
-  <Div class="error">{{error}}</Div>
-{% endfor %}
-
-<Table class="index">
-  <Tr>
-    <Th>Filename</Span></Th>
-    <Th>Content-Type</Th>
-    <Th>Size</Th>
-    <Th>Upload Date</Th>
-    <Th>Scanned?</Th>
-    <Th>Action</Th>
-    </Tr>
-{% if not files %}
-  <Tr>
-    <Td colspan="6">No files have been uploaded.</Td>
-    </Tr>
-{% else %}
-{% for file in files %}
-  <Tr>
-    <Td><A href="{% url 'demos:file:details' %}?path={{file.path}}">{{file.name}}</A></Td>
-    <Td>{{file.content_type}}</Td>
-    <Td>{{file.size|format_bytes:2}}</Td>
-    <Td><Div class="tooltip">{{file.created_at|date:"m/d/Y"}}<Span class="tooltiptext">{{file.created_at|date:"h:i:s A e"}}</Span></Div></Td>
-    <Td>No</Td>
-    <Td>
-      <Button class="delete"><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete</A></Button><Br/>
-      <Button class="download"><A href="{% url 'demos:file:download' %}?path={{file.path}}">Download</A></Button><Br/>
-      <Button class="open"><A href="{% url 'demos:file:open' %}?path={{file.path}}" target="{{file.path}}">Open</A></Button>
-      </Td>
-{% endfor %}
-{% endif %}
-</Table>
-
-<Div align="center">
-<Table class="info">
-  <Tr>
-    <Th>Files:</Th>
-    <Td>{{summary.files}}/{{quota.max_files}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Max. file size:</Th>
-    <Td>{{quota.max_filesize|format_bytes:2}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Total file size:</Th>
-    <Td>{{summary.size|format_bytes:2}}/{{quota.max_total_filesize|format_bytes:2}}</Td>
-    </Tr>
-  </Table>
-</Div>
-
-<Div class="filler"></Div>
-
-<Div align="center">
-<Form class="file" method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
-{% csrf_token %}
-  {{form.file}}
-  <Input class="submit" type="submit" value="Upload"/>
-  </Form>
-</Div>
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>

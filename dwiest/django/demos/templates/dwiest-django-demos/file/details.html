@@ -1,95 +1,38 @@
-<Html>
-<Head>
-  <Title>File Details</Title>
-{% include "dwiest-django-demos/default.css" %}
-{% include "dwiest-django-demos/django-messages.css" %}
-{% include "dwiest-django-demos/file/file.css" %}
+{% extends 'dwiest-django-demos/file/base.html' %}
 {% load dwiest_django_demos.file.filters %}
-{% load dwiest_django_demos.tags %}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<Div style="height:50px;"></Div>
-
-{% block header %}
-{% with title='File Manager' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
+{% block title %}File details | File Manager{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:file:index' %}">← All files</a>
+<div class="page-heading"><div><h1>File details</h1><p class="muted file-subtitle file-name">{{ file.name }}</p></div></div>
+<div class="file-editor-grid">
+  <section class="file-panel" aria-labelledby="edit-heading">
+    <h2 id="edit-heading">Edit file</h2>
+    <form class="file-editor" method="post" action="{% url 'demos:file:details' %}?path={{ file.path|urlencode }}">
+      {% csrf_token %}
+      <input type="hidden" name="path" value="{{ file.path }}">
+      {{ form.non_field_errors }}
+      <div class="field"><label for="{{ form.name.id_for_label }}">Filename</label>{{ form.name }}{{ form.name.errors }}</div>
+      <div class="field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{{ form.description.errors }}</div>
+      <div class="field"><label for="{{ form.versioned.id_for_label }}">{{ form.versioned }} Versioning enabled</label>{{ form.versioned.errors }}</div>
+      <div class="save-actions"><button class="button primary" type="submit">Save changes</button><a class="button secondary" href="{% url 'demos:file:index' %}">Cancel</a></div>
+    </form>
+  </section>
+  <section class="file-panel" aria-labelledby="info-heading">
+    <h2 id="info-heading">File information</h2>
+    <dl class="file-details">
+      <div><dt>Content type</dt><dd>{{ file.content_type }}</dd></div>
+      <div><dt>Size</dt><dd>{{ file.size|format_bytes:2 }}</dd></div>
+      <div><dt>Uploaded</dt><dd>{{ file.created_at|date:'M j, Y, H:i:s T' }}</dd></div>
+      <div><dt>Antivirus scan</dt><dd>Not available</dd></div>
+      <div><dt>File version</dt><dd>1</dd></div>
+      <div><dt>MD5 checksum</dt><dd><code>{{ file.md5_checksum }}</code></dd></div>
+      <div><dt>SHA256 checksum</dt><dd><code>{{ file.sha256_checksum }}</code></dd></div>
+    </dl>
+    <div class="file-actions">
+      <a class="button secondary" href="{% url 'demos:file:open' %}?path={{ file.path|urlencode }}" target="_blank" rel="noopener">Open<span class="sr-only"> in a new tab</span></a>
+      <a class="button secondary" href="{% url 'demos:file:download' %}?path={{ file.path|urlencode }}">Download</a>
+      <a class="button file-danger" href="{% url 'demos:file:delete' %}?path={{ file.path|urlencode }}">Delete file</a>
+    </div>
+  </section>
+</div>
 {% endblock %}
-
-<Div class="filler"></Div>
-
-{% if messages %}
-<P>
-{% for message in messages %}
-  <Div class="{{message.tags}}">{{message}}</Div>
-{% endfor %}
-</P>
-{% endif %}
-
-<Form class="details" method="post" action="{% url 'demos:file:details' %}?path={{file.path}}">
-{% csrf_token %}
-
-<Table class="details">
-  <Tr>
-    <Th>Filename</Th>
-    <Td>{{form.name}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Content-Type</Th>
-    <Td>{{file.content_type}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Size</Th>
-    <Td>{{file.size|format_bytes:2}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Upload Date</Th>
-    <Td>{{file.created_at|date:"d/m/Y h:i:s A e"}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Anti-virus Scan Results</Th>
-    <Td><i>N/A</i></Td>
-    </Tr>
-  <Tr>
-    <Th>MD5 Checksum</Th>
-    <Td>{{file.md5_checksum}}</Td>
-    </Tr>
-  <Tr>
-    <Th>SHA256 Checksum</Th>
-    <Td>{{file.sha256_checksum}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Description</Th>
-    <Td>{{form.description}}</Td>
-    </Tr>
-  <Tr>
-    <Th>Versioning Enabled</Th>
-    <Td>{{form.versioned}}</Td>
-    </Tr>
-  <Tr>
-    <Th>File Version</Th>
-    <Td>1</Td>
-    </Tr>
-</Table>
-
-<Div align="center">
-<Input type="hidden" name="path" value="{{file.path}}"/>
-<Button><A href="{% url 'demos:file:delete' %}?path={{file.path}}">Delete File</A></Button>
-<Input type="submit" value="Update"/>
-</Div>
-</Form>
-
-<Div class="filler"></Div>
-
-<Div align="center"><A class="back-to-index" href="{% url 'demos:file:index' %}"}>Back to File Index</A></Div>
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>
