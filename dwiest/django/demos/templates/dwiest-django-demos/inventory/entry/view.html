@@ -1,5 +1,5 @@
 {% extends 'dwiest-django-demos/inventory/base.html' %}
-{% block title %}List entry · Inventory Tracker{% endblock %}
+{% block title %}List entry · Inventory{% endblock %}
 {% block content %}
 <div class="page-heading"><h1>{{ item.item.name }}</h1><a class="button primary" href="{% url 'demos:inventory:entry_edit' %}?id={{ item.id }}">Edit entry</a></div>
 <section class="inventory-panel"><h2>List entry</h2><dl class="inventory-details">

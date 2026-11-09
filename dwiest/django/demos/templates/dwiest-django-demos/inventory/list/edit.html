@@ -1,5 +1,5 @@
 {% extends 'dwiest-django-demos/inventory/base.html' %}
-{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} list · Inventory Tracker{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} list · Inventory{% endblock %}
 {% block content %}
 <div class="page-heading"><h1>{% if form.instance.pk %}Edit{% else %}Create{% endif %} list</h1></div>
 {% if form %}

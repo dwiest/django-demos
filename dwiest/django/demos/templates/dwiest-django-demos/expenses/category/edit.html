@@ -1,7 +1,7 @@
 {% extends 'dwiest-django-demos/expenses/base.html' %}
 {% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} expense category{% endblock %}
 {% block content %}
-<a class="back" href="{% url 'demos:expenses:home' %}">← Expense Tracker</a>
+<a class="back" href="{% url 'demos:expenses:home' %}">← Expenses</a>
 <div class="page-heading"><h1>{% if form.instance.pk %}Edit{% else %}Create{% endif %} expense category</h1></div>
 {% if form %}
 <form class="expense-panel expense-editor" action="{% url 'demos:expenses:category_edit' %}" method="post">

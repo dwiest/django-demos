@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Inventory Tracker{% endblock %}</title>
+  <title>{% block title %}Inventory{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
   <link rel="stylesheet" href="{% static 'dwiest-django-demos/inventory/ui.css' %}">
@@ -13,8 +13,8 @@
   <a class="skip" href="#main">Skip to content</a>
   {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='inventory' %}
   <header class="site-header">
-    <nav class="nav app-navigation container" aria-label="Inventory tracker navigation">
-      <a class="brand" href="{% url 'demos:inventory:home' %}">Inventory Tracker</a>
+    <nav class="nav app-navigation container" aria-label="Inventory navigation">
+      <a class="brand" href="{% url 'demos:inventory:home' %}">Inventory</a>
       <div class="inventory-actions nav-actions">
         <a class="button secondary" href="{% url 'demos:inventory:list_create' %}">Create list</a>
         <a class="button primary" href="{% url 'demos:inventory:item_create' %}">Create item</a>

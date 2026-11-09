@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore six practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore seven practical applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
@@ -55,10 +55,17 @@
       </article>
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 7h8 M8 11h4 M8 15h8"/></svg></span>
-        <h2>Expense Tracker</h2>
+        <h2>Expenses</h2>
         <p>Organize spending into lists and categories.</p>
         <ul><li>Create and manage expense lists</li><li>Define categories for your spending</li><li>Review expenses by list</li></ul>
-        <a class="button primary" href="{% url 'demos:expenses:home' %}">Open Expense Tracker <span aria-hidden="true">→</span></a>
+        <a class="button primary" href="{% url 'demos:expenses:home' %}">Open Expenses <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 9 5v8l-9 5-9-5V8Z M3 8l9 5 9-5 M12 13v8 M7.5 5.5l9 5"/></svg></span>
+        <h2>Inventory</h2>
+        <p>Organize your items and keep track of quantities.</p>
+        <ul><li>Build a reusable item catalog</li><li>Group items into inventory lists</li><li>Update quantities in each list</li></ul>
+        <a class="button primary" href="{% url 'demos:inventory:home' %}">Open Inventory <span aria-hidden="true">→</span></a>
       </article>
     </section>
     <details class="older-demos">
@@ -66,7 +73,6 @@
       <ul>
         <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
-        <li><a href="{% url 'demos:inventory:home' %}">Inventory Tracker</a></li>
         <li><a href="{% url 'demos:news:home' %}">Websockets</a></li>
         <li><a href="{% url 'demos:selenium:home' %}">Selenium</a></li>
       </ul>

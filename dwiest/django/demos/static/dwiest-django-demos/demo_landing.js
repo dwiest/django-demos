@@ -35,9 +35,9 @@ const demos = [
     icon: <Globe className="h-4 w-4" />,
     links: [
       { label: "Bookmarks", href: "/web/bookmarks/" },
-      { label: "Expense Tracker", href: "/web/expenses/" },
+      { label: "Expenses", href: "/web/expenses/" },
       { label: "Google reCAPTCHA", href: "/web/recaptcha/" },
-      { label: "Inventory Tracker", href: "/web/inventory/" },
+      { label: "Inventory", href: "/web/inventory/" },
       { label: "Invoicer", href: "/web/invoicer/" },
       { label: "Journal", href: "/web/journal/" },
       { label: "Websockets", href: "/web/ws/" },
