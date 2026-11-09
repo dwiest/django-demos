@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore eight practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore nine practical applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
@@ -74,12 +74,18 @@
         <ul><li>Upload files and track storage usage</li><li>Edit filenames and descriptions</li><li>Open, download, and delete files</li></ul>
         <a class="button primary" href="{% url 'demos:file:index' %}">Open File Manager <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-4-4 M20 17H4l4 4 M7 10v4 M12 10v4 M17 10v4"/></svg></span>
+        <h2>WebSockets</h2>
+        <p>Explore a live news feed over a persistent connection.</p>
+        <ul><li>Connect and pause the feed</li><li>Adjust the update interval</li><li>Create and manage news items</li></ul>
+        <a class="button primary" href="{% url 'demos:news:home' %}">Open WebSockets <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
-        <li><a href="{% url 'demos:news:home' %}">Websockets</a></li>
         <li><a href="{% url 'demos:selenium:home' %}">Selenium</a></li>
       </ul>
     </details>

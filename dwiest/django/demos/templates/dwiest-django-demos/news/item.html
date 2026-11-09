@@ -1,85 +1,16 @@
-<Html>
-
-<Head>
-  <Title>View News Item</Title>
-  {% include 'dwiest-django-demos/default.css' %}
-  {% include 'dwiest-django-demos/django-messages.css' %}
-  {% include 'dwiest-django-demos/news/news.css' %}
-  {% load dwiest_django_demos.tags%}
-  <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Head>
-
-<Body>
-
-{% include "dwiest-django-demos/hamburgernav.html" %}
-
-<!--Div style="height:50px;"></Div-->
-
-<Div>
-{% block header %}
-{% with title='View News item' breadcrumbs=True %}
-{% include 'dwiest-django-demos/header.html' %}
-{% endwith %}
+{% extends 'dwiest-django-demos/news/base.html' %}
+{% block title %}News item | WebSockets{% endblock %}
+{% block content %}
+  <a class="back" href="{% url 'demos:news:home' %}">← Back to news feed</a>
+  {% if news %}
+  <div class="page-heading"><h1>{{ news.name }}</h1><a class="button primary" href="{% url 'demos:news:edit' %}?id={{ news.id }}">Edit news item</a></div>
+  <dl class="news-panel news-details">
+    <div><dt>Description</dt><dd>{{ news.description|default_if_none:"—"|linebreaksbr }}</dd></div>
+    <div><dt>Begin showing at</dt><dd>{{ news.begin_time|default_if_none:"—" }}</dd></div>
+    <div><dt>End showing at</dt><dd>{{ news.end_time|default_if_none:"—" }}</dd></div>
+    <div><dt>Created</dt><dd>{{ news.created_at|default_if_none:"—" }}</dd></div>
+    <div><dt>Last modified</dt><dd>{{ news.last_modified|default_if_none:"—" }}</dd></div>
+    <div><dt>Status</dt><dd>{% if news.status == 0 %}Active{% else %}Inactive{% endif %}</dd></div>
+  </dl>
+  {% endif %}
 {% endblock %}
-</Div>
-
-<Div style="text-align:center;margin-left:auto;margin-right:auto;">
-<A href="{% url 'demos:news:home' %}">Back to News</A>
-</Div>
-
-
-{% include 'dwiest-django-demos/bookmarks/django-messages.html' %}
-
-<Div class="news_item">
-<Div class="field">
-Name:
-</Div>
-<Div class="value">
-{{news.name}}
-</Div>
-<Div class="field">
-Description:
-</Div>
-<Div class="value">
-{{news.description}}
-</Div>
-<Div class="field">
-Begin showing at:
-</Div>
-<Div class="value">
-{{news.begin_time}}
-</Div>
-<Div class="field">
-End showing at:
-</Div>
-<Div class="value">
-{{news.end_time}}
-</Div>
-<Div class="field">
-Created at:
-</Div>
-<Div class="value">
-{{news.created_at}}
-</Div>
-<Div class="field">
-Last modified:
-</Div>
-<Div class="value">
-{{news.last_modified}}
-</Div>
-<Div class="field">
-Status:
-</Div>
-<Div class="value">
-{{news.status}}
-</Div>
-</Div>
-
-<A class="new_item" href="{% url "demos:news:edit" %}?id={{news.id}}">Edit</A>
-
-
-<Div class="filler"></Div>
-
-{% footer %}
-</Body>
-</Html>
