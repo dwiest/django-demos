@@ -1,109 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>News Feed</title>
-</head>
-<body>
-
-<Div id="news" class="newsfeed">
-some news...
-</Div>
+<section class="news-panel news-feed" aria-labelledby="feed-heading">
+  <div class="page-heading"><h2 id="feed-heading">Live feed</h2><span id="connection-status" class="news-status" role="status">Disconnected</span></div>
+  <div id="news" class="news-output" role="status" aria-live="polite">Connect to start receiving news.</div>
+  <div class="news-controls">
+    <button id="connect" class="button primary" type="button">Connect</button>
+    <button id="getNews" class="button secondary" type="button" disabled>Pause news</button>
+    <label for="speed">Interval (seconds)<input class="control" id="speed" type="number" min="1" max="5" step="1" value="3"></label>
+    <button id="disconnect" class="button secondary" type="button" disabled>Disconnect</button>
+  </div>
+  <details class="news-endpoint"><summary>Connection details</summary><code id="endpoint"></code></details>
+</section>
 <script>
-number_one=document.getElementById('news')
-var endpoint='wss://ws.' + window.location.host + '/django/ws/demos/news/'
-var socket;
-var running = false;
-var fetch_item = true;
-var speed = 3;
-
-function openWebsocket(endpoint) {
-  console.log(endpoint)
-
-  if (running) {
-    console.log("Websocket already open")
-    return;
-  }
-
-  socket = new WebSocket(endpoint)
-  running = true;
-  document.getElementById('connect').disabled = true
-  document.getElementById('disconnect').disabled = false
-  document.getElementById('getNews').disabled = false
-  console.log(socket)
-
-  socket.onopen = function(e) {
-    console.log('Websocket opened',e)
-    if (fetch_item == true) {
-      socket.send(1)
+(() => {
+  const output = document.getElementById('news');
+  const status = document.getElementById('connection-status');
+  const connect = document.getElementById('connect');
+  const disconnect = document.getElementById('disconnect');
+  const pause = document.getElementById('getNews');
+  const interval = document.getElementById('speed');
+  const endpoint = 'wss://ws.' + window.location.host + '/django/ws/demos/news/';
+  document.getElementById('endpoint').textContent = endpoint;
+  let socket = null;
+  let timer = null;
+  let paused = false;
+  let pending = false;
+  let speed = 3;
+  function cancelTimer() { clearTimeout(timer); timer = null; }
+  function requestNews() {
+    cancelTimer();
+    if (!paused && !pending && socket && socket.readyState === WebSocket.OPEN) {
+      pending = true;
+      socket.send('1');
     }
   }
-
-  socket.onmessage = function(e) {
-    console.log('Received:',e)
-    number_one.innerHTML=e.data
-    if (fetch_item) {
-      setTimeout(function() {
-        socket.send(1);
-      }, (speed * 1000));
-    }
+  function scheduleNews() {
+    cancelTimer();
+    if (!paused) timer = setTimeout(requestNews, speed * 1000);
   }
-
-  socket.onclose = function(e) {
-    console.log('onclose:',e)
-    running = false;
-    document.getElementById('disconnect').disabled = true
-    document.getElementById('connect').disabled = false
-    document.getElementById('getNews').disabled = true
-    if (e.wasClean == false) {
-      alert('Websocket unexpectedly disconnected.')
-    }
-    console.log('Websocket closed');
+  function reset(message) {
+    cancelTimer();
+    pending = false;
+    connect.disabled = false;
+    disconnect.disabled = true;
+    pause.disabled = true;
+    status.textContent = message;
   }
-}
-
-function closeWebsocket() {
-  console.log('closing...');
-  socket.close();
-}
-
-function getNews(e) {
-  console.log('getNews()')
-  fetch_item = !fetch_item
-  console.log(fetch_item)
-
-  if (fetch_item == true) {
-    socket.send(1)
-    e.value = 'Pause News'
-  }
-  else {
-    e.value = 'Get News'
-  }
-}
-
-function setSpeed(n) {
-  console.log('setSpeed:', n)
-  speed = n 
-}
-
+  connect.addEventListener('click', () => {
+    if (socket && socket.readyState !== WebSocket.CLOSED) return;
+    connect.disabled = true;
+    status.textContent = 'Connecting…';
+    paused = false;
+    pause.textContent = 'Pause news';
+    try { socket = new WebSocket(endpoint); }
+    catch (error) { reset('Unable to connect. Try again.'); return; }
+    socket.addEventListener('open', () => {
+      status.textContent = 'Connected';
+      disconnect.disabled = false;
+      pause.disabled = false;
+      output.textContent = 'Waiting for news…';
+      requestNews();
+    });
+    socket.addEventListener('message', event => {
+      pending = false;
+      output.textContent = event.data;
+      scheduleNews();
+    });
+    socket.addEventListener('error', () => {
+      status.textContent = 'Connection error. Check that the feed service is available.';
+    });
+    socket.addEventListener('close', event => {
+      reset(event.wasClean ? 'Disconnected' : 'Connection lost. Check that the feed service is available, then reconnect.');
+    });
+  });
+  disconnect.addEventListener('click', () => {
+    cancelTimer();
+    disconnect.disabled = true;
+    pause.disabled = true;
+    status.textContent = 'Disconnecting…';
+    if (socket) socket.close();
+  });
+  pause.addEventListener('click', () => {
+    paused = !paused;
+    pause.textContent = paused ? 'Resume news' : 'Pause news';
+    status.textContent = paused ? 'Connected · Paused' : 'Connected';
+    if (paused) cancelTimer(); else requestNews();
+  });
+  interval.addEventListener('change', () => {
+    const value = Number(interval.value);
+    speed = Number.isFinite(value) ? Math.min(5, Math.max(1, Math.round(value))) : 3;
+    interval.value = speed;
+    if (socket && socket.readyState === WebSocket.OPEN && !pending) scheduleNews();
+  });
+  window.addEventListener('pagehide', () => { cancelTimer(); if (socket) socket.close(); });
+})();
 </script>
-<Div align="center">
-<Span>
-<Input id="connect" style="margin-right:auto;margin-left:50px;" type="button" value="Connect" onClick="openWebsocket(endpoint);" />
-<Input id="getNews" style="" type="button" value="Pause News" onClick="getNews(this);" disabled="true"/>
-<Input type="number" min="1" max="5" minLength="1" maxLength="1" id="speed" onClick="setSpeed(this.value)"/>
-<Input id="disconnect" style="margin-right:auto;margin-left:50px;" type="button" value="Disconnect" onClick="closeWebsocket();" disabled="true"/>
-</Span>
-</Div>
-
-<Div>
-<Input id="endpoint" type="text" style="width:100%;" value="" />
-</Div>
-
-<script>
-document.getElementById('speed').value = speed;
-document.getElementById('endpoint').value = endpoint;
-</script>
-
-</body>
-</html>
