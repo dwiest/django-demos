@@ -1,27 +1,19 @@
-<Html>
-<Head>
-  <Title>Inventory Tracker - Edit Item</Title>
-</Head>
-<Body>
-<Div align="center">Inventory Tracker Edit Item</Div>
-
-{% include 'dwiest-django-demos/django-messages.html' %}
-
-<P>
-Created at: {{form.item.created_at}}
-<P>
-Last modified: {{form.item.last_modified}}
-<P>
-<Form name="item_edit" method="post" url="{% url 'demos:inventory:item_edit' %}">
-{% csrf_token %}
-{{form}}
-{% if form.instance.id %}
-<Input type="hidden" name="id" value="{{form.instance.id}}" id="id_id"></Input>
+{% extends 'dwiest-django-demos/inventory/base.html' %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} item · Inventory Tracker{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>{% if form.instance.pk %}Edit{% else %}Create{% endif %} item</h1></div>
+{% if form %}
+<form class="inventory-panel inventory-editor" method="post">
+  {% csrf_token %}
+  {% include 'dwiest-django-demos/inventory/fields.html' %}
+  {% if form.instance.pk %}
+  <input type="hidden" name="id" value="{{ form.instance.pk }}">
+  <p class="muted">Created {{ form.instance.created_at }} · Updated {{ form.instance.last_modified }}</p>
+  <div class="field"><label for="id_delete"><input type="checkbox" name="delete" value="on" id="id_delete"> Delete this item</label>
+    <p class="muted">{% if form.instance.pk %}Deletion is permanent.{% endif %} Deleting an item also removes its entries from lists.</p>
+  </div>
+  {% endif %}
+  <div class="inventory-actions"><button class="button primary" type="submit">{% if form.instance.pk %}Save changes{% else %}Create item{% endif %}</button><a class="button secondary" href="{% url 'demos:inventory:home' %}">Cancel</a></div>
+</form>
 {% endif %}
-Delete: <Input type="checkbox" name="delete" value="off" id="id_delete"></Input>
-<Input type="submit"></Input>
-</Form>
-<P>
-<A href="{% url 'demos:inventory:home' %}">Cancel</A>
-</Body>
-</Html>
+{% endblock %}

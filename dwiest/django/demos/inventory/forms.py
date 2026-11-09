@@ -170,20 +170,6 @@ class InventoryEntryForm(forms.ModelForm):
     #Fields.URL: settings.DEMOS_BOOKMARKS_URL_DEFAULT
   }
 
-  name = forms.CharField(
-#    label=settings.DEMOS_NEWS_ITEM_NAME_LABEL,
-    label='Name',
-#    initial=settings.DEMOS_NEWS_ITEM_NAME_DEFAULT,
-    initial='Name',
-    required=False,
-    widget=forms.TextInput(
-      attrs={
-#        'class': settings.DEMOS_NEWS_ITEM_NAME_CLASS
-        'class':'name_field' 
-        }
-      ),
-    )
-
 #  def __init__(self, *args, **kwargs):
 #    super().__init__(*args, **kwargs)
 #    print("created NewsItemForm")

@@ -1,18 +1,14 @@
-<Html>
-<Head>
-  <Title>Inventory Tracker - Item View</Title>
-</Head>
-<Body>
-<Div align="center">Inventory Tracker Item View</Div>
-<P>
-{{item}}
-<P>
-{{item.id}}
-<P>
-{{item.name}}
-<P>
-{{item.description}}
-<P>
-<A href="{% url 'demos:inventory:home' %}">Home</A>
-</Body>
-</Html>
+{% extends 'dwiest-django-demos/inventory/base.html' %}
+{% block title %}{{ item.name }} · Inventory Tracker{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="muted">Catalog item</p><h1>{{ item.name }}</h1></div><a class="button primary" href="{% url 'demos:inventory:item_edit' %}?id={{ item.id }}">Edit item</a></div>
+<section class="inventory-panel">
+  <h2>Item details</h2>
+  <dl class="inventory-details">
+    <div><dt>Description</dt><dd>{{ item.description }}</dd></div>
+    <div><dt>Created</dt><dd>{{ item.created_at }}</dd></div>
+    <div><dt>Last updated</dt><dd>{{ item.last_modified }}</dd></div>
+  </dl>
+</section>
+<p><a href="{% url 'demos:inventory:home' %}">Back to inventory</a></p>
+{% endblock %}

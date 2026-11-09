@@ -1,23 +1,25 @@
-<Html>
-<Head>
-  <Title>Inventory Tracker - List View</Title>
-</Head>
-<Body>
-<Div align="center">
-<H1>Inventory Tracker - List View</H1>
-</Div>
-<P>
-({{list.id}}) <A href="{% url 'demos:inventory:list_edit' %}?id={{list.id}}">{{list.name}}</A> - {{list.description}}
-<Hr>
-<H2>Items:</H2>
-{% for item in items %}
-<P>
-<A href="{% url 'demos:inventory:entry_edit' %}?id={{item.id}}">{{item.item.name}} - {{item.item.description}} - {{item.quantity}}</A>
-{% endfor %}
-<P>
-<A href="{% url 'demos:inventory:item_create' %}">Create Item</A> |
-<A href="{% url 'demos:inventory:entry_create' %}?list={{list.id}}">Add Item</A>
-<P>
-<A href="{% url 'demos:inventory:home' %}">Home</A>
-</Body>
-</Html>
+{% extends 'dwiest-django-demos/inventory/base.html' %}
+{% block title %}{{ list.name }} · Inventory Tracker{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="muted">Inventory list</p><h1>{{ list.name }}</h1><p class="muted inventory-subtitle">{{ list.description }}</p></div>
+  <div class="inventory-actions"><a class="button secondary" href="{% url 'demos:inventory:list_edit' %}?id={{ list.id }}">Edit list</a><a class="button primary" href="{% url 'demos:inventory:entry_create' %}?list={{ list.id }}">Add item</a></div>
+</div>
+<section class="inventory-panel" aria-labelledby="entries-heading">
+  <div class="inventory-panel-heading"><h2 id="entries-heading">Items in this list</h2><span class="tag">{{ items|length }}</span></div>
+  {% if items %}
+  <div class="inventory-table-scroll">
+    <table class="inventory-table">
+      <caption class="sr-only">Items and quantities in {{ list.name }}</caption>
+      <thead><tr><th scope="col">Item</th><th scope="col">Description</th><th scope="col" class="amount">Quantity</th><th scope="col">Actions</th></tr></thead>
+      <tbody>{% for entry in items %}
+        <tr><th scope="row"><a href="{% url 'demos:inventory:item_view' %}?id={{ entry.item_id }}">{{ entry.item.name }}</a></th><td>{{ entry.item.description }}</td><td class="amount">{{ entry.quantity }}</td><td><a href="{% url 'demos:inventory:entry_edit' %}?id={{ entry.id }}">Edit<span class="sr-only"> {{ entry.item.name }}</span></a></td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><h3>This list is empty</h3><p class="muted">Add an item from your catalog and set its quantity.</p><a class="button primary" href="{% url 'demos:inventory:entry_create' %}?list={{ list.id }}">Add an item</a></div>
+  {% endif %}
+</section>
+<p><a href="{% url 'demos:inventory:item_create' %}">Create a catalog item</a> · <a href="{% url 'demos:inventory:home' %}">Back to inventory</a></p>
+{% endblock %}
