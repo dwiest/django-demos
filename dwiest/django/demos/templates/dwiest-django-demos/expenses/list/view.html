@@ -1,107 +1,38 @@
-<Html>
-  <Head>
-    <Title>Expense List</Title>
-    {% include 'dwiest-django-demos/django-messages.css' %}
-    {% include 'dwiest-django-demos/expenses/expenses.css' %}
-    <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    </Head>
-  <Body>
+{% extends 'dwiest-django-demos/expenses/base.html' %}
+{% block title %}Expense list{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:expenses:home' %}">← Expense Tracker</a>
+{% if expense_list %}
+<div class="page-heading">
+  <h1>{{ expense_list.name }}</h1>
+  <a class="button primary" href="{% url 'demos:expenses:list_edit' %}?id={{ expense_list.id }}">Edit list</a>
+</div>
+<section class="expense-panel" aria-label="list details">
+  <dl class="expense-details">
+    <div><dt>Description</dt><dd>{{ expense_list.description|default:"—" }}</dd></div>
 
-  {% include "dwiest-django-demos/hamburgernav.html" %}
-
-
-<Div class="page_title">
-Expense List
-</Div>
-
-<Div>
-  {% include 'dwiest-django-demos/django-messages.html' %}
-</Div>
-
-<Div style="width:80%;border:0px;border-style:solid;margin-left:auto;margin-right:auto;margin-bottom:20px;">
-<Table style="width:100%;">
-  <Tr>
-    <Td align="left">
-      <A href="{% url 'demos:expenses:home' %}">Home</A>
-      </Td>
-    <Td align="right">
-      <A href="{% url 'demos:expenses:list_add' %}">Add</A>
-      |
-      <A href="{% url 'demos:expenses:list_edit' %}?id={{expense_list.id}}">Edit</A>
-      </Td>
-    </Tr>
-  </Table>
-  </Div>
-
-<Div>
-<Table>
-  <Tr>
-    <Th>
-Id:
-      </Th>
-    <Td>
-{{expense_list.id}}
-      </Td>
-    </Tr>
-  <Tr>
-    <Th>
-Name:
-      </Th>
-    <Td>
-{{expense_list.name}}
-      </Td>
-    </Tr>
-  <Tr>
-    <Th>
-Description:
-      </Th>
-    <Td>
-{{expense_list.description}}
-      </Td>
-    </Tr>
-  </Table>
-  </Div>
-
-  <Div>
-    {% if expenses %}
-    <Table>
-      <Tr>
-        <Th>
-	  id
-          </Th>
-        <Th>
-	  name 
-          </Th>
-        <Th>
-	  description 
-          </Th>
-        <Th>
-	  amount
-          </Th>
-        </Tr>
-      {% for expense in expenses %}
-      <Tr>
-        <Td>
-	  {{expense.id}}
-	  </Td>
-        <Td>
-	  {{expense.name}}
-	  </Td>
-        <Td>
-	  {{expense.description}}
-	  </Td>
-        <Td>
-	  {{expense.amount}}
-	  </Td>
-        </Tr>
-      {% endfor %}
-      </Table>
-      {% else %}
-      <P>
-      No expenses found, go spend some money!
-      {% endif %}
-    </Div>
-
-</Div>
-</Body>
-</Html>
+    <div><dt>ID</dt><dd>{{ expense_list.id }}</dd></div>
+  </dl>
+</section>
+<section class="expense-panel expense-items" aria-labelledby="expenses-heading">
+  <div class="expense-panel-heading"><h2 id="expenses-heading">Expenses</h2><span class="tag">{{ expenses|length }}</span></div>
+  {% if expenses %}
+  <div class="expense-table-scroll" role="region" aria-label="Expenses" tabindex="0">
+    <table class="expense-table">
+      <caption class="sr-only">Expenses in {{ expense_list.name }}</caption>
+      <thead><tr><th scope="col">Name</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col" class="amount">Amount</th></tr></thead>
+      <tbody>
+        {% for expense in expenses %}
+        <tr><th scope="row">{{ expense.name }}</th><td>{{ expense.description }}</td><td>{{ expense.category.name }}</td><td class="amount">{{ expense.amount|floatformat:2 }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><h3>No expenses in this list</h3><p class="muted">Expenses assigned to this list will appear here.</p></div>
+  {% endif %}
+</section>
+{% else %}
+<div class="notice">No expense list found. Choose one from the tracker.</div>
+{% endif %}
+{% endblock %}
