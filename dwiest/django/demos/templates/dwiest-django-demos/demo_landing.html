@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore nine practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore ten practical applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
@@ -81,12 +81,18 @@
         <ul><li>Connect and pause the feed</li><li>Adjust the update interval</li><li>Create and manage news items</li></ul>
         <a class="button primary" href="{% url 'demos:news:home' %}">Open WebSockets <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18 M6 6h1 M9 6h1 M8 16l3-3 3 3 2-2 3 3"/></svg></span>
+        <h2>Selenium</h2>
+        <p>Capture a webpage with an automated browser.</p>
+        <ul><li>Enter a webpage URL</li><li>Choose the browser window size</li><li>Preview and download a PNG screenshot</li></ul>
+        <a class="button primary" href="{% url 'demos:selenium:home' %}">Open Selenium <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
-        <li><a href="{% url 'demos:selenium:home' %}">Selenium</a></li>
       </ul>
     </details>
     <footer class="demo-footer">

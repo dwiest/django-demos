@@ -1,119 +1,19 @@
-<Style>
-  form.selenium {
-    text-align: center;
-    }
-
-  img.selenium {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    }
-
-  .selenium-button {
-    margin-top: 10px;
-    }
-
-  .selenium-height-label {
-    margin-top: 10px;
-    }
-
-  .selenium-width-label {
-    margin-top: 10px;
-    }
-
-  .selenium-url-label {
-    margin-top: 10px;
-    }
-
-  .selenium-height {
-    color: blue;
-    width: 15%;
-    margin-top: 10px;
-    }
-
-  .selenium-width {
-    color: blue;
-    width: 15%;
-    margin-top: 10px;
-    }
-
-  .selenium-url {
-    color: blue;
-    width: 80%;
-    margin-top: 10px;
-    }
-
-  @media only screen and (max-width: 600px) {
-    img.selenium {
-      width: 80%;
-      }
-    .selenium-button,
-    .selenium-height,
-    .selenium-height-label,
-    .selenium-width,
-    .selenium-width-label,
-    .selenium-url,
-    .selenium-url-label {
-      font-size: 3vw;
-      }
+<style>
+  .selenium-intro { margin-bottom: 24px; }
+  .selenium-layout { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .selenium-panel { min-width: 0; padding: 24px; border: 1px solid var(--line); border-radius: 8px; }
+  .selenium-panel h2 { margin: 0 0 20px; }
+  .selenium-panel input:not([type=hidden]) { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc8d5; border-radius: var(--radius); background: #fff; color: var(--ink); }
+  .selenium-dimensions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .selenium-help { margin: 8px 0 0; font-size: 14px; }
+  .selenium-image-wrap { padding: 12px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .selenium-image { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+  .selenium-empty { padding: 48px 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); text-align: center; }
+  .selenium-panel .errorlist { overflow-wrap: anywhere; }
+  @media (max-width: 850px) {
+    .selenium-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   }
-
-  @media only screen and (min-width: 600px) {
-    img.selenium {
-      width: 75%;
-      }
-    .selenium-button,
-    .selenium-height,
-    .selenium-height-label,
-    .selenium-width,
-    .selenium-width-label,
-    .selenium-url,
-    .selenium-url-label {
-      font-size: 2.7vw;
-      }
+  @media (max-width: 650px) {
+    .selenium-panel { padding: 20px; }
   }
-
-  @media only screen and (min-width: 768px) {
-    img.selenium {
-      width: 70%;
-      }
-    .selenium-button,
-    .selenium-height,
-    .selenium-height-label,
-    .selenium-width,
-    .selenium-width-label,
-    .selenium-url,
-    .selenium-url-label {
-      font-size: 2.4vw;
-      }
-  }
-
-  @media only screen and (min-width: 992px) {
-    img.selenium {
-      width: 65%;
-      }
-    .selenium-button,
-    .selenium-height,
-    .selenium-height-label,
-    .selenium-width,
-    .selenium-width-label,
-    .selenium-url,
-    .selenium-url-label {
-      font-size: 2.2vw;
-      }
-  }
-
-  @media only screen and (min-width: 1200px) {
-    img.selenium {
-      width: 60%;
-      }
-    .selenium-button,
-    .selenium-height,
-    .selenium-height-label,
-    .selenium-width,
-    .selenium-width-label,
-    .selenium-url,
-    .selenium-url-label {
-      font-size: 2vw;
-      }
-  }
-</Style>
+</style>
