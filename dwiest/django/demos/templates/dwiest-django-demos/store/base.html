@@ -33,9 +33,10 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="store-footer">
-    <div class="container store-footer-inner">
+    <div class="container">
+      {% if store_branding.footer_image_url %}<img src="{{ store_branding.footer_image_url }}" alt="{{ store_branding.footer_image_alt }}" class="store-footer-image" loading="lazy">{% endif %}
+      <div class="store-footer-inner">
       <div>
-        {% if store_branding.footer_image_url %}<img src="{{ store_branding.footer_image_url }}" alt="{{ store_branding.footer_image_alt }}" class="store-footer-image">{% endif %}
         <h2>{{ store_branding.footer_heading }}</h2>
         <div class="store-footer-copy">{{ store_branding.footer_text|linebreaks }}</div>
       </div>
@@ -45,6 +46,7 @@
         {% if store_branding.contact_email %}<a href="mailto:{{ store_branding.contact_email }}">{{ store_branding.contact_email }}</a>{% endif %}
         {% if store_branding.footer_link_url %}<a href="{{ store_branding.footer_link_url }}">{{ store_branding.footer_link_label }}</a>{% endif %}
       </nav>
+      </div>
     </div>
     <div class="container store-copyright">{% if store_branding.copyright_text %}{{ store_branding.copyright_text }}{% else %}© {% now 'Y' %} {{ store_branding.name }}{% endif %}</div>
   </footer>
