@@ -11,13 +11,13 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
   {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='home' %}
-  <main id="main" class="container">
+  <main id="main" class="container demo-home">
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore five practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore six practical applications below.</p>
     </div>
-    <section class="demo-grid" aria-label="Featured applications">
+    <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4Z"/></svg></span>
         <h2>Bookmarks</h2>
@@ -53,12 +53,18 @@
         <ul><li>Set up a demo account and secret key</li><li>Scan a QR code with your authenticator</li><li>Generate a time-based password</li></ul>
         <a class="button primary" href="{% url 'demos:otp:home' %}">Open Time-Based OTP <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 7h8 M8 11h4 M8 15h8"/></svg></span>
+        <h2>Expense Tracker</h2>
+        <p>Organize spending into lists and categories.</p>
+        <ul><li>Create and manage expense lists</li><li>Define categories for your spending</li><li>Review expenses by list</li></ul>
+        <a class="button primary" href="{% url 'demos:expenses:home' %}">Open Expense Tracker <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
-        <li><a href="{% url 'demos:expenses:home' %}">Expense Tracker</a></li>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
         <li><a href="{% url 'demos:inventory:home' %}">Inventory Tracker</a></li>
         <li><a href="{% url 'demos:news:home' %}">Websockets</a></li>

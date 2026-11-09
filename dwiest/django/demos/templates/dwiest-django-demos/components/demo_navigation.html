@@ -8,6 +8,7 @@
       <a href="{% url 'demos:journal:home' %}"{% if demo_section == 'journal' %} aria-current="true"{% endif %}>Journal</a>
       <a href="{% url 'demos:qrcode:home' %}"{% if demo_section == 'qrcode' %} aria-current="true"{% endif %}>QR Code</a>
       <a href="{% url 'demos:otp:home' %}"{% if demo_section == 'otp' %} aria-current="true"{% endif %}>Time-Based OTP</a>
+      <a href="{% url 'demos:expenses:home' %}"{% if demo_section == 'expenses' %} aria-current="true"{% endif %}>Expense Tracker</a>
     </nav>
   </div>
 </header>
