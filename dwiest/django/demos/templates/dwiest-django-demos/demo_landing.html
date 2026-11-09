@@ -15,7 +15,7 @@
     <div class="demo-intro">
       <p class="demo-eyebrow">Wiest.World · Application demos</p>
       <h1>Everyday tools, built with Django.</h1>
-      <p>Save what you find, keep track of your work, and make room for your ideas. Explore seven practical applications below.</p>
+      <p>Save what you find, keep track of your work, and make room for your ideas. Explore eight practical applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
       <article class="demo-card">
@@ -67,11 +67,17 @@
         <ul><li>Build a reusable item catalog</li><li>Group items into inventory lists</li><li>Update quantities in each list</li></ul>
         <a class="button primary" href="{% url 'demos:inventory:home' %}">Open Inventory <span aria-hidden="true">→</span></a>
       </article>
+      <article class="demo-card">
+        <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h7l2 2h9v12H3Z M3 8V4h7l2 2"/></svg></span>
+        <h2>File Manager</h2>
+        <p>A simple place to upload and manage your files.</p>
+        <ul><li>Upload files and track storage usage</li><li>Edit filenames and descriptions</li><li>Open, download, and delete files</li></ul>
+        <a class="button primary" href="{% url 'demos:file:index' %}">Open File Manager <span aria-hidden="true">→</span></a>
+      </article>
     </section>
     <details class="older-demos">
       <summary>Other demos</summary>
       <ul>
-        <li><a href="{% url 'demos:file:index' %}">File manager</a></li>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
         <li><a href="{% url 'demos:news:home' %}">Websockets</a></li>
         <li><a href="{% url 'demos:selenium:home' %}">Selenium</a></li>

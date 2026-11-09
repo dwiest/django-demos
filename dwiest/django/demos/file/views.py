@@ -131,6 +131,7 @@ class FileDetailView(TemplateView):
 
     self.response_dict[self.ResponseDict.FILE] = file
     form = FileDetailsForm(instance=file, data=request.POST)
+    self.response_dict[self.ResponseDict.FORM] = form
     if form.is_valid():
       form.save()
       messages.info(request, "{} was successfully updated.".format(file.name))

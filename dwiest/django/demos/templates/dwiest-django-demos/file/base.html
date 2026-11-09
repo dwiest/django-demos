@@ -1,0 +1,26 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}File Manager{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/file/ui.css' %}">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' with demo_section='file' %}
+  <header class="site-header">
+    <nav class="nav app-navigation container" aria-label="File Manager navigation">
+      <a class="brand" href="{% url 'demos:file:index' %}">File Manager</a>
+      <a class="button secondary nav-actions" href="{% url 'demos:file:index' %}#upload">Upload file</a>
+    </nav>
+  </header>
+  <main id="main" class="container">
+    {% for message in messages %}<div class="notice" role="status">{{ message }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

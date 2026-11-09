@@ -1,0 +1,28 @@
+.file-subtitle { margin: 10px 0 0; }
+.file-name { overflow-wrap: anywhere; }
+.file-overview, .file-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-bottom: 24px; align-items: start; }
+.file-panel { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+.file-panel h2 { margin: 0 0 20px; }
+.file-panel input[type="file"] { display: block; width: 100%; min-height: 44px; padding: 10px; border: 1px dashed #bdc8d5; border-radius: var(--radius); background: var(--surface); }
+.file-panel input::file-selector-button { font: inherit; margin-right: 12px; padding: 6px 10px; border: 1px solid #bcc7d5; border-radius: var(--radius); background: white; cursor: pointer; }
+.file-details { margin: 0 0 20px; }
+.file-details > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding: 10px 0; }
+.file-details dt { color: var(--muted); font-weight: 600; }
+.file-details dd { margin: 0; overflow-wrap: anywhere; }
+.file-details code { font-size: 13px; }
+.file-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.file-danger { color: #a3283d; background: #fff; border-color: #d8a9b2; }
+.file-table-scroll { overflow-x: auto; }
+.file-table { width: 100%; border-collapse: collapse; text-align: left; }
+.file-table th, .file-table td { padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.file-table thead { background: var(--surface); color: var(--muted); }
+.file-table tbody th { font-weight: 600; min-width: 160px; max-width: 300px; }
+.file-size { white-space: nowrap; }
+.file-editor .field input:not([type="checkbox"]), .file-editor textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc8d5; border-radius: var(--radius); background: white; color: var(--ink); }
+.file-editor textarea { resize: vertical; }
+@media (max-width: 850px) { .file-overview, .file-editor-grid { grid-template-columns: 1fr; } }
+@media (max-width: 650px) {
+  .file-panel { padding: 18px; }
+  .file-details > div { grid-template-columns: 1fr; gap: 4px; }
+  .file-table { min-width: 760px; }
+}
