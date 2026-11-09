@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.functional import cached_property
 
 
 class Catalog(models.Model):
@@ -29,6 +30,10 @@ class Product(models.Model):
     class Meta:
         ordering = ['name']
 
+    @property
+    def cover_photo(self):
+        return next(iter(self.photos.all()), None)
+
     def __str__(self):
         return self.name
 
@@ -48,3 +53,25 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return '{} — {}'.format(self.product, self.name)
+
+
+class ProductPhoto(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='photos')
+    bucket = models.CharField(max_length=255, editable=False)
+    key = models.CharField(max_length=1024, unique=True, editable=False)
+    alt_text = models.CharField(max_length=255, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    width = models.PositiveIntegerField(editable=False)
+    height = models.PositiveIntegerField(editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', 'pk']
+
+    def __str__(self):
+        return '{} photo {}'.format(self.product, self.pk)
+
+    @cached_property
+    def url(self):
+        from .media import photo_url
+        return photo_url(self)

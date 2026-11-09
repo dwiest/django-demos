@@ -1,7 +1,11 @@
-{% if product.image_url %}
-  <img class="store-image" src="{{ product.image_url }}" alt="{{ product.image_alt|default:product.name }}" loading="lazy" referrerpolicy="no-referrer">
-{% else %}
-  <div class="store-placeholder" role="img" aria-label="Product image coming soon">
-    <span aria-hidden="true">RW</span><small>Image coming soon</small>
-  </div>
-{% endif %}
+{% with photo=product.cover_photo %}
+  {% if photo %}
+    <img class="store-image" src="{{ photo.url }}" alt="{{ photo.alt_text|default:product.name }}" loading="lazy" referrerpolicy="no-referrer">
+  {% elif product.image_url %}
+    <img class="store-image" src="{{ product.image_url }}" alt="{{ product.image_alt|default:product.name }}" loading="lazy" referrerpolicy="no-referrer">
+  {% else %}
+    <div class="store-placeholder" role="img" aria-label="Product image coming soon">
+      <span aria-hidden="true">RW</span><small>Image coming soon</small>
+    </div>
+  {% endif %}
+{% endwith %}

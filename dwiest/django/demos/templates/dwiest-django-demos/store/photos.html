@@ -1,0 +1,6 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+  <h1>Photos for {{ product.name }}</h1>
+  {% include 'dwiest-django-demos/store/photo_upload.html' %}
+  <p><a href="{% url 'demos:store:product_edit' product.pk %}">← Back to product</a></p>
+{% endblock %}

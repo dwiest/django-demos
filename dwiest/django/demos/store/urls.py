@@ -13,6 +13,9 @@ urlpatterns = [
     path('manage/', views.manage, name='manage'),
     path('manage/products/new/', views.product_create, name='product_create'),
     path('manage/products/<int:pk>/', views.product_edit, name='product_edit'),
+    path('manage/products/<int:pk>/photos/', views.upload_photos, name='photo_upload'),
+    path('manage/products/<int:pk>/photos/<int:photo_pk>/', views.edit_photo, name='photo_edit'),
+    path('manage/products/<int:pk>/photos/<int:photo_pk>/delete/', views.delete_photo, name='photo_delete'),
     path('manage/catalogs/new/', views.catalog_create, name='catalog_create'),
     path('manage/catalogs/<int:pk>/', views.catalog_edit, name='catalog_edit'),
 ]
