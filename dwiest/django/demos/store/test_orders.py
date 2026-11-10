@@ -234,3 +234,16 @@ class OrderTests(TestCase):
         form.save()
         photo.refresh_from_db()
         self.assertEqual(photo.variant, self.variant)
+
+    def test_receipt_prefers_independent_artwork_and_centers_continue_action(self):
+        StoreBranding.objects.create(thank_you_image_bucket='rotten.world',
+            thank_you_image_key='store/products/branding/thanks.png', thank_you_image_alt='A happy Wurm',
+            footer_image_bucket='rotten.world', footer_image_key='store/products/branding/site-footer.png')
+        with patch('dwiest.django.demos.store.media.s3_client') as s3:
+            s3.return_value.generate_presigned_url.side_effect = lambda operation, Params, **kw: 'https://signed.example/' + Params['Key']
+            order = self.place()
+            response = self.client.get(self.url('order_complete', order.token))
+        self.assertContains(response, 'class="wurm-thanks" src="https://signed.example/store/products/branding/thanks.png"')
+        self.assertContains(response, 'alt="A happy Wurm"')
+        self.assertContains(response, 'class="order-thanks-actions"')
+        self.assertContains(response, 'class="button order-continue"')

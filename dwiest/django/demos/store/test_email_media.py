@@ -204,3 +204,18 @@ class StorefrontURLRegressionTests(TestCase):
             with patch('dwiest.django.demos.store.media.s3_client') as factory:
                 factory.return_value.generate_presigned_url.return_value = 'https://signed.example/image'
                 self.assertEqual(photo_url(photo), 'https://signed.example/image')
+
+class S3EmailPathTests(TestCase):
+    @override_settings(STORE_MEDIA_BUCKET='rotten.world')
+    def test_s3_email_urls_append_exact_stored_key_from_bucket_root(self):
+        key = 'store/products/branding/895ef1d1247c46f895428e24192f4c9f.png'
+        for base, endpoint in [
+            ('https://s3.amazonaws.com/rotten.world/store/images', 's3.amazonaws.com'),
+            ('https://s3.us-east-1.amazonaws.com/rotten.world/store/products', 's3.us-east-1.amazonaws.com'),
+            ('https://rotten.world.s3.us-east-1.amazonaws.com/store/images', 's3.us-east-1.amazonaws.com'),
+        ]:
+            with self.subTest(base=base), override_settings(STORE_MEDIA_PUBLIC_BASE_URL=base):
+                url = permanent_url('rotten.world', key)
+                self.assertEqual(url, 'https://' + endpoint + '/rotten.world/' + key)
+                self.assertNotIn('store/images', url)
+                self.assertNotIn('X-Amz', url)

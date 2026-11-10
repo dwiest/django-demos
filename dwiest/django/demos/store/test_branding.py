@@ -142,3 +142,17 @@ class BrandingTests(TestCase):
         branding.refresh_from_db()
         self.assertEqual(branding.email_footer_image_key, '')
         self.s3.delete_object.assert_not_called()
+
+    def test_independent_thank_you_artwork_is_uploaded_and_retained(self):
+        response = self.client.post(self.url, {**self.data, 'thank_you_image': image_upload(),
+                                               'thank_you_image_alt': 'Wurm celebrating'})
+        self.assertEqual(response.status_code, 302)
+        branding = StoreBranding.objects.get()
+        original = branding.thank_you_image_key
+        self.assertTrue(original)
+        self.assertEqual(branding.footer_image_key, '')
+        self.assertEqual(branding.email_footer_image_key, '')
+        self.client.post(self.url, {**self.data, 'remove_thank_you_image': 'on'})
+        branding.refresh_from_db()
+        self.assertEqual(branding.thank_you_image_key, '')
+        self.s3.delete_object.assert_not_called()

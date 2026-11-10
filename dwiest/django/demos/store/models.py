@@ -127,6 +127,9 @@ class StoreBranding(models.Model):
     footer_link_url = models.URLField(blank=True)
     coupon_code = models.CharField(max_length=40, blank=True, default='DISCOUNT')
     coupon_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    thank_you_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
+    thank_you_image_key = models.CharField(max_length=1024, blank=True, editable=False)
+    thank_you_image_alt = models.CharField(max_length=255, blank=True)
     email_header = models.TextField(blank=True, help_text='Header text for order emails. Blank uses the store name. Plain text only.')
     email_footer = models.TextField(blank=True, help_text='Footer text for order emails, such as contact details. Plain text only.')
     email_header_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
@@ -164,6 +167,10 @@ class StoreBranding(models.Model):
     def footer_image_url(self):
         return self.image_url('footer')
 
+
+    @cached_property
+    def thank_you_image_url(self):
+        return self.image_url('thank_you')
 
     @cached_property
     def email_header_image_url(self):
