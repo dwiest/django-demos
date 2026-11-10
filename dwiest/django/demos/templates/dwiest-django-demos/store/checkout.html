@@ -2,20 +2,30 @@
 {% block content %}
 <div class="page-heading"><h1>Checkout</h1><a href="{% url 'demos:store:cart' %}">Edit cart</a></div>
 <p class="notice">Demo checkout · No money will be charged. USPS prices are illustrative. Sales tax is not calculated.</p>
-<div class="checkout-grid">
-<form method="post" class="store-form">{% csrf_token %}{{ form.non_field_errors }}{{ form.checkout_key }}
+<form method="post" class="store-form" id="checkout-form">{% csrf_token %}{{ form.non_field_errors }}{{ form.checkout_key }}
+<div class="checkout-grid"><div class="checkout-details">
 <section class="checkout-panel"><h2>1. Contact & shipping</h2>
 {% for field in form %}{% if field.name != 'checkout_key' and field.name != 'payment_method' and field.name != 'acknowledge' and field.name != 'coupon' %}<p>{{ field.label_tag }} {{ field }}{{ field.errors }}</p>{% endif %}{% endfor %}
 <p class="muted">US addresses only. Delivery estimates are illustrative and are not guarantees. No live USPS address validation.</p></section>
 <section class="checkout-panel"><h2>2. Payment</h2>
-<p>Preview of a Stripe payment selection</p>{{ form.payment_method }}{{ form.payment_method.errors }}
+<p>Preview of a Stripe payment selection</p>
+<fieldset class="payment-options"><legend>Payment method</legend>
+{% for radio in form.payment_method %}<label class="payment-option" for="{{ radio.id_for_label }}">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>{% endfor %}
+</fieldset>{{ form.payment_method.errors }}
 <div class="payment-preview"><strong>Card · USD</strong><p>Card number · •••• •••• •••• 4242<br>Expiry · MM / YY &nbsp; Security code · •••</p><small>Visual placeholder only. No card information is collected.</small></div>
 <div class="payment-preview"><strong>Stablecoin · USDC</strong><p>Connect wallet → select a supported network → confirm USDC payment</p><small>Wallet and network selection are simulated. USD totals assume 1 USDC = $1 for this preview.</small></div>
-<p>{{ form.acknowledge }} {{ form.acknowledge.label_tag }}{{ form.acknowledge.errors }}</p></section>
-<section class="checkout-panel"><h2>3. Review order</h2><p>{{ form.coupon.label_tag }} {{ form.coupon }}{{ form.coupon.errors }}</p>
+<div class="checkout-acknowledge"><label for="{{ form.acknowledge.id_for_label }}">{{ form.acknowledge }}<span>{{ form.acknowledge.label }}</span></label>{{ form.acknowledge.errors }}</div></section>
+<section class="checkout-panel"><h2>3. Review order</h2>
 <button class="button secondary" name="action" value="review">Update order review</button>
 {% if quote %}<dl class="order-totals"><dt>Subtotal</dt><dd>${{ quote.subtotal|floatformat:2 }}</dd><dt>Discount {{ quote.coupon_code }} ({{ quote.discount_percent }}%)</dt><dd>−${{ quote.discount|floatformat:2 }}</dd><dt>USPS shipping estimate</dt><dd>${{ quote.shipping_cost|floatformat:2 }}</dd><dt>Tax (not calculated)</dt><dd>$0.00</dd><dt><strong>Total USD</strong></dt><dd><strong>${{ quote.total|floatformat:2 }}</strong></dd></dl>
 <button class="button primary" name="action" value="submit">Submit demo order</button>{% else %}<p>Complete the form and update the review to see your total before submitting.</p>{% endif %}
-</section></form>
-<aside class="checkout-panel"><h2>Your items</h2>{% for row in cart_rows %}<p>{{ row.quantity }} × {{ row.variant.product.name }}<br><small>{{ row.variant.name }}</small> · ${{ row.subtotal|floatformat:2 }}</p>{% endfor %}<strong>Subtotal ${{ cart_total|floatformat:2 }} USD</strong></aside></div>
+</section></div>
+<aside class="checkout-sidebar" aria-label="Order summary">
+<section class="checkout-panel"><h2>Your items</h2>
+{% for row in cart_rows %}<div class="checkout-item">
+<a class="store-line-thumbnail" href="{% url 'demos:store:product' row.variant.product.slug %}">{% include 'dwiest-django-demos/store/image.html' with product=row.variant.product %}</a>
+<div><p>{{ row.quantity }} × {{ row.variant.product.name }}<br><small>{{ row.variant.name }}</small><br>${{ row.subtotal|floatformat:2 }}</p></div></div>{% endfor %}
+<strong>Subtotal ${{ cart_total|floatformat:2 }} USD</strong></section>
+<section class="checkout-panel checkout-coupon"><h2>Discount code</h2><p>{{ form.coupon.label_tag }} {{ form.coupon }}{{ form.coupon.errors }}</p><button class="button secondary" name="action" value="review">Apply & update review</button><p class="muted">Complete contact, shipping, and payment details to update your total.</p></section>
+</aside></div></form>
 {% endblock %}

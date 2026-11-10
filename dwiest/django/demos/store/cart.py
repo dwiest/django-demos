@@ -12,7 +12,7 @@ def cart_context(request):
                   if key.isdigit() and isinstance(value, int) and 1 <= value <= 99}
     variants = ProductVariant.objects.filter(
         pk__in=quantities, active=True, product__published=True,
-    ).select_related('product')
+    ).select_related('product').prefetch_related('product__photos')
     rows = []
     valid = {}
     for variant in variants:
