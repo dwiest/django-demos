@@ -24,6 +24,7 @@
   </header>
   <div class="container store-header-inner">
     <nav class="store-header-links" aria-label="Store management">
+{% if perms.demo_store.view_storeorder %}<a href="{% url 'demos:store:order_list' %}">Orders</a>{% endif %}
       {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}
       {% if perms.demo_store.change_storebranding %}<a href="{% url 'demos:store:branding' %}">Store settings</a>{% endif %}
       <a class="button secondary" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>

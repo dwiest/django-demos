@@ -1,7 +1,7 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% block content %}
   <div class="page-heading"><h1>Store settings</h1></div>
-  <p class="muted">Set the name, header, introduction, and footer for your storefront. Images save to S3. Text is displayed as plain text.</p>
+  <p class="muted">Set the name, header, introduction, and footer for your storefront. Images save to S3. Text is displayed as plain text. Configure the active coupon code and discount percentage below; leave the code blank to disable coupons.</p>
   <form method="post" enctype="multipart/form-data" class="store-form store-editor">
     {% csrf_token %}
     {{ form.non_field_errors }}

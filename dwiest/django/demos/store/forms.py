@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Catalog, Product, ProductVariant, ProductPhoto, StoreBranding
+from .models import Catalog, Product, ProductVariant, ProductPhoto, StoreBranding, ShippingAddress, StoreOrder, StoreOrderItem
 
 
 class QuantityForm(forms.Form):
@@ -79,7 +79,10 @@ class StoreBrandingForm(forms.ModelForm):
         model = StoreBranding
         fields = ['name', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
-                  'footer_link_label', 'footer_link_url', 'copyright_text']
+                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent']
+
+    def clean_coupon_code(self):
+        return self.cleaned_data['coupon_code'].strip().upper()
 
     def clean_footer_link_url(self):
         value = self.cleaned_data['footer_link_url']
@@ -104,3 +107,63 @@ class StoreBrandingForm(forms.ModelForm):
                     except forms.ValidationError as error:
                         self.add_error(field, error)
         return cleaned
+
+
+SHIPPING = {
+    'ground': ('USPS Ground Advantage · estimated 2–5 business days', '6.95'),
+    'priority': ('USPS Priority Mail · estimated 2–3 business days', '10.95'),
+    'express': ('USPS Priority Mail Express · estimated 1–3 business days', '29.95'),
+}
+
+
+class CheckoutForm(forms.ModelForm):
+    email = forms.EmailField()
+    shipping_method = forms.ChoiceField(choices=[(key, '{} · ${}'.format(value[0], value[1])) for key, value in SHIPPING.items()])
+    payment_method = forms.ChoiceField(choices=[('card_usd', 'Stripe · card in USD (simulation)'), ('usdc', 'Stripe · USDC stablecoin (simulation)')], widget=forms.RadioSelect)
+    coupon = forms.CharField(max_length=40, required=False)
+    acknowledge = forms.BooleanField(label='I understand this is a demo order and no money will be charged.')
+    checkout_key = forms.UUIDField(widget=forms.HiddenInput)
+
+    class Meta:
+        model = ShippingAddress
+        fields = ['email', 'name', 'line1', 'line2', 'city', 'state', 'postal_code', 'shipping_method', 'payment_method', 'coupon', 'acknowledge', 'checkout_key']
+
+    def clean_state(self):
+        value = self.cleaned_data['state'].upper()
+        if value not in 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split():
+            raise forms.ValidationError('Enter a US state abbreviation or DC.')
+        return value
+
+    def clean_postal_code(self):
+        import re
+        value = self.cleaned_data['postal_code']
+        if not re.fullmatch(r'\d{5}(-\d{4})?', value):
+            raise forms.ValidationError('Enter a ZIP code such as 27601 or 27601-1234.')
+        return value
+
+
+class OrderUpdateForm(forms.Form):
+    status = forms.ChoiceField(choices=StoreOrder.STATUS)
+    tracking_number = forms.CharField(max_length=100, required=False)
+    message = forms.CharField(widget=forms.Textarea, required=False, max_length=5000,
+                              help_text='Sent to the customer with this update.')
+
+    def clean(self):
+        data = super().clean()
+        if data.get('status') == 'fulfilled' and not data.get('tracking_number'):
+            self.add_error('tracking_number', 'Enter a USPS tracking number to fulfill this order.')
+        return data
+
+
+OrderItemFormSet = forms.modelformset_factory(
+    StoreOrderItem,
+    fields=['quantity'], extra=0, can_delete=True)
+
+
+class ShippingAddressForm(forms.ModelForm):
+    class Meta:
+        model = ShippingAddress
+        fields = ['name', 'line1', 'line2', 'city', 'state', 'postal_code']
+
+    clean_state = CheckoutForm.clean_state
+    clean_postal_code = CheckoutForm.clean_postal_code

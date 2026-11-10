@@ -1,6 +1,9 @@
+import uuid
 from decimal import Decimal
 
-from django.core.validators import MinValueValidator
+from django.conf import settings
+
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.functional import cached_property
 
@@ -99,6 +102,8 @@ class StoreBranding(models.Model):
     contact_email = models.EmailField(blank=True)
     footer_link_label = models.CharField(max_length=80, blank=True)
     footer_link_url = models.URLField(blank=True)
+    coupon_code = models.CharField(max_length=40, blank=True, default='DISCOUNT')
+    coupon_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
     copyright_text = models.CharField(max_length=180, blank=True)
 
     class Meta:
@@ -124,3 +129,84 @@ class StoreBranding(models.Model):
     @cached_property
     def footer_image_url(self):
         return self.image_url('footer')
+
+
+
+class ShippingAddress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    name = models.CharField(max_length=160)
+    line1 = models.CharField(max_length=200)
+    line2 = models.CharField(max_length=200, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=2)
+    postal_code = models.CharField(max_length=10)
+    country = models.CharField(max_length=2, default='US', editable=False)
+
+    def __str__(self):
+        return '{}, {}, {} {} {}'.format(self.name, self.line1, self.city, self.state, self.postal_code)
+
+
+class StoreOrder(models.Model):
+    STATUS = [('placed', 'Placed'), ('processing', 'Processing'), ('fulfilled', 'Fulfilled'), ('cancelled', 'Cancelled')]
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    checkout_key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    email = models.EmailField()
+    shipping_address = models.OneToOneField(ShippingAddress, on_delete=models.PROTECT)
+    status = models.CharField(max_length=20, choices=STATUS, default='placed')
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    coupon_code = models.CharField(max_length=40, blank=True)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    shipping_method = models.CharField(max_length=40)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_method = models.CharField(max_length=30)
+    payment_acknowledgment = models.CharField(max_length=120)
+    tracking_number = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def shipping_label(self):
+        from .forms import SHIPPING
+        return SHIPPING.get(self.shipping_method, (self.shipping_method, ''))[0]
+
+    @property
+    def number(self):
+        return 'RW-{:08d}'.format(self.pk)
+
+    def __str__(self):
+        return self.number
+
+
+class StoreOrderItem(models.Model):
+    order = models.ForeignKey(StoreOrder, related_name='items', on_delete=models.CASCADE)
+    variant = models.ForeignKey(ProductVariant, null=True, on_delete=models.SET_NULL)
+    product_name = models.CharField(max_length=160)
+    variant_name = models.CharField(max_length=160)
+    sku = models.CharField(max_length=80)
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(99)])
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def subtotal(self):
+        return self.quantity * self.unit_price
+
+
+class OrderEvent(models.Model):
+    order = models.ForeignKey(StoreOrder, related_name='events', on_delete=models.CASCADE)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    email_sent_at = models.DateTimeField(null=True, blank=True)
+    email_error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['created_at', 'pk']

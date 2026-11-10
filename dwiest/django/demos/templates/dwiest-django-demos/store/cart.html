@@ -21,8 +21,8 @@
   {% if cart_rows %}
     <section class="store-summary" aria-label="Cart total">
       <h2>Subtotal: ${{ cart_total|floatformat:2 }} USD</h2>
-      <p class="muted">Shipping and tax are not calculated in this demo.</p>
-      <p>Checkout coming soon.</p>
+      <p class="muted">Estimated shipping is calculated at checkout. Demo orders only.</p>
+      <a class="button primary" href="{% url 'demos:store:checkout' %}">Checkout</a>
     </section>
   {% endif %}
 {% endblock %}

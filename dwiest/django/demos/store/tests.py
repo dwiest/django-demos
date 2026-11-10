@@ -49,7 +49,7 @@ class StoreTests(TestCase):
         response = self.client.get(self.url('cart'))
         self.assertEqual(response.context['cart_count'], 3)
         self.assertEqual(response.context['cart_total'], Decimal('75.30'))
-        self.assertContains(response, 'Checkout coming soon')
+        self.assertContains(response, 'Checkout')
         self.assertContains(Client().get(self.url('cart')), 'Your cart is empty')
         self.client.post(self.url('update', self.variant.pk), {'quantity': 4})
         self.assertEqual(self.client.session[KEY][str(self.variant.pk)], 4)

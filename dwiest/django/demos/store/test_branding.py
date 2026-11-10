@@ -24,7 +24,7 @@ class BrandingTests(TestCase):
         self.data = {'name': 'My store', 'tagline': 'Unexpected finds', 'introduction': 'Welcome here',
                      'footer_heading': 'Stay curious', 'footer_text': 'Made for you',
                      'contact_email': 'hello@example.com', 'footer_link_label': 'About',
-                     'footer_link_url': 'https://example.com/about', 'copyright_text': 'All ours'}
+                     'footer_link_url': 'https://example.com/about', 'copyright_text': 'All ours', 'coupon_code': 'DISCOUNT', 'coupon_percent': '5'}
 
     def test_default_standalone_shell_on_store_pages(self):
         for name in ['home', 'cart', 'manage', 'branding', 'product_create']:

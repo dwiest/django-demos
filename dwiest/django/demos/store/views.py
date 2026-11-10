@@ -1,4 +1,12 @@
 import logging
+import hashlib
+import json
+import uuid
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.core.paginator import Paginator
+from django.http import Http404, HttpResponse
+from django.utils import timezone
 
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -7,9 +15,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .cart import KEY, cart_context
-from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm
-from .models import Catalog, Product, ProductPhoto, StoreBranding
+from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm, CheckoutForm, OrderUpdateForm, OrderItemFormSet, ShippingAddressForm
+from .models import Catalog, Product, ProductPhoto, StoreBranding, StoreOrder, StoreOrderItem, OrderEvent
 from .media import delete_image, upload_image, upload_asset
+from .orders import totals, notify
 
 
 logger = logging.getLogger(__name__)
@@ -195,3 +204,148 @@ def branding(request):
                 delete_image(bucket, key)
             form.add_error(None, 'Store settings could not be saved. Please try again or check the S3 configuration.')
     return page(request, 'branding.html', form=form)
+
+
+def checkout(request):
+    key = request.session.get('store_checkout_key')
+    if not key:
+        key = str(uuid.uuid4())
+        request.session['store_checkout_key'] = key
+    if request.method == 'POST':
+        existing = StoreOrder.objects.filter(checkout_key=key).first()
+        if existing:
+            return redirect('demos:store:order_complete', token=existing.token)
+    cart_data = cart_context(request)
+    if request.method == 'GET' and cart_data['cart_rows'] and StoreOrder.objects.filter(checkout_key=key).exists():
+        key = str(uuid.uuid4())
+        request.session['store_checkout_key'] = key
+    if not cart_data['cart_rows']:
+        return redirect('demos:store:cart')
+    form = CheckoutForm(request.POST if request.method == 'POST' else None,
+                        initial={'checkout_key': key, 'shipping_method': 'ground', 'payment_method': 'card_usd'})
+    quote = None
+    if request.method == 'POST' and form.is_valid():
+        if str(form.cleaned_data['checkout_key']) != key:
+            form.add_error(None, 'Checkout expired. Reload the checkout page.')
+        else:
+            try:
+                quote = totals(cart_data['cart_total'], form.cleaned_data['shipping_method'], form.cleaned_data['coupon'])
+            except ValueError as error:
+                form.add_error('coupon', str(error))
+        if not form.errors:
+            review = hashlib.sha256(json.dumps({
+                'fields': {k: str(v) for k, v in form.cleaned_data.items()},
+                'quote': {k: str(v) for k, v in quote.items()},
+                'items': [(row['variant'].pk, row['quantity'], str(row['variant'].price)) for row in cart_data['cart_rows']],
+            }, sort_keys=True).encode()).hexdigest()
+            if request.POST.get('action') == 'review':
+                request.session['store_checkout_review'] = review
+            elif request.session.get('store_checkout_review') != review:
+                form.add_error(None, 'Your order changed. Update the order review before submitting.')
+        if not form.errors and request.POST.get('action') == 'submit':
+            with transaction.atomic():
+                address = form.save(commit=False)
+                if request.user.is_authenticated:
+                    address.user = request.user
+                address.save()
+                order, created = StoreOrder.objects.get_or_create(checkout_key=key, defaults=dict(
+                    email=form.cleaned_data['email'], shipping_address=address,
+                    user=request.user if request.user.is_authenticated else None,
+                    shipping_method=form.cleaned_data['shipping_method'],
+                    payment_method=form.cleaned_data['payment_method'],
+                    payment_acknowledgment='SIMULATED-{}'.format(uuid.uuid4()), **quote))
+                if created:
+                    for row in cart_data['cart_rows']:
+                        variant = row['variant']
+                        StoreOrderItem.objects.create(order=order, variant=variant,
+                            product_name=variant.product.name, variant_name=variant.name, sku=variant.sku,
+                            quantity=row['quantity'], unit_price=variant.price)
+                    event = OrderEvent.objects.create(order=order, message='Thank you! Your demo order has been received. No payment was collected.')
+                    transaction.on_commit(lambda: notify(event.pk))
+                else:
+                    address.delete()
+            receipts = request.session.get('store_receipts', [])
+            request.session['store_receipts'] = (receipts + [str(order.token)])[-50:]
+            request.session[KEY] = {}
+            return redirect('demos:store:order_complete', token=order.token)
+    return page(request, 'checkout.html', form=form, quote=quote)
+
+
+def order_complete(request, token):
+    # Session ownership avoids exposing customer addresses through shared links.
+    if str(token) not in request.session.get('store_receipts', []):
+        raise Http404
+    order = get_object_or_404(StoreOrder, token=token)
+    return page(request, 'order_complete.html', order=order)
+
+
+@permission_required('demo_store.view_storeorder', raise_exception=True)
+def order_list(request):
+    orders = StoreOrder.objects.select_related('shipping_address')
+    status = request.GET.get('status', '')
+    query = request.GET.get('q', '').strip()
+    if status in dict(StoreOrder.STATUS):
+        orders = orders.filter(status=status)
+    if query:
+        orders = orders.filter(Q(email__icontains=query) | Q(shipping_address__name__icontains=query) |
+                               Q(tracking_number__icontains=query))
+    return page(request, 'orders.html', orders=Paginator(orders, 30).get_page(request.GET.get('page')), statuses=StoreOrder.STATUS)
+
+
+@permission_required(('demo_store.view_storeorder', 'demo_store.change_storeorder'), raise_exception=True)
+def order_edit(request, pk):
+    with transaction.atomic():
+        order = get_object_or_404(StoreOrder.objects.select_for_update(), pk=pk)
+        form = OrderUpdateForm(request.POST if request.method == 'POST' else None,
+                               initial={'status': order.status, 'tracking_number': order.tracking_number})
+        address_form = ShippingAddressForm(request.POST if request.method == 'POST' else None, instance=order.shipping_address, prefix='address')
+        items = OrderItemFormSet(request.POST if request.method == 'POST' else None, queryset=order.items.all())
+        if request.method == 'POST' and form.is_valid() and items.is_valid() and address_form.is_valid():
+            data = form.cleaned_data
+            remaining = [f for f in items.forms if f.cleaned_data and not f.cleaned_data.get('DELETE')]
+            changed_items = items.has_changed()
+            if any(f.cleaned_data.get('id') and f.cleaned_data['id'].order_id != order.pk for f in items.forms):
+                return HttpResponse('Invalid order item.', status=400)
+            changed = data['status'] != order.status or data['tracking_number'] != order.tracking_number or changed_items or address_form.has_changed()
+            if order.status in ('fulfilled', 'cancelled') and changed:
+                form.add_error(None, 'Completed or cancelled orders are read-only. You can still send messages.')
+            elif not remaining:
+                form.add_error(None, 'Keep at least one order item, or cancel the order.')
+            elif not changed and not data['message'].strip():
+                form.add_error('message', 'Enter a message or make a change.')
+            else:
+                details = []
+                if address_form.has_changed():
+                    details.append('Shipping address updated: {}.'.format(address_form.instance))
+                    address_form.save()
+                if changed_items:
+                    before = ', '.join('{} × {}'.format(item.quantity, item.sku) for item in order.items.all())
+                    items.save()
+                    order.subtotal = sum((item.subtotal for item in order.items.all()), Decimal('0.00'))
+                    order.discount = (order.subtotal * order.discount_percent / 100).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+                    order.total = order.subtotal - order.discount + order.shipping_cost + order.tax
+                    details.append('Items changed from {} to {}. New total: ${} USD. Payment remains simulated.'.format(before, ', '.join('{} × {}'.format(item.quantity, item.sku) for item in order.items.all()), order.total))
+                if data['status'] != order.status:
+                    details.append('Status changed from {} to {}.'.format(order.status, data['status']))
+                if data['tracking_number'] != order.tracking_number:
+                    details.append('USPS tracking: {}.'.format(data['tracking_number']))
+                order.status = data['status']
+                order.tracking_number = data['tracking_number']
+                if order.status == 'fulfilled' and not order.fulfilled_at:
+                    order.fulfilled_at = timezone.now()
+                if order.status == 'cancelled' and not order.cancelled_at:
+                    order.cancelled_at = timezone.now()
+                order.save()
+                event = OrderEvent.objects.create(order=order, actor=request.user,
+                    message='\n'.join(details + ([data['message']] if data['message'].strip() else [])))
+                transaction.on_commit(lambda: notify(event.pk))
+                return redirect('demos:store:order_edit', pk=pk)
+    return page(request, 'order_edit.html', order=order, form=form, items=items, address_form=address_form)
+
+
+@permission_required('demo_store.change_storeorder', raise_exception=True)
+@require_POST
+def retry_notification(request, pk, event_pk):
+    event = get_object_or_404(OrderEvent, pk=event_pk, order_id=pk)
+    notify(event.pk)
+    return redirect('demos:store:order_edit', pk=pk)
