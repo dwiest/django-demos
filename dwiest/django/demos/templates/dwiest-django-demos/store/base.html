@@ -10,7 +10,7 @@
 </head>
 <body class="storefront">
   <a class="skip" href="#main">Skip to content</a>
-  <header class="store-header">
+  <header class="store-header{% if store_branding.header_image_url %} store-header-with-artwork{% endif %}">
     <div class="store-masthead">
       <a class="store-brand" href="{% url 'demos:store:home' %}">
         {% if store_branding.header_image_url %}
