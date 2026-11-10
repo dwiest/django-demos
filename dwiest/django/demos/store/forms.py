@@ -95,7 +95,7 @@ class StoreBrandingForm(forms.ModelForm):
     def clean_thank_you_button_label(self):
         return self.cleaned_data['thank_you_button_label'].strip() or 'Continue shopping'
 
-    thank_you_image = forms.FileField(required=False, label='Thank-you page image', help_text='Independent order confirmation artwork. A wide, shallow image works best; displayed up to 160px tall.')
+    thank_you_image = forms.FileField(required=False, label='Thank-you page image', widget=forms.ClearableFileInput(attrs={'accept': '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif'}), help_text='Independent order confirmation artwork. JPEG, PNG, WebP, or GIF (including animation); up to 10 MB.')
     remove_thank_you_image = forms.BooleanField(required=False, label='Remove thank-you page image')
     email_header_image = forms.FileField(required=False, help_text='Email masthead artwork. Retained when replaced; requires STORE_MEDIA_PUBLIC_BASE_URL.')
     remove_email_header_image = forms.BooleanField(required=False)
@@ -118,7 +118,7 @@ class StoreBrandingForm(forms.ModelForm):
         return value
 
     def clean(self):
-        from .media import prepare_image
+        from .media import prepare_image, prepare_thank_you_image
         cleaned = super().clean()
         if bool(cleaned.get('footer_link_label')) != bool(cleaned.get('footer_link_url')):
             raise forms.ValidationError('Provide both a footer link label and URL, or leave both blank.')
@@ -130,7 +130,8 @@ class StoreBrandingForm(forms.ModelForm):
                     self.add_error(field, 'Choose either a new image or removal.')
                 else:
                     try:
-                        cleaned[field] = prepare_image(upload)
+                        processor = prepare_thank_you_image if location == 'thank_you' else prepare_image
+                        cleaned[field] = processor(upload)
                     except forms.ValidationError as error:
                         self.add_error(field, error)
         for field in ('email_shop_url', 'email_help_url'):
