@@ -86,6 +86,15 @@ class StoreBrandingForm(forms.ModelForm):
     footer_image = forms.FileField(required=False, help_text='Optional footer artwork. JPEG, PNG, or WebP; up to 10 MB.')
     remove_footer_image = forms.BooleanField(required=False, label='Remove current footer image')
 
+    thank_you_heading = forms.CharField(max_length=180, required=False, help_text='Blank uses “Thank you for your order!”.')
+    thank_you_button_label = forms.CharField(max_length=80, required=False, help_text='Blank uses “Continue shopping”.')
+
+    def clean_thank_you_heading(self):
+        return self.cleaned_data['thank_you_heading'].strip() or 'Thank you for your order!'
+
+    def clean_thank_you_button_label(self):
+        return self.cleaned_data['thank_you_button_label'].strip() or 'Continue shopping'
+
     thank_you_image = forms.FileField(required=False, label='Thank-you page image', help_text='Independent order confirmation artwork. A wide, shallow image works best; displayed up to 160px tall.')
     remove_thank_you_image = forms.BooleanField(required=False, label='Remove thank-you page image')
     email_header_image = forms.FileField(required=False, help_text='Email masthead artwork. Retained when replaced; requires STORE_MEDIA_PUBLIC_BASE_URL.')
@@ -97,7 +106,7 @@ class StoreBrandingForm(forms.ModelForm):
         model = StoreBranding
         fields = ['name', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
-                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer', 'email_header_image_alt', 'email_footer_image_alt', 'email_footer_heading', 'email_shop_url', 'email_help_url', 'thank_you_image_alt']
+                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer', 'email_header_image_alt', 'email_footer_image_alt', 'email_footer_heading', 'email_shop_url', 'email_help_url', 'thank_you_image_alt', 'thank_you_heading', 'thank_you_message', 'thank_you_button_label']
 
     def clean_coupon_code(self):
         return self.cleaned_data['coupon_code'].strip().upper()

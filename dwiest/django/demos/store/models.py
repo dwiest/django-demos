@@ -127,6 +127,12 @@ class StoreBranding(models.Model):
     footer_link_url = models.URLField(blank=True)
     coupon_code = models.CharField(max_length=40, blank=True, default='DISCOUNT')
     coupon_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    thank_you_heading = models.CharField(max_length=180, default='Thank you for your order!',
+        help_text='Heading on the order confirmation page.')
+    thank_you_message = models.TextField(blank=True, default='Your order has been received.',
+        help_text='Optional message below the heading. Plain text only; leave blank to hide.')
+    thank_you_button_label = models.CharField(max_length=80, default='Continue shopping',
+        help_text='Label for the link back to the storefront.')
     thank_you_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
     thank_you_image_key = models.CharField(max_length=1024, blank=True, editable=False)
     thank_you_image_alt = models.CharField(max_length=255, blank=True)

@@ -414,3 +414,22 @@ mappings. This URL correction does not make a private bucket public: use the
 unsigned CloudFront OAC media origin described above for private S3 objects.
 Already-sent messages keep their original URLs; send a fresh test notification
 once the deployment and media origin settings are corrected.
+
+### Store-specific thank-you copy
+
+Migration `0008_configurable_thank_you_copy` removes hard-coded Rotten.World/Wurm
+wording from the shared order confirmation page. **Store settings** now includes:
+
+| Setting | Generic default | Suggested Rotten.World value |
+| --- | --- | --- |
+| Thank you heading | Thank you for your order! | Wurm thanks you for your order! |
+| Thank you message | Your order has been received. | “You've got excellent taste. For a surface dweller.” |
+| Thank you button label | Continue shopping | Continue exploring |
+
+The message supports plain-text line breaks and can be left empty to hide it.
+Blank headings/button labels saved through Store settings use the generic defaults.
+All text is escaped. Dedicated thank-you artwork remains independently configurable;
+website artwork fallbacks use their configured alt text rather than mascot wording.
+Existing stores receive generic copy on migration; set the branded values explicitly
+for Rotten.World after deploying. Order details and the simulation notice remain
+system-generated so store copy cannot obscure the current demo payment behavior.

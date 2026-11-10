@@ -156,3 +156,21 @@ class BrandingTests(TestCase):
         branding.refresh_from_db()
         self.assertEqual(branding.thank_you_image_key, '')
         self.s3.delete_object.assert_not_called()
+
+
+    def test_thank_you_copy_saves_through_store_settings(self):
+        response = self.client.post(self.url, {**self.data,
+            'thank_you_heading': 'Wurm thanks you for your order!',
+            'thank_you_message': 'For a surface dweller, you have excellent taste.',
+            'thank_you_button_label': 'Continue exploring'})
+        self.assertEqual(response.status_code, 302)
+        branding = StoreBranding.objects.get()
+        self.assertEqual(branding.thank_you_heading, 'Wurm thanks you for your order!')
+        self.assertIn('surface dweller', branding.thank_you_message)
+        self.assertEqual(branding.thank_you_button_label, 'Continue exploring')
+        self.client.post(self.url, {**self.data, 'thank_you_heading': '', 'thank_you_message': '',
+                                   'thank_you_button_label': ''})
+        branding.refresh_from_db()
+        self.assertEqual(branding.thank_you_heading, 'Thank you for your order!')
+        self.assertEqual(branding.thank_you_button_label, 'Continue shopping')
+        self.assertEqual(branding.thank_you_message, '')

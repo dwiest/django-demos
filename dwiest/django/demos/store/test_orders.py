@@ -54,7 +54,7 @@ class OrderTests(TestCase):
         self.assertEqual(order.total, Decimal('44.95'))
         self.assertEqual(order.discount, Decimal('2.00'))
         self.assertTrue(order.payment_acknowledgment.startswith('SIMULATED-'))
-        self.assertContains(self.client.get(self.url('order_complete', order.token)), 'Wurm thanks you')
+        self.assertContains(self.client.get(self.url('order_complete', order.token)), 'Thank you for your order!')
         self.assertEqual(Client().get(self.url('order_complete', order.token)).status_code, 404)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Wurm pin', mail.outbox[0].body)
@@ -243,7 +243,27 @@ class OrderTests(TestCase):
             s3.return_value.generate_presigned_url.side_effect = lambda operation, Params, **kw: 'https://signed.example/' + Params['Key']
             order = self.place()
             response = self.client.get(self.url('order_complete', order.token))
-        self.assertContains(response, 'class="wurm-thanks" src="https://signed.example/store/products/branding/thanks.png"')
+        self.assertContains(response, 'class="order-thanks-image" src="https://signed.example/store/products/branding/thanks.png"')
         self.assertContains(response, 'alt="A happy Wurm"')
         self.assertContains(response, 'class="order-thanks-actions"')
         self.assertContains(response, 'class="button order-continue"')
+
+
+    def test_receipt_defaults_are_generic_and_store_copy_is_configurable(self):
+        order = self.place()
+        url = self.url('order_complete', order.token)
+        response = self.client.get(url)
+        for text in ['Thank you for your order!', 'Your order has been received.', 'Continue shopping']:
+            self.assertContains(response, text)
+        self.assertNotContains(response, 'Wurm thanks you')
+        self.assertNotContains(response, 'surface dweller')
+        self.assertNotContains(response, 'RottenWorld Wurm')
+        StoreBranding.objects.create(name='Rotten.World', thank_you_heading='Wurm thanks you for your order!',
+            thank_you_message='“You have excellent taste. For a surface dweller.”\n<script>unsafe</script>',
+            thank_you_button_label='Continue exploring')
+        response = self.client.get(url)
+        for text in ['Wurm thanks you for your order!', 'surface dweller', 'Continue exploring', '&lt;script&gt;unsafe&lt;/script&gt;']:
+            self.assertContains(response, text)
+        self.assertNotContains(response, '<script>unsafe</script>')
+        StoreBranding.objects.update(thank_you_message='')
+        self.assertNotContains(self.client.get(url), 'surface dweller')
