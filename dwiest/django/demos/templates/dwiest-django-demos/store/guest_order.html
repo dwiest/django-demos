@@ -1,12 +1,33 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
-{% block content %}<section class="checkout-panel">
-{% if order %}<h1>Order {{ order.number }}</h1>
-<p>Placed {{ order.created_at|date:"F j, Y" }} · Status: {{ order.get_status_display }}</p>
-<p>This is a demo order. Payment was simulated; no money was charged.</p>
-{% for item in order.items.all %}<p>{{ item.quantity }} × {{ item.product_name }} · {{ item.variant_name }} · ${{ item.subtotal|floatformat:2 }}</p>{% endfor %}
-<p>Subtotal: ${{ order.subtotal|floatformat:2 }} · Discount: ${{ order.discount|floatformat:2 }}<br>Shipping: {{ order.shipping_label }} · ${{ order.shipping_cost|floatformat:2 }}<br>Tax: ${{ order.tax|floatformat:2 }}</p>
-<p><strong>Total: ${{ order.total|floatformat:2 }} USD</strong></p>
-<p>Ship to: {{ order.shipping_address }}<br>{{ order.shipping_address.line2 }}</p>
-{% if order.tracking_number %}<p>USPS tracking: {{ order.tracking_number }}</p>{% endif %}
+{% block content %}
+<article class="store-order-detail">
+{% if order %}
+  <header class="order-detail-heading"><div><p class="order-eyebrow">Order details</p><h1>Order {{ order.number }}</h1><p class="muted">Placed {{ order.created_at|date:"F j, Y" }}</p></div><span class="order-status">{{ order.get_status_display }}</span></header>
+  <p class="order-demo-notice">Demo purchase — no payment was collected.</p>
+  <section aria-labelledby="order-items-title"><h2 id="order-items-title">Your items</h2>
+    <ul class="order-detail-items">
+    {% for item in order.items.all %}
+      <li class="order-detail-item">
+        {% if item.email_image_url %}<img src="{{ item.email_image_url }}" alt="{{ item.image_alt|default:item.product_name }}" class="order-item-image" loading="lazy">{% else %}<span class="order-item-placeholder" aria-hidden="true">{{ item.product_name|first }}</span>{% endif %}
+        <div class="order-item-description"><strong>{{ item.product_name }}</strong><p>{{ item.variant_name }} · Qty {{ item.quantity }}</p><p>${{ item.unit_price|floatformat:2 }} each</p></div>
+        <strong class="order-item-total">${{ item.subtotal|floatformat:2 }}</strong>
+      </li>
+    {% endfor %}
+    </ul>
+  </section>
+  <section class="order-summary" aria-label="Order totals"><dl>
+    <div><dt>Subtotal</dt><dd>${{ order.subtotal|floatformat:2 }}</dd></div>
+    {% if order.discount %}<div><dt>Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</dt><dd>−${{ order.discount|floatformat:2 }}</dd></div>{% endif %}
+    <div><dt>Shipping</dt><dd>${{ order.shipping_cost|floatformat:2 }}</dd></div>
+    <div><dt>Tax (not calculated)</dt><dd>${{ order.tax|floatformat:2 }}</dd></div>
+    <div class="order-grand-total"><dt>Order total</dt><dd>${{ order.total|floatformat:2 }} USD</dd></div>
+  </dl></section>
+  <div class="order-delivery-grid">
+    <section aria-labelledby="order-address-title"><h2 id="order-address-title">Ship to</h2><address>{{ order.shipping_address.name }}<br>{{ order.shipping_address.line1 }}{% if order.shipping_address.line2 %}<br>{{ order.shipping_address.line2 }}{% endif %}<br>{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}</address></section>
+    <section aria-labelledby="order-status-title"><h2 id="order-status-title">Order status</h2><p>{{ order.get_status_display }}<br>Payment: Simulated; no funds charged.</p><p>{{ order.shipping_label }}<br>USPS tracking: {{ order.tracking_number|default:'Not shipped' }}</p>
+    {% if order.fulfilled_at %}<p>Fulfilled: {{ order.fulfilled_at|date:"F j, Y" }}</p>{% endif %}{% if order.cancelled_at %}<p>Cancelled: {{ order.cancelled_at|date:"F j, Y" }}</p>{% endif %}
+    {% if order.status == 'placed' or order.status == 'processing' %}<p class="muted">We’ll email you when your order ships.</p>{% endif %}</section>
+  </div>
 {% else %}<h1>This order link is unavailable</h1><p>The link may have expired or the order’s email address may have changed.</p><a class="button" href="{% url 'demos:store:guest_order_lookup' %}">Request a new link</a>{% endif %}
-</section>{% endblock %}
+</article>
+{% endblock %}
