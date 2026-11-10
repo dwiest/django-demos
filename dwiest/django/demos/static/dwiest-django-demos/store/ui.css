@@ -162,3 +162,29 @@ html:has(.storefront){scroll-padding-top:64px}
 .account-signout:focus-visible,.account-editor summary:focus-visible,.account-outline:focus-visible{outline:3px solid #957124;outline-offset:4px}
 .store-header-links a[aria-current=page]{text-decoration:underline;text-decoration-color:#c99b44;text-underline-offset:8px;text-decoration-thickness:2px}
 @media(max-width:700px){.customer-account{margin-top:24px}.account-grid{grid-template-columns:1fr;gap:16px}.account-card{padding:20px}.account-heading{gap:12px}.account-heading h1{font-size:28px}.account-details{gap:10px 16px}}
+
+/* Short pages retain space between the masthead and footer. */
+.storefront main{min-height:clamp(360px,50vh,560px);flex-shrink:0}
+.store-order-detail{max-width:860px;margin:32px auto;padding:28px;border:1px solid var(--line);border-radius:12px;background:#fffdfa;overflow-wrap:anywhere}
+.order-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.order-detail-heading h1{margin:0;color:#07584f;font-size:28px}
+.order-detail-heading p{margin:6px 0 0}
+.order-detail-heading .order-eyebrow{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.order-status{padding:6px 12px;border:1px solid #cad9cf;border-radius:999px;background:#edf3ed;color:#235749;font-size:14px;white-space:nowrap}
+.order-demo-notice{padding:12px 16px;background:#fff5db;border-left:3px solid #d6a429;margin:0 0 28px}
+.store-order-detail h2{font-size:20px;color:#07584f;margin:0 0 12px}
+.order-detail-items{list-style:none;padding:0;margin:0}
+.order-detail-item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid #e0e4df}
+.order-item-image,.order-item-placeholder{width:64px;height:64px;object-fit:contain;border-radius:6px;background:#f2f2ec}
+.order-item-placeholder{display:flex;align-items:center;justify-content:center;color:#69776d;font-size:24px}
+.order-item-description p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.order-item-total{white-space:nowrap}
+.order-summary{margin:20px 0 28px}
+.order-summary dl{margin:0}
+.order-summary dl>div{display:flex;justify-content:space-between;gap:20px;padding:6px 0}
+.order-summary dd{margin:0;white-space:nowrap}
+.order-summary .order-grand-total{margin-top:10px;padding:14px 0;border-bottom:2px solid #d6a429;font-size:21px;font-weight:700;color:#07584f}
+.order-delivery-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+.order-delivery-grid address{font-style:normal;line-height:1.7}
+.order-delivery-grid p{margin:0 0 12px;line-height:1.7}
+@media(max-width:650px){.store-order-detail{padding:18px;margin:24px auto}.order-detail-heading{align-items:flex-start;flex-direction:column}.order-detail-heading h1{font-size:24px}.order-detail-item{grid-template-columns:48px minmax(0,1fr) auto;gap:10px}.order-item-image,.order-item-placeholder{width:48px;height:48px}.order-item-total{font-size:14px}.order-delivery-grid{grid-template-columns:1fr;gap:24px}.order-summary .order-grand-total{font-size:18px}}
