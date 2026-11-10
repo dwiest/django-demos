@@ -32,9 +32,9 @@
   <main id="main" class="container">
     {% block content %}{% endblock %}
   </main>
-  <footer class="store-footer">
-    <div class="container">
-      {% if store_branding.footer_image_url %}<img src="{{ store_branding.footer_image_url }}" alt="{{ store_branding.footer_image_alt }}" class="store-footer-image" loading="lazy">{% endif %}
+  <footer class="store-footer{% if store_branding.footer_image_url %} store-footer-with-artwork{% endif %}">
+    {% if store_branding.footer_image_url %}<img src="{{ store_branding.footer_image_url }}" alt="" aria-hidden="true" class="store-footer-image" loading="lazy">{% endif %}
+    <div class="container store-footer-content">
       <div class="store-footer-inner">
       <div>
         <h2>{{ store_branding.footer_heading }}</h2>
