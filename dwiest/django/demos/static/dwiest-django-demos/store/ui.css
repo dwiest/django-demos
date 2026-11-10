@@ -57,7 +57,7 @@ html:has(.storefront){scroll-padding-top:64px}
 .store-brand{display:block;width:100%;font-size:clamp(28px,5vw,64px);font-weight:750;letter-spacing:-.5px;color:var(--ink);text-align:center}
 .store-brand>span{display:block;padding:80px 16px 32px}
 .store-header-with-artwork{background:#10110e}
-.store-header-image{display:block;width:auto;max-width:100%;height:auto;max-height:180px;object-fit:contain;margin-inline:auto}
+.store-header-image{display:block;width:100%;height:clamp(112px,16vw,180px);max-width:none;object-fit:cover;object-position:center;margin-inline:auto}
 .store-header-links{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 .store-header-links>a:not(.button){color:#f4f5ed}
 .store-footer{position:relative;isolation:isolate;background:#182c2b;color:#f4f5ed;margin-top:32px;padding-block:32px 20px}
