@@ -1,0 +1,6 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}<h1>Orders</h1>
+<form method="get" class="store-form"><label>Search customer email, name, tracking <input name="q" value="{{ request.GET.q }}"></label><label>Status <select name="status"><option value="">All</option>{% for value,label in statuses %}<option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button class="button secondary">Filter</button></form>
+{% for order in orders %}<article class="store-management-row"><a href="{% url 'demos:store:order_edit' order.pk %}">{{ order.number }}</a><span>{{ order.email }} · {{ order.get_status_display }} · ${{ order.total|floatformat:2 }} · {{ order.created_at }}</span></article>{% empty %}<p>No orders found.</p>{% endfor %}
+{% if orders.has_previous %}<a href="?page={{ orders.previous_page_number }}&q={{ request.GET.q|urlencode }}&status={{ request.GET.status|urlencode }}">Previous</a>{% endif %} Page {{ orders.number }} of {{ orders.paginator.num_pages }} {% if orders.has_next %}<a href="?page={{ orders.next_page_number }}&q={{ request.GET.q|urlencode }}&status={{ request.GET.status|urlencode }}">Next</a>{% endif %}
+{% endblock %}

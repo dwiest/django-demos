@@ -1,5 +1,6 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% block content %}
+{% if perms.demo_store.view_storeorder %}<a class="button secondary" href="{% url 'demos:store:order_list' %}">Orders</a>{% endif %}
   <div class="page-heading"><h1>Manage store</h1></div>
   <section>
     <div class="page-heading">

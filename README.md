@@ -19,8 +19,8 @@ order. The hook does not change authentication or application routes.
 `/django/demos/store/` provides a simple independent merchandise storefront,
 product catalogs, variant selection, and a session cart. It includes a Store
 card on the demo homepage and a shared navigation entry. Anonymous visitors
-can browse and use the cart. No checkout, payments, orders, inventory tracking,
-or fulfillment is implemented. Prices are USD; tax and shipping are not calculated.
+can browse and use the cart. Guest demo checkout and order management are available. Prices are USD; payments
+and USPS rates are simulated, tax is not calculated, and inventory is not tracked.
 Product images support S3 uploads and optional legacy HTTPS URLs; blank images get a neutral placeholder.
 
 ### One-time setup
@@ -187,3 +187,75 @@ to label its color or view. The first uploaded photo among those tied at zero is
 the initial cover. If no photo is marked zero, only the first ordered photo is
 shown on the card. Product pages retain their full photo galleries regardless
 of order. There is no automatic rotation.
+
+
+### Demo checkout and order management
+
+The cart now leads to **Checkout**: contact/address → shipping and payment selection
+→ review totals → submit → Wurm thank-you and numbered receipt. Existing store
+artwork is reused on the thank-you screen. No Stripe SDK, wallet connection, card
+collection, payment charge, USPS purchase, or real shipment occurs.
+
+**Store settings** defaults to coupon `DISCOUNT` for 5% off the merchandise subtotal
+before shipping. Codes are case-insensitive; percentages support 0–100. Change the
+code/percentage there or clear the code to disable it. Totals use decimal cents
+and round discounts half-up. Review is required again if the cart, prices, coupon,
+shipping, or contact details change. Repeated submissions reuse the same order.
+
+Shipping is US-only and offers illustrative flat estimates: Ground Advantage
+$6.95, Priority Mail $10.95, and Priority Mail Express $29.95. These are demo
+figures, not USPS quotes. The payment section previews USD card and USDC wallet
+flows, with a demo acknowledgment required and an explicitly simulated payment
+reference saved. No card numbers or wallet secrets are accepted. Tax is shown as
+not calculated, rather than claiming tax exemption.
+
+`StoreOrder` stores totals, coupon terms, email, simulated payment acknowledgment,
+status, tracking number and placement/update/fulfillment/cancellation times.
+`StoreOrderItem` snapshots product name, variant, SKU, unit price and quantity;
+subsequent catalog edits do not rewrite orders. Each order owns a separate
+`ShippingAddress` snapshot with an optional user association for later registration.
+Guest receipts require the placing browser's session; order numbers alone do not
+grant access. Email contains order details so the customer retains a receipt.
+
+Use **Manage store → Orders** (or the header's Orders link) to search/filter orders,
+change quantities, remove items, edit shipping addresses, send customer messages,
+mark processing, cancel or fulfill. At least one item must remain. Fulfillment
+requires a tracking number. Fulfilled/cancelled orders keep their timestamps and
+cannot be reopened or edited, but customer messages remain available. These are
+whole-order operations; partial shipments, refunds, and adding new products to
+existing orders are future work. Changes create an actor/timestamp audit event
+and email notification. Item edits retain the original unit price and coupon
+percentage and recalculate the total without charging a difference.
+
+Notifications use Django's configured email backend after database commit. Set
+`DEFAULT_FROM_EMAIL` and your SMTP/SES mail backend in the host settings. Without
+a working backend, orders still save: the order history shows delivery failures
+and a **Retry email** action. A backend acknowledgment records acceptance, not
+proof of inbox delivery. Console/locmem backends do not deliver customer emails.
+No customer mail is sent just by installing this revision.
+
+Before deployment, back up the database and run in the host environment:
+
+```sh
+python manage.py migrate demo_store
+python manage.py seed_store
+python manage.py collectstatic --noinput
+```
+
+Migration `0004_checkout_orders` adds the tables and coupon settings. The seed
+command grants order permissions to the existing Shop administrators group and
+preserves populated catalogs. Superusers already have access. The existing
+schema-neutral deployment workflow cannot apply the migration automatically.
+Order writes in Django admin redirect to the audited store management screen.
+
+Validation:
+
+```sh
+DJANGO_SETTINGS_MODULE=dwiest.django.demos.store.test_settings python -m django test dwiest.django.demos.store
+DJANGO_SETTINGS_MODULE=dwiest.django.demos.store.test_settings python -m django makemigrations demo_store --check --dry-run
+```
+
+Before accepting real sales, add verified Stripe payment/webhook handling,
+refunds, live shipping rates and label purchase, address verification, tax
+calculation, inventory rules, and returns/privacy policies. Registration and
+account-based order history can build on the existing optional user links.

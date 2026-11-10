@@ -1,0 +1,14 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+<section class="checkout-panel order-thanks">
+{% if store_branding.footer_image_url %}<img class="wurm-thanks" src="{{ store_branding.footer_image_url }}" alt="Wurm says thank you">{% elif store_branding.header_image_url %}<img class="wurm-thanks" src="{{ store_branding.header_image_url }}" alt="RottenWorld Wurm">{% endif %}
+<h1>Wurm thanks you for your order!</h1><p>“You've got excellent taste. For a surface dweller.”</p>
+<h2>{{ order.number }}</h2><p>You should receive an email at <strong>{{ order.email }}</strong> with your order details.</p>
+<p>This is a demo order. Your {{ order.payment_method }} payment was simulated; no money was charged.</p>
+<p>Status: {{ order.get_status_display }} · Total: ${{ order.total|floatformat:2 }} USD</p>
+{% for item in order.items.all %}<p>{{ item.quantity }} × {{ item.product_name }} · {{ item.variant_name }} · ${{ item.subtotal|floatformat:2 }}</p>{% endfor %}
+<p>Ship to: {{ order.shipping_address }}<br>{{ order.shipping_address.line2 }}</p>
+<p>Shipping: {{ order.shipping_label }} · ${{ order.shipping_cost|floatformat:2 }} · Discount: ${{ order.discount|floatformat:2 }}</p>
+{% if order.tracking_number %}<p>USPS tracking: {{ order.tracking_number }}</p>{% endif %}
+<a class="button primary" href="{% url 'demos:store:home' %}">Continue exploring</a></section>
+{% endblock %}
