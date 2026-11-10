@@ -34,6 +34,13 @@ class Product(models.Model):
         ordering = ['name']
 
     @property
+    def has_purchasable_variants(self):
+        variants = getattr(self, 'available_variants', None)
+        if variants is None:
+            variants = self.variants.all()
+        return any(variant.purchasable for variant in variants)
+
+    @property
     def cover_photo(self):
         return next(iter(self.photos.all()), None)
 
@@ -54,11 +61,50 @@ class ProductVariant(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2,
                                 validators=[MinValueValidator(Decimal('0'))])
     active = models.BooleanField(default=True)
+    fulfillment_method = models.CharField(max_length=20, default='pod', choices=[
+        ('pod', 'Print on demand'), ('stock', 'Stock only'),
+        ('hybrid', 'Stock first, then print on demand')])
+    coming_soon = models.BooleanField(default=False, help_text='Visible, but cannot be purchased.')
+    stock_on_hand = models.PositiveIntegerField(default=0, editable=False)
+    stock_reserved = models.PositiveIntegerField(default=0, editable=False)
+    stock_estimate = models.CharField(max_length=180, blank=True, help_text='Dispatch estimate for stocked items.')
+    production_estimate = models.CharField(max_length=180, blank=True, help_text='Production and dispatch estimate for print-on-demand items.')
+
+    @property
+    def available_stock(self):
+        return self.stock_on_hand - self.stock_reserved
+
+    @property
+    def purchasable(self):
+        return self.active and not self.coming_soon and (self.fulfillment_method != 'stock' or self.available_stock > 0)
+
+    @property
+    def availability(self):
+        if self.coming_soon:
+            return 'Coming soon'
+        if not self.active:
+            return 'Unavailable'
+        if self.fulfillment_method != 'pod' and self.available_stock > 0:
+            return 'In stock'
+        return 'Sold out' if self.fulfillment_method == 'stock' else 'Print on demand'
+
+    def delivery_note(self, quantity=1):
+        if not self.purchasable:
+            return self.availability
+        local = min(quantity, self.available_stock) if self.fulfillment_method != 'pod' else 0
+        notes = []
+        if local:
+            notes.append('{} from stock{}'.format(local, ': ' + self.stock_estimate if self.stock_estimate else ''))
+        if quantity > local:
+            notes.append('{} print on demand{}'.format(quantity - local, ': ' + self.production_estimate if self.production_estimate else ''))
+        return '; '.join(notes)
+
 
     class Meta:
         ordering = ['pk']
         constraints = [models.CheckConstraint(check=models.Q(price__gte=0),
-                                              name='demo_store_price_nonnegative')]
+                                              name='demo_store_price_nonnegative'),
+                       models.CheckConstraint(check=models.Q(stock_on_hand__gte=models.F('stock_reserved')), name='store_reservations_within_stock')]
 
     def __str__(self):
         return '{} — {}'.format(self.product, self.name)
@@ -256,6 +302,11 @@ class StoreOrderItem(models.Model):
     image_key = models.CharField(max_length=1024, blank=True)
     image_alt = models.CharField(max_length=255, blank=True)
 
+    stock_quantity = models.PositiveIntegerField(default=0, editable=False)
+    pod_quantity = models.PositiveIntegerField(default=0, editable=False)
+    inventory_tracked = models.BooleanField(default=False, editable=False)
+    delivery_estimate = models.CharField(max_length=500, blank=True, editable=False)
+
     @property
     def email_image_url(self):
         from .media import permanent_url
@@ -292,3 +343,16 @@ class CustomerAddress(models.Model):
 
     class Meta:
         ordering = ['pk']
+
+
+class StockMovement(models.Model):
+    variant = models.ForeignKey(ProductVariant, on_delete=models.PROTECT, related_name='stock_movements')
+    order = models.ForeignKey(StoreOrder, null=True, blank=True, on_delete=models.SET_NULL)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    on_hand_change = models.IntegerField(default=0)
+    reserved_change = models.IntegerField(default=0)
+    reason = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']

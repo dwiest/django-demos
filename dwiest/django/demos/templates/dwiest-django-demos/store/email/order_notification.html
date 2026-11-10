@@ -8,7 +8,7 @@
 <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
 {% for item in order.items.all %}<tr>
 <td style="padding:12px 8px 12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;width:64px">{% if item.email_image_url %}<img src="{{ item.email_image_url }}" alt="{{ item.image_alt|default:item.product_name }}" width="56" style="display:block;width:56px;max-width:56px;height:auto;border:0">{% endif %}</td>
-<td style="padding:12px 8px 12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;word-break:normal"><strong>{{ item.product_name }}</strong><br><span style="font-size:13px;color:#59625e">{{ item.variant_name }} · Qty {{ item.quantity }}</span></td>
+<td style="padding:12px 8px 12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;word-break:normal"><strong>{{ item.product_name }}</strong><br><span style="font-size:13px;color:#59625e">{{ item.variant_name }}{% if item.delivery_estimate %} · {{ item.delivery_estimate }}{% endif %} · Qty {{ item.quantity }}</span></td>
 <td align="right" style="padding:12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;white-space:nowrap">${{ item.subtotal|floatformat:2 }}</td></tr>{% endfor %}
 </table>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:12px 0 24px">

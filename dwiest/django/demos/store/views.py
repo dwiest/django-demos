@@ -29,6 +29,7 @@ from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, Varian
 from .models import Catalog, Product, ProductPhoto, StoreBranding, StoreOrder, StoreOrderItem, OrderEvent, ProductVariant
 from .media import delete_image, upload_image, upload_asset, record_photo_version, snapshot_image
 from .orders import totals, notify
+from .inventory import check, allocate, revise, movement, InventoryError, inventory_errors
 
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,11 @@ def add(request, slug):
         stored = request.session.get(KEY, {}).copy()
         key = str(form.cleaned_data['variant'].pk)
         quantity = stored.get(key, 0) + form.cleaned_data['quantity']
+        try:
+            check(form.cleaned_data['variant'], quantity)
+        except InventoryError as error:
+            form.add_error('quantity', str(error))
+            return page(request, 'product.html', product=item, form=form)
         if quantity <= 99:
             stored[key] = quantity
             request.session[KEY] = stored
@@ -99,6 +105,10 @@ def update(request, pk):
         form = QuantityForm(request.POST)
         if not form.is_valid():
             return page(request, 'cart.html', cart_error='Enter a whole quantity from 1 to 99.')
+        try:
+            check(ProductVariant.objects.select_related('product').get(pk=pk), form.cleaned_data['quantity'])
+        except InventoryError as error:
+            return page(request, 'cart.html', cart_error=str(error))
         stored[key] = form.cleaned_data['quantity']
     request.session[KEY] = stored
     return redirect('demos:store:cart')
@@ -260,6 +270,7 @@ def branding(request):
                 email_media_ready=bool(getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '')))
 
 
+@inventory_errors
 def checkout(request):
     key = request.session.get('store_checkout_key')
     if not key:
@@ -299,7 +310,7 @@ def checkout(request):
             review = hashlib.sha256(json.dumps({
                 'fields': {k: str(v) for k, v in form.cleaned_data.items()},
                 'quote': {k: str(v) for k, v in quote.items()},
-                'items': [(row['variant'].pk, row['quantity'], str(row['variant'].price)) for row in cart_data['cart_rows']],
+                'items': [(row['variant'].pk, row['quantity'], str(row['variant'].price), row['delivery_note'], row['variant'].fulfillment_method, row['variant'].coming_soon) for row in cart_data['cart_rows']],
             }, sort_keys=True).encode()).hexdigest()
             if request.POST.get('action') == 'review':
                 request.session['store_checkout_review'] = review
@@ -307,6 +318,8 @@ def checkout(request):
                 form.add_error(None, 'Your order changed. Update the order review before submitting.')
         if not form.errors and request.POST.get('action') == 'submit':
             with transaction.atomic():
+                for row in cart_data['cart_rows']:
+                    check(ProductVariant.objects.select_for_update().select_related('product').get(pk=row['variant'].pk), row['quantity'])
                 address = form.save(commit=False)
                 if request.user.is_authenticated:
                     address.user = request.user
@@ -320,9 +333,10 @@ def checkout(request):
                 if created:
                     for row in cart_data['cart_rows']:
                         variant = row['variant']
-                        StoreOrderItem.objects.create(order=order, variant=variant,
+                        order_item = StoreOrderItem.objects.create(order=order, variant=variant,
                             product_name=variant.product.name, variant_name=variant.name, sku=variant.sku,
                             quantity=row['quantity'], unit_price=variant.price, **snapshot_image(variant))
+                        allocate(order_item, row['quantity'], request.user if request.user.is_authenticated else None)
                     event = OrderEvent.objects.create(order=order, message='Thank you! Your demo order has been received. No payment was collected.')
                     transaction.on_commit(lambda: notify(event.pk))
                 else:
@@ -356,6 +370,7 @@ def order_list(request):
 
 
 @permission_required(('demo_store.view_storeorder', 'demo_store.change_storeorder'), raise_exception=True)
+@inventory_errors
 def order_edit(request, pk):
     with transaction.atomic():
         order = get_object_or_404(StoreOrder.objects.select_for_update(), pk=pk)
@@ -377,6 +392,7 @@ def order_edit(request, pk):
             elif not changed and not data['message'].strip():
                 form.add_error('message', 'Enter a message or make a change.')
             else:
+                revise(order, items.forms, data['status'], request.user)
                 details = []
                 if address_form.has_changed():
                     details.append('Shipping address updated: {}.'.format(address_form.instance))
@@ -494,3 +510,20 @@ def guest_order_detail(request, token):
     response['Referrer-Policy'] = 'no-referrer'
     response['X-Robots-Tag'] = 'noindex, nofollow'
     return response
+
+
+@permission_required('demo_store.change_productvariant', raise_exception=True)
+def inventory(request):
+    from .forms import StockAdjustmentForm
+    from .models import StockMovement
+    form = StockAdjustmentForm(request.POST if request.method == 'POST' else None)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            movement(form.cleaned_data['variant'].pk, on_hand=form.cleaned_data['quantity'],
+                     reason=form.cleaned_data['reason'], actor=request.user)
+            return redirect('demos:store:inventory')
+        except InventoryError as error:
+            form.add_error(None, str(error))
+    return page(request, 'inventory.html', form=form,
+                variants=ProductVariant.objects.select_related('product').all(),
+                movements=Paginator(StockMovement.objects.select_related('variant__product', 'actor', 'order'), 40).get_page(request.GET.get('page')))

@@ -34,8 +34,30 @@ class CatalogForm(forms.ModelForm):
         fields = ['name', 'slug', 'description', 'published']
 
 
+class VariantForm(forms.ModelForm):
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # Never overwrite inventory counters loaded before a concurrent checkout.
+            instance.save(update_fields=list(self.Meta.fields) if instance.pk else None)
+            self.save_m2m()
+        return instance
+
+    class Meta:
+        model = ProductVariant
+        fields = ['name', 'sku', 'price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate']
+
+
+class VariantFormSetBase(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        for form in self.forms:
+            if form.cleaned_data.get('DELETE') and form.instance.pk and form.instance.stock_movements.exists():
+                raise forms.ValidationError('Variants with stock history cannot be deleted. Clear Active to retire them.')
+
+
 VariantFormSet = forms.inlineformset_factory(
-    Product, ProductVariant, fields=['name', 'sku', 'price', 'active'],
+    Product, ProductVariant, form=VariantForm, formset=VariantFormSetBase, fields=['name', 'sku', 'price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate'],
     extra=1, can_delete=True, min_num=1, validate_min=True,
 )
 
@@ -252,3 +274,15 @@ class CustomerAddressForm(ShippingAddressForm):
     class Meta(ShippingAddressForm.Meta):
         from .models import CustomerAddress
         model = CustomerAddress
+
+
+class StockAdjustmentForm(forms.Form):
+    variant = forms.ModelChoiceField(queryset=ProductVariant.objects.select_related('product').all())
+    quantity = forms.IntegerField(help_text='Positive to receive stock; negative for damage or corrections.')
+    reason = forms.CharField(max_length=255)
+
+    def clean_quantity(self):
+        value = self.cleaned_data['quantity']
+        if not value:
+            raise forms.ValidationError('Enter a nonzero adjustment.')
+        return value

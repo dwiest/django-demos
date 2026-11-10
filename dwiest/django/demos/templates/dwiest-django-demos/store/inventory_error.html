@@ -1,0 +1,2 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}<h1>Inventory changed</h1><p role="alert">{{ inventory_error }}</p><p>Your changes were not saved. Review availability and try again.</p><a class="button secondary" href="{% url 'demos:store:cart' %}">Review cart</a>{% if perms.demo_store.view_storeorder %}<a class="button secondary" href="{% url 'demos:store:order_list' %}">Orders</a>{% endif %}{% endblock %}

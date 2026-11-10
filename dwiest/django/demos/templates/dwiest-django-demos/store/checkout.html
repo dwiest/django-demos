@@ -22,10 +22,10 @@
 <button class="button primary" name="action" value="submit">Submit demo order</button>{% else %}<p>Complete the form and update the review to see your total before submitting.</p>{% endif %}
 </section></div>
 <aside class="checkout-sidebar" aria-label="Order summary">
-<section class="checkout-panel"><h2>Your items</h2>
+<section class="checkout-panel"><h2>Your items</h2><p class="muted">Production time is additional to carrier transit time. Stock and print-on-demand items may ship separately.</p>
 {% for row in cart_rows %}<div class="checkout-item">
 <a class="store-line-thumbnail" href="{% url 'demos:store:product' row.variant.product.slug %}">{% include 'dwiest-django-demos/store/image.html' with product=row.variant.product %}</a>
-<div><p>{{ row.quantity }} × {{ row.variant.product.name }}<br><small>{{ row.variant.name }}</small><br>${{ row.subtotal|floatformat:2 }}</p></div></div>{% endfor %}
+<div><p>{{ row.quantity }} × {{ row.variant.product.name }}<br><small>{{ row.variant.name }} · {{ row.delivery_note }}</small><br>${{ row.subtotal|floatformat:2 }}</p></div></div>{% endfor %}
 <strong>Subtotal ${{ cart_total|floatformat:2 }} USD</strong></section>
 <section class="checkout-panel checkout-coupon"><h2>Discount code</h2><p>{{ form.coupon.label_tag }} {{ form.coupon }}{{ form.coupon.errors }}</p><button class="button secondary" name="action" value="review">Apply & update review</button><p class="muted">Complete contact, shipping, and payment details to update your total.</p></section>
 </aside></div></form>

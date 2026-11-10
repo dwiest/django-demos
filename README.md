@@ -469,3 +469,36 @@ creates a separate shipping snapshot so address book edits cannot alter orders.
 Email changes require the current password, a one-hour confirmation link sent
 to the new address, and a confirmation POST while signed in to the same account.
 For email-based usernames, confirmation also changes the login username.
+
+
+### Store inventory and fulfillment
+
+Run migrations before deploying the inventory views. Existing variants default to
+print on demand with zero physical stock; existing orders are marked untracked
+and never change stock balances retroactively.
+
+In **Manage store → Edit product**, choose fulfillment per variant: print on demand,
+stock only, or stock first with print-on-demand overflow. Check **Coming soon** to
+keep an active product option visible while disabling purchases (including direct
+POSTs and previously populated carts). Clear **Active** to hide an option instead.
+Set stock dispatch and POD production/dispatch estimates there; carrier transit is
+additional. Mixed orders may ship separately.
+
+Use **Manage store → Inventory** to receive stock or enter signed adjustments with
+an audit reason. The screen shows on hand, reserved, and available quantities plus
+paginated movement history. Adjustments cannot remove stock reserved for orders.
+Open orders reserve stock at submission, shipment consumes physical stock, and
+cancellation releases reservations. Quantity edits and removed lines update those
+allocations transactionally; duplicate submissions and messages on completed orders
+do not move stock again. Stock-only quantities are checked on add/update and at
+checkout, with conditional database updates preventing over-allocation.
+
+Order management shows shelf and POD quantities and the delivery estimate captured
+at purchase; customer order views and emails retain that estimate. POD supplier
+ordering and separate shipment tracking remain manual. The demo still collects no
+payment. Demo orders exercise inventory just like orders would in production.
+
+Stock adjustments require `demo_store.change_productvariant`; existing product and
+order permissions continue to control their management screens. Variants with stock
+history cannot be deleted; deactivate them to retain the ledger. Product management
+forms update only editable attributes, never stale inventory counters.
