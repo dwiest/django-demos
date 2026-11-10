@@ -1,0 +1,8 @@
+{{ branding.email_header|default:branding.name }}
+Your shipment is on its way! Order {{ order.number }}
+{{ shipment.carrier }} · {{ shipment.tracking_number }}
+{{ shipment.tracking_url }}
+{% for line in shipment.lines.all %}{{ line.quantity }} × {{ line.item.product_name }} · {{ line.item.variant_name }}
+{% endfor %}
+Other items may ship separately.
+{{ branding.email_footer }}

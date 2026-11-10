@@ -45,7 +45,7 @@ class InventoryTests(OrderTests):
     def test_shipping_consumes_stock_only_once(self):
         order = self.place()
         self.client.force_login(self.manager)
-        self.client.post(self.url('order_edit', order.pk), self.edit_data(order, status='fulfilled', tracking_number='9400'))
+        self.client.post(self.url('shipment_create', order.pk), self.shipment_data(order))
         self.balances(8, 0)
         order.refresh_from_db()
         self.client.post(self.url('order_edit', order.pk), self.edit_data(order, tracking_number='9400', message='Thanks'))

@@ -286,7 +286,7 @@ def checkout(request):
         request.session['store_checkout_key'] = key
     if not cart_data['cart_rows']:
         return redirect('demos:store:cart')
-    initial = {'checkout_key': key, 'shipping_method': 'ground', 'payment_method': 'card_usd'}
+    initial = {'checkout_key': key, 'shipping_method': 'standard', 'payment_method': 'card_usd'}
     saved_addresses = []
     if request.user.is_authenticated:
         from .models import CustomerAddress
@@ -365,7 +365,7 @@ def order_list(request):
         orders = orders.filter(status=status)
     if query:
         orders = orders.filter(Q(email__icontains=query) | Q(shipping_address__name__icontains=query) |
-                               Q(tracking_number__icontains=query))
+                               Q(tracking_number__icontains=query) | Q(shipments__tracking_number__icontains=query)).distinct()
     return page(request, 'orders.html', orders=Paginator(orders, 30).get_page(request.GET.get('page')), statuses=StoreOrder.STATUS)
 
 
@@ -385,7 +385,11 @@ def order_edit(request, pk):
             if any(f.cleaned_data.get('id') and f.cleaned_data['id'].order_id != order.pk for f in items.forms):
                 return HttpResponse('Invalid order item.', status=400)
             changed = data['status'] != order.status or data['tracking_number'] != order.tracking_number or changed_items or address_form.has_changed()
-            if order.status in ('fulfilled', 'cancelled') and changed:
+            if order.shipments.exists() and (changed_items or address_form.has_changed() or data['status'] != order.status):
+                form.add_error(None, 'Orders with shipments cannot have items, address, or status edited. Tracking and messages remain available.')
+            elif data['status'] == 'fulfilled' and order.status != 'fulfilled':
+                form.add_error(None, 'Use Create shipment below to ship items and record tracking.')
+            elif order.status in ('fulfilled', 'cancelled') and changed:
                 form.add_error(None, 'Completed or cancelled orders are read-only. You can still send messages.')
             elif not remaining:
                 form.add_error(None, 'Keep at least one order item, or cancel the order.')
@@ -527,3 +531,47 @@ def inventory(request):
     return page(request, 'inventory.html', form=form,
                 variants=ProductVariant.objects.select_related('product').all(),
                 movements=Paginator(StockMovement.objects.select_related('variant__product', 'actor', 'order'), 40).get_page(request.GET.get('page')))
+
+
+@permission_required(('demo_store.view_storeorder', 'demo_store.change_storeorder'), raise_exception=True)
+@inventory_errors
+def shipment_create(request, pk):
+    from .forms import ShipmentForm
+    from .shipping import create_shipment
+    order = get_object_or_404(StoreOrder, pk=pk)
+    form = ShipmentForm(request.POST if request.method == 'POST' else None, order=order)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            create_shipment(order.pk, form.cleaned_data, request.user)
+        except ValueError as error:
+            form.add_error(None, str(error))
+        else:
+            return redirect('demos:store:order_edit', pk=pk)
+    return page(request, 'shipment.html', order=order, form=form)
+
+
+@permission_required(('demo_store.view_storeorder', 'demo_store.change_storeorder'), raise_exception=True)
+def shipment_edit(request, pk, shipment_pk):
+    from django import forms
+    from .models import Shipment
+    class TrackingForm(forms.ModelForm):
+        class Meta:
+            model = Shipment
+            fields = ['carrier', 'tracking_number', 'tracking_url', 'supplier', 'private_notes']
+        def clean_tracking_url(self):
+            value = self.cleaned_data['tracking_url']
+            if value and not value.startswith('https://'):
+                raise forms.ValidationError('Use an HTTPS tracking link.')
+            return value
+    with transaction.atomic():
+        shipment = get_object_or_404(Shipment.objects.select_for_update(), pk=shipment_pk, order_id=pk)
+        form = TrackingForm(request.POST if request.method == 'POST' else None, instance=shipment)
+        if request.method == 'POST' and form.is_valid():
+            changed = form.has_changed()
+            form.save()
+            if changed:
+                OrderEvent.objects.create(order_id=pk, actor=request.user, message='Shipment {} tracking details updated.'.format(shipment.pk), email_error='Internal tracking correction; no notification requested.')
+            if request.POST.get('action') == 'notify':
+                transaction.on_commit(lambda: notify(shipment.event_id, force=True))
+            return redirect('demos:store:order_edit', pk=pk)
+    return page(request, 'shipment.html', order=shipment.order, form=form, editing=True)

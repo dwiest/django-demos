@@ -126,7 +126,7 @@ class StoreBrandingForm(forms.ModelForm):
 
     class Meta:
         model = StoreBranding
-        fields = ['name', 'tagline', 'introduction', 'header_image_alt',
+        fields = ['shipping_rate', 'free_shipping_threshold', 'shipping_estimate', 'name', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
                   'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer', 'email_header_image_alt', 'email_footer_image_alt', 'email_footer_heading', 'email_shop_url', 'email_help_url', 'thank_you_image_alt', 'thank_you_heading', 'thank_you_message', 'thank_you_button_label']
 
@@ -163,12 +163,14 @@ class StoreBrandingForm(forms.ModelForm):
         return cleaned
 
 
-SHIPPING = {
+LEGACY_SHIPPING = {
     'ground': ('USPS Ground Advantage · estimated 2–5 business days', '6.95'),
     'priority': ('USPS Priority Mail · estimated 2–3 business days', '10.95'),
     'express': ('USPS Priority Mail Express · estimated 1–3 business days', '29.95'),
 }
 
+
+SHIPPING = dict(LEGACY_SHIPPING, standard=('Standard shipping', '6.95'))
 
 US_STATES = [('AL', 'Alabama'), ('AK', 'Alaska'), ('AZ', 'Arizona'), ('AR', 'Arkansas'), ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'), ('DC', 'District of Columbia'), ('FL', 'Florida'), ('GA', 'Georgia'), ('HI', 'Hawaii'), ('ID', 'Idaho'), ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'), ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'), ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'), ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'), ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'), ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'), ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'), ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'), ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'), ('WI', 'Wisconsin'), ('WY', 'Wyoming')]
 
@@ -185,6 +187,12 @@ class CheckoutForm(forms.ModelForm):
     class Meta:
         model = ShippingAddress
         fields = ['name', 'email', 'line1', 'line2', 'city', 'state', 'postal_code', 'shipping_method', 'payment_method', 'coupon', 'acknowledge', 'checkout_key']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+        self.fields['shipping_method'].choices = [('standard', 'Standard shipping · ${}'.format(branding.shipping_rate))]
+        self.fields['shipping_method'].help_text = branding.shipping_estimate + (' Free shipping on orders of ${} after discounts.'.format(branding.free_shipping_threshold) if branding.free_shipping_threshold is not None else '')
 
     def clean_state(self):
         value = self.cleaned_data['state'].upper()
@@ -285,4 +293,27 @@ class StockAdjustmentForm(forms.Form):
         value = self.cleaned_data['quantity']
         if not value:
             raise forms.ValidationError('Enter a nonzero adjustment.')
+        return value
+
+
+class ShipmentForm(forms.ModelForm):
+    submission_key = forms.UUIDField(widget=forms.HiddenInput)
+    notify_customer = forms.BooleanField(required=False, initial=True)
+
+    class Meta:
+        from .models import Shipment
+        model = Shipment
+        fields = ['carrier', 'tracking_number', 'tracking_url', 'shipped_at', 'fulfillment_method', 'supplier', 'private_notes']
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super().__init__(*args, **kwargs)
+        self.fields['submission_key'].initial = __import__('uuid').uuid4()
+        for item in self.order.items.all():
+            self.fields['quantity_{}'.format(item.pk)] = forms.IntegerField(min_value=0, initial=0, label='{} · {}'.format(item.product_name, item.variant_name))
+
+    def clean_tracking_url(self):
+        value = self.cleaned_data['tracking_url']
+        if value and not value.startswith('https://'):
+            raise forms.ValidationError('Use an HTTPS tracking link.')
         return value

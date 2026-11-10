@@ -4,6 +4,8 @@ from . import views, customer_views
 
 app_name = 'store'
 urlpatterns = [
+    path('manage/orders/<int:pk>/shipments/<int:shipment_pk>/', views.shipment_edit, name='shipment_edit'),
+    path('manage/orders/<int:pk>/shipments/new/', views.shipment_create, name='shipment_create'),
     path('manage/inventory/', views.inventory, name='inventory'),
     path('account/', customer_views.account, name='account'),
     path('account/email/<str:token>/', customer_views.confirm_email, name='confirm_email'),

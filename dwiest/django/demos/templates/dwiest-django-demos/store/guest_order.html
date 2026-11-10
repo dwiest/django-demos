@@ -24,10 +24,10 @@
   </dl></section>
   <div class="order-delivery-grid">
     <section aria-labelledby="order-address-title"><h2 id="order-address-title">Ship to</h2><address>{{ order.shipping_address.name }}<br>{{ order.shipping_address.line1 }}{% if order.shipping_address.line2 %}<br>{{ order.shipping_address.line2 }}{% endif %}<br>{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}</address></section>
-    <section aria-labelledby="order-status-title"><h2 id="order-status-title">Order status</h2><p>{{ order.get_status_display }}<br>Payment: Simulated; no funds charged.</p><p>{{ order.shipping_label }}<br>USPS tracking: {{ order.tracking_number|default:'Not shipped' }}</p>
+    <section aria-labelledby="order-status-title"><h2 id="order-status-title">Order status</h2><p>{{ order.get_status_display }}<br>Payment: Simulated; no funds charged.</p><p>{{ order.shipping_label }}{% if order.tracking_number %}<br>Legacy tracking: {{ order.tracking_number }}{% endif %}</p>
     {% if order.fulfilled_at %}<p>Fulfilled: {{ order.fulfilled_at|date:"F j, Y" }}</p>{% endif %}{% if order.cancelled_at %}<p>Cancelled: {{ order.cancelled_at|date:"F j, Y" }}</p>{% endif %}
     {% if order.status == 'placed' or order.status == 'processing' %}<p class="muted">We’ll email you when your order ships.</p>{% endif %}</section>
   </div>
 {% else %}<h1>This order link is unavailable</h1><p>The link may have expired or the order’s email address may have changed.</p><a class="button" href="{% url 'demos:store:guest_order_lookup' %}">Request a new link</a>{% endif %}
 </article>
-{% endblock %}
+{% include 'dwiest-django-demos/store/shipments.html' %}{% endblock %}

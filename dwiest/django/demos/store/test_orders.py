@@ -21,7 +21,7 @@ class OrderTests(TestCase):
         self.client.post(self.url('add', 'pin'), {'variant': self.variant.pk, 'quantity': 2})
         self.client.get(self.url('checkout'))
         self.data = dict(email='buyer@example.com', name='Buyer', line1='123 Main St', line2='',
-                         city='Raleigh', state='NC', postal_code='27601', shipping_method='ground',
+                         city='Raleigh', state='NC', postal_code='27601', shipping_method='standard',
                          payment_method='card_usd', coupon='discount', acknowledge='on',
                          checkout_key=self.client.session['store_checkout_key'], action='review')
 
@@ -37,6 +37,15 @@ class OrderTests(TestCase):
             response = self.client.post(self.url('checkout'), self.data)
         self.assertEqual(response.status_code, 302)
         return StoreOrder.objects.get()
+
+    def shipment_data(self, order, quantity=None):
+        import uuid
+        from django.utils import timezone
+        item = order.items.get()
+        return dict(carrier='USPS', tracking_number='94000000000000000000', tracking_url='https://example.com/track',
+                    shipped_at=timezone.now().isoformat(), fulfillment_method='self', supplier='', private_notes='Private supplier note',
+                    submission_key=str(uuid.uuid4()), notify_customer='on',
+                    **{'quantity_{}'.format(item.pk): item.quantity if quantity is None else quantity})
 
     def edit_data(self, order, **changes):
         item = order.items.get()
@@ -98,7 +107,7 @@ class OrderTests(TestCase):
         response = self.client.post(self.url('order_edit', order.pk), self.edit_data(order, status='fulfilled'))
         self.assertContains(response, 'Enter a USPS tracking number')
         with self.captureOnCommitCallbacks(execute=True):
-            self.client.post(self.url('order_edit', order.pk), self.edit_data(order, status='fulfilled', tracking_number='94000000000000000000'))
+            self.client.post(self.url('shipment_create', order.pk), self.shipment_data(order))
         order.refresh_from_db()
         self.assertEqual(order.status, 'fulfilled')
         self.assertIsNotNone(order.fulfilled_at)

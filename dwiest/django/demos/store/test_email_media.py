@@ -173,7 +173,7 @@ class ImageHistoryMigrationTests(TestCase):
                                            key='store/products/old.png', width=32, height=24)
         address = ShippingAddress.objects.create(name='Buyer', line1='Main', city='Raleigh', state='NC', postal_code='27601')
         order = StoreOrder.objects.create(email='buyer@example.com', shipping_address=address,
-            subtotal=10, shipping_method='ground', shipping_cost=0, total=10,
+            subtotal=10, shipping_method='standard', shipping_cost=0, total=10,
             payment_method='card_usd', payment_acknowledgment='SIMULATED')
         item = StoreOrderItem.objects.create(order=order, variant=variant, product_name='Hat',
             variant_name='Gray', sku='MIGRATE', quantity=1, unit_price=10)
