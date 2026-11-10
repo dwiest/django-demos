@@ -80,3 +80,19 @@ class GuestOrderTests(TestCase):
         order = self.place()
         self.client.post(self.url('guest_order_lookup'), {'order_number': order.number, 'email': order.email})
         self.assertIn('https://rotten.world' + self.url('guest_order_lookup'), mail.outbox[-1].body)
+
+    def test_https_lookup_form_preserves_csrf_referer_and_requires_token(self):
+        guest = Client(enforce_csrf_checks=True)
+        url = self.url('guest_order_lookup')
+        response = guest.get(url, secure=True)
+        self.assertEqual(response['Referrer-Policy'], 'same-origin')
+        token = guest.cookies['csrftoken'].value
+        data = {'order_number': 'RW-99999999', 'email': 'unknown@example.com',
+                'csrfmiddlewaretoken': token}
+        # Django 3.2 validates HTTPS Referer; newer versions also check Origin.
+        headers = {'HTTP_REFERER': 'https://testserver' + url,
+                   'HTTP_ORIGIN': 'https://testserver'}
+        self.assertContains(guest.post(url, data, secure=True, **headers),
+                            'If those details match an order')
+        data.pop('csrfmiddlewaretoken')
+        self.assertEqual(guest.post(url, data, secure=True, **headers).status_code, 403)
