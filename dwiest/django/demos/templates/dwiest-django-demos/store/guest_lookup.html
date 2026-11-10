@@ -1,0 +1,7 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}<section class="checkout-panel">
+<h1>Find my order</h1>
+<p>Enter your order number and the email address used at checkout. We’ll email you a secure link to view your order. No account needed.</p>
+{% if submitted %}<p role="status">If those details match an order, a secure link will be sent to the email address on the order. Check your inbox and spam folder. Links expire after 24 hours. If needed, try again in an hour.</p>{% else %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="button">Email my order link</button></form>{% endif %}
+</section>{% endblock %}

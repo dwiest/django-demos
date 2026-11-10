@@ -2,9 +2,18 @@ import logging
 import hashlib
 import json
 import uuid
+from urllib.parse import urlsplit, urlunsplit
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+from .forms import GuestOrderLookupForm
+from .guest_orders import make_token, read_order
 from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse
 from django.utils import timezone
@@ -419,3 +428,58 @@ def order_email(request, pk):
                 form=OrderUpdateForm(initial={'status': order.status, 'tracking_number': order.tracking_number}),
                 address_form=ShippingAddressForm(instance=order.shipping_address, prefix='address'),
                 items=OrderItemFormSet(queryset=order.items.all()))
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+def guest_order_lookup(request):
+    form = GuestOrderLookupForm(request.POST if request.method == 'POST' else None)
+    submitted = False
+    if request.method == 'POST' and form.is_valid():
+        submitted = True
+        # Limit mail by both recipient and source, including unsuccessful lookups.
+        email = form.cleaned_data['email'].casefold()
+        identity = hashlib.sha256(email.encode()).hexdigest()
+        source = hashlib.sha256(request.META.get('REMOTE_ADDR', '').encode()).hexdigest()
+        allowed = True
+        for key, limit in [('email:' + identity, 3), ('ip:' + source, 10)]:
+            key = 'store:guest-lookup:' + key
+            cache.add(key, 0, timeout=3600)
+            try:
+                if cache.incr(key) > limit:
+                    allowed = False
+            except ValueError:
+                allowed = False
+        if allowed:
+            number = int(form.cleaned_data['order_number'][3:])
+            order = StoreOrder.objects.filter(pk=number, email__iexact=email).first() if number <= 9223372036854775807 else None
+            if order:
+                token = make_token(order)
+                branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+                path = reverse('demos:store:guest_order_detail', args=[token])
+                origin = urlsplit(branding.email_shop_url)
+                link = (urlunsplit(('https', origin.netloc, path, '', ''))
+                        if origin.scheme == 'https' and origin.netloc else request.build_absolute_uri(path))
+                context = {'order': order, 'branding': branding, 'lookup_url': link}
+                try:
+                    send_mail('{}: view order {}'.format(branding.name, order.number),
+                              render_to_string(PREFIX + 'email/guest_lookup.txt', context),
+                              settings.DEFAULT_FROM_EMAIL, [order.email],
+                              html_message=render_to_string(PREFIX + 'email/guest_lookup.html', context))
+                except Exception:
+                    logger.error('Guest order lookup email delivery failed')
+    response = page(request, 'guest_lookup.html', form=form, submitted=submitted)
+    response['Referrer-Policy'] = 'no-referrer'
+    return response
+
+
+@never_cache
+@require_http_methods(['GET'])
+def guest_order_detail(request, token):
+    order = read_order(token)
+    response = page(request, 'guest_order.html', order=order)
+    if order is None:
+        response.status_code = 404
+    response['Referrer-Policy'] = 'no-referrer'
+    response['X-Robots-Tag'] = 'noindex, nofollow'
+    return response
