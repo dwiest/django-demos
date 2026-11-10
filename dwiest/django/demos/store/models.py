@@ -65,6 +65,7 @@ class ProductVariant(models.Model):
 
 
 class ProductPhoto(models.Model):
+    version = models.PositiveIntegerField(default=1, editable=False)
     variant = models.ForeignKey(ProductVariant, null=True, blank=True, on_delete=models.SET_NULL,
                                 related_name='photos', help_text='Optional purchase option represented by this photo.')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='photos')
@@ -81,6 +82,26 @@ class ProductPhoto(models.Model):
 
     def __str__(self):
         return '{} photo {}'.format(self.product, self.pk)
+
+    @cached_property
+    def url(self):
+        from .media import photo_url
+        return photo_url(self)
+
+
+class ProductPhotoVersion(models.Model):
+    """Retained immutable object locations, including after a photo/product is removed."""
+    photo = models.ForeignKey(ProductPhoto, null=True, on_delete=models.SET_NULL, related_name='versions')
+    version = models.PositiveIntegerField()
+    bucket = models.CharField(max_length=255)
+    key = models.CharField(max_length=1024)
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-version']
+        constraints = [models.UniqueConstraint(fields=['photo', 'version'], name='store_photo_version_unique')]
 
     @cached_property
     def url(self):
@@ -108,6 +129,15 @@ class StoreBranding(models.Model):
     coupon_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
     email_header = models.TextField(blank=True, help_text='Header text for order emails. Blank uses the store name. Plain text only.')
     email_footer = models.TextField(blank=True, help_text='Footer text for order emails, such as contact details. Plain text only.')
+    email_header_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
+    email_header_image_key = models.CharField(max_length=1024, blank=True, editable=False)
+    email_header_image_alt = models.CharField(max_length=255, blank=True)
+    email_footer_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
+    email_footer_image_key = models.CharField(max_length=1024, blank=True, editable=False)
+    email_footer_image_alt = models.CharField(max_length=255, blank=True)
+    email_footer_heading = models.CharField(max_length=180, blank=True)
+    email_shop_url = models.URLField(blank=True, help_text='Permanent HTTPS storefront link for emails.')
+    email_help_url = models.URLField(blank=True, help_text='Optional HTTPS order help page.')
     copyright_text = models.CharField(max_length=180, blank=True)
 
     class Meta:
@@ -133,6 +163,17 @@ class StoreBranding(models.Model):
     @cached_property
     def footer_image_url(self):
         return self.image_url('footer')
+
+
+    @cached_property
+    def email_header_image_url(self):
+        from .media import permanent_url
+        return permanent_url(self.email_header_image_bucket, self.email_header_image_key)
+
+    @cached_property
+    def email_footer_image_url(self):
+        from .media import permanent_url
+        return permanent_url(self.email_footer_image_bucket, self.email_footer_image_key)
 
 
 
@@ -198,6 +239,15 @@ class StoreOrderItem(models.Model):
     sku = models.CharField(max_length=80)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(99)])
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    image_bucket = models.CharField(max_length=255, blank=True)
+    image_key = models.CharField(max_length=1024, blank=True)
+    image_alt = models.CharField(max_length=255, blank=True)
+
+    @property
+    def email_image_url(self):
+        from .media import permanent_url
+        return permanent_url(self.image_bucket, self.image_key)
+
 
     @property
     def subtotal(self):

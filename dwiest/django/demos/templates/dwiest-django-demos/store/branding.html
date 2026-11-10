@@ -2,6 +2,8 @@
 {% block content %}
   <div class="page-heading"><h1>Store settings</h1></div>
   <p class="muted">Set the name, header, introduction, and footer for your storefront. Images save to S3. Text is displayed as plain text. Configure the active coupon code and discount percentage below; leave the code blank to disable coupons.</p>
+  {% if not email_media_ready %}<p class="muted">Email images require a permanent HTTPS media base URL in the server setting STORE_MEDIA_PUBLIC_BASE_URL. Until configured, emails include text and omit images.</p>{% endif %}
+  <p class="muted">Email artwork is separate from website artwork. Replaced images remain in S3 for older emails.</p>
   <form method="post" enctype="multipart/form-data" class="store-form store-editor">
     {% csrf_token %}
     {{ form.non_field_errors }}

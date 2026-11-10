@@ -1,16 +1,44 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Order {{ order.number }}</title></head>
-<body style="margin:0;background:#f4f5f2;color:#172234;font-family:Arial,sans-serif;line-height:1.5">
-<table role="presentation" style="width:100%;border-spacing:0"><tr><td style="padding:24px 12px">
-<table role="presentation" style="width:100%;max-width:600px;margin:auto;border-spacing:0;background:#ffffff;border:1px solid #dce2e9">
-<tr><td style="padding:20px 24px;background:#182c2b;color:#ffffff;font-size:20px;font-weight:bold">{{ branding.email_header|default:branding.name|linebreaksbr }}</td></tr>
-<tr><td style="padding:24px"><h1 style="font-size:24px;margin:0 0 12px">Order {{ order.number }}</h1>{{ event.message|linebreaks }}
-<p><strong>Status:</strong> {{ order.get_status_display }}</p>
-<table style="width:100%;border-collapse:collapse"><caption style="text-align:left;font-weight:bold;padding-bottom:8px">Your items</caption>
-{% for item in order.items.all %}<tr><td style="padding:10px 0;border-bottom:1px solid #dce2e9">{{ item.quantity }} × {{ item.product_name }}<br><small>{{ item.variant_name }}</small></td><td style="text-align:right;border-bottom:1px solid #dce2e9">${{ item.subtotal|floatformat:2 }}</td></tr>{% endfor %}
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ email_title }}</title></head>
+<body style="margin:0;background:#f3f4f2;color:#242927;font-family:Arial,Helvetica,sans-serif;line-height:1.5">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:20px 8px">
+<!--[if mso]><table role="presentation" width="600"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;margin:auto">
+{% if branding.email_header_image_url %}<tr><td><img src="{{ branding.email_header_image_url }}" alt="{{ branding.email_header_image_alt|default:branding.name }}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr>{% endif %}
+{% if branding.email_header or not branding.email_header_image_url %}<tr><td style="padding:16px 24px;background:#153b34;color:#fff;font-size:20px;font-weight:bold">{{ branding.email_header|default:branding.name|linebreaksbr }}</td></tr>{% endif %}
+<tr><td style="padding:24px">
+<h1 style="font-size:28px;line-height:1.2;margin:0 0 8px;color:#07584f">{{ email_title }}</h1>
+<p style="margin:0 0 16px;font-size:18px;font-weight:bold">Order #{{ order.number }}</p>
+{% if initial_order %}<p>We’ve received your demo order. Here’s what you ordered.</p>{% else %}{{ event.message|linebreaks }}{% endif %}
+<p style="padding:12px;background:#fff5db;border-left:3px solid #d6a429">Demo purchase — no payment was collected.</p>
+<h2 style="font-size:20px;color:#07584f;margin:24px 0 8px">Your items</h2>
+<table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+{% for item in order.items.all %}<tr>
+<td style="padding:12px 8px 12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;width:64px">{% if item.email_image_url %}<img src="{{ item.email_image_url }}" alt="{{ item.image_alt|default:item.product_name }}" width="56" style="display:block;width:56px;max-width:56px;height:auto;border:0">{% endif %}</td>
+<td style="padding:12px 8px 12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;word-break:normal"><strong>{{ item.product_name }}</strong><br><span style="font-size:13px;color:#59625e">{{ item.variant_name }} · Qty {{ item.quantity }}</span></td>
+<td align="right" style="padding:12px 0;border-bottom:1px solid #e0e4df;vertical-align:middle;white-space:nowrap">${{ item.subtotal|floatformat:2 }}</td></tr>{% endfor %}
 </table>
-<p>Subtotal: ${{ order.subtotal|floatformat:2 }}<br>Discount: −${{ order.discount|floatformat:2 }}<br>Shipping: ${{ order.shipping_cost|floatformat:2 }}<br>Tax (not calculated): ${{ order.tax|floatformat:2 }}</p>
-<p style="font-size:20px"><strong>Total: ${{ order.total|floatformat:2 }} USD</strong></p>
-<p>Payment simulated; no funds charged.</p><h2 style="font-size:18px">Shipping</h2><p>{{ order.shipping_address }}{% if order.shipping_address.line2 %}<br>{{ order.shipping_address.line2 }}{% endif %}<br>{{ order.shipping_label }}<br>USPS tracking: {{ order.tracking_number|default:'Not shipped' }}{% if order.fulfilled_at %}<br>Fulfilled: {{ order.fulfilled_at }}{% endif %}</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:12px 0 24px">
+<tr><td>Subtotal</td><td align="right">${{ order.subtotal|floatformat:2 }}</td></tr>
+{% if order.discount %}<tr><td>Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</td><td align="right">−${{ order.discount|floatformat:2 }}</td></tr>{% endif %}
+<tr><td>Shipping</td><td align="right">${{ order.shipping_cost|floatformat:2 }}</td></tr>
+<tr><td>Tax (not calculated)</td><td align="right">${{ order.tax|floatformat:2 }}</td></tr>
+<tr><td style="padding-top:12px;font-size:20px;color:#07584f;border-bottom:2px solid #d6a429"><strong>Order total</strong></td><td align="right" style="padding-top:12px;font-size:20px;border-bottom:2px solid #d6a429"><strong>${{ order.total|floatformat:2 }} USD</strong></td></tr>
+</table>
+<h2 style="font-size:18px;color:#07584f;margin:16px 0 4px">Ship to</h2>
+<p style="margin:0">{{ order.shipping_address.name }}<br>{{ order.shipping_address.line1 }}{% if order.shipping_address.line2 %}<br>{{ order.shipping_address.line2 }}{% endif %}<br>{{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.postal_code }}</p>
+<h2 style="font-size:18px;color:#07584f;margin:20px 0 4px">Order status</h2>
+<p style="margin:0">{{ order.get_status_display }}<br>Payment: Simulated; no funds charged.<br>{{ order.shipping_label }}<br>USPS tracking: {{ order.tracking_number|default:'Not shipped' }}</p>
+{% if order.fulfilled_at %}<p>Fulfilled: {{ order.fulfilled_at }}</p>{% endif %}
+{% if order.status == 'placed' or order.status == 'processing' %}<p>We’ll email you when your order ships.</p>{% endif %}
 </td></tr>
-{% if branding.email_footer %}<tr><td style="padding:20px 24px;background:#eef2ee;font-size:14px">{{ branding.email_footer|linebreaksbr }}</td></tr>{% endif %}
-</table></td></tr></table></body></html>
+{% if branding.email_footer_image_url %}<tr><td><img src="{{ branding.email_footer_image_url }}" alt="{{ branding.email_footer_image_alt }}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr>{% endif %}
+<tr><td align="center" style="padding:20px 24px;font-size:13px;color:#59625e">
+{% if branding.email_footer_heading %}<p style="font-size:16px;font-weight:bold;color:#242927;margin:0 0 8px">{{ branding.email_footer_heading }}</p>{% endif %}
+{% if branding.email_footer %}<p>{{ branding.email_footer|linebreaksbr }}</p>{% endif %}
+{% if branding.contact_email %}<p>Questions about your order? <a style="color:#07584f" href="mailto:{{ branding.contact_email }}">{{ branding.contact_email }}</a></p>{% endif %}
+{% if branding.email_shop_url or branding.email_help_url %}<p>{% if branding.email_shop_url %}<a style="color:#07584f" href="{{ branding.email_shop_url }}">Visit {{ branding.name }}</a>{% endif %}{% if branding.email_shop_url and branding.email_help_url %} · {% endif %}{% if branding.email_help_url %}<a style="color:#07584f" href="{{ branding.email_help_url }}">Order help</a>{% endif %}</p>{% endif %}
+<p>{% if branding.copyright_text %}{{ branding.copyright_text }}{% else %}© {% now "Y" %} {{ branding.name }}{% endif %}</p>
+</td></tr></table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr></table></body></html>

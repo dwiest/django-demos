@@ -117,25 +117,25 @@ class PhotoTests(TestCase):
         self.product.save()
         self.assertContains(Client().get(self.url('home')), self.product.image_url)
 
-    def test_remove_and_product_cascade_delete_clean_up_after_commit(self):
+    def test_remove_and_product_cascade_delete_retain_objects(self):
         photo = self.photo()
         with self.captureOnCommitCallbacks(execute=True):
             self.client.post(self.url('photo_delete', self.product.pk, photo.pk))
             self.s3.delete_object.assert_not_called()
-        self.s3.delete_object.assert_called_once_with(Bucket=photo.bucket, Key=photo.key)
+        self.s3.delete_object.assert_not_called()
         self.assertFalse(ProductPhoto.objects.exists())
         self.s3.delete_object.reset_mock()
         self.photo()
         with self.captureOnCommitCallbacks(execute=True):
             self.product.delete()
-        self.s3.delete_object.assert_called_once()
+        self.s3.delete_object.assert_not_called()
 
     def test_remove_cleanup_failure_is_logged_without_crashing(self):
         photo = self.photo()
         self.s3.delete_object.side_effect = RuntimeError('S3 unavailable')
-        with self.assertLogs('dwiest.django.demos.store.media', level='ERROR'):
-            with self.captureOnCommitCallbacks(execute=True):
-                response = self.client.post(self.url('photo_delete', self.product.pk, photo.pk))
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(self.url('photo_delete', self.product.pk, photo.pk))
+        self.s3.delete_object.assert_not_called()
         self.assertEqual(response.status_code, 302)
         self.assertFalse(ProductPhoto.objects.exists())
 
@@ -151,7 +151,8 @@ class PhotoTests(TestCase):
         urls = [self.url('photo_upload', self.product.pk), self.url('photo_edit', self.product.pk, photo.pk),
                 self.url('photo_delete', self.product.pk, photo.pk)]
         for url in urls:
-            self.assertEqual(self.client.get(url).status_code, 405)
+            expected = 200 if url == self.url('photo_edit', self.product.pk, photo.pk) else 405
+            self.assertEqual(self.client.get(url).status_code, expected)
         self.client.logout()
         for url in urls:
             self.assertEqual(self.client.post(url, {}).status_code, 403)

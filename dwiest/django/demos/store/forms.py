@@ -64,6 +64,13 @@ class PhotoUploadForm(forms.Form):
 
 
 class PhotoDetailsForm(forms.ModelForm):
+    replacement_image = forms.FileField(required=False, help_text='Replace the image; previous versions remain available and in old receipts.')
+
+    def clean_replacement_image(self):
+        from .media import prepare_image
+        upload = self.cleaned_data.get('replacement_image')
+        return prepare_image(upload) if upload else None
+
     class Meta:
         model = ProductPhoto
         fields = ['alt_text', 'sort_order', 'variant']
@@ -79,11 +86,16 @@ class StoreBrandingForm(forms.ModelForm):
     footer_image = forms.FileField(required=False, help_text='Optional footer artwork. JPEG, PNG, or WebP; up to 10 MB.')
     remove_footer_image = forms.BooleanField(required=False, label='Remove current footer image')
 
+    email_header_image = forms.FileField(required=False, help_text='Email masthead artwork. Retained when replaced; requires STORE_MEDIA_PUBLIC_BASE_URL.')
+    remove_email_header_image = forms.BooleanField(required=False)
+    email_footer_image = forms.FileField(required=False, help_text='Email footer artwork. Retained when replaced.')
+    remove_email_footer_image = forms.BooleanField(required=False)
+
     class Meta:
         model = StoreBranding
         fields = ['name', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
-                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer']
+                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer', 'email_header_image_alt', 'email_footer_image_alt', 'email_footer_heading', 'email_shop_url', 'email_help_url']
 
     def clean_coupon_code(self):
         return self.cleaned_data['coupon_code'].strip().upper()
@@ -99,7 +111,7 @@ class StoreBrandingForm(forms.ModelForm):
         cleaned = super().clean()
         if bool(cleaned.get('footer_link_label')) != bool(cleaned.get('footer_link_url')):
             raise forms.ValidationError('Provide both a footer link label and URL, or leave both blank.')
-        for location in ('header', 'footer'):
+        for location in ('header', 'footer', 'email_header', 'email_footer'):
             field = location + '_image'
             upload = cleaned.get(field)
             if upload:
@@ -110,6 +122,10 @@ class StoreBrandingForm(forms.ModelForm):
                         cleaned[field] = prepare_image(upload)
                     except forms.ValidationError as error:
                         self.add_error(field, error)
+        for field in ('email_shop_url', 'email_help_url'):
+            value = cleaned.get(field)
+            if value and not value.startswith('https://'):
+                self.add_error(field, 'Use an HTTPS link.')
         return cleaned
 
 

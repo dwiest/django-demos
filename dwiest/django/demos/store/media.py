@@ -3,6 +3,8 @@ import logging
 from io import BytesIO
 from uuid import uuid4
 import warnings
+from urllib.parse import quote, urlsplit
+from django.core.exceptions import ImproperlyConfigured
 
 import boto3
 from botocore.config import Config
@@ -75,7 +77,23 @@ def upload_image(product, prepared):
     return upload_asset(str(product.pk), prepared)
 
 
+def permanent_url(bucket, key):
+    """Never place expiring S3 signatures in email. Empty means omit artwork."""
+    base = getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '').rstrip('/')
+    if not base or not key:
+        return ''
+    parsed = urlsplit(base)
+    if parsed.scheme != 'https' or not parsed.netloc or parsed.query or parsed.fragment or parsed.username:
+        raise ImproperlyConfigured('STORE_MEDIA_PUBLIC_BASE_URL must be a permanent HTTPS base URL.')
+    if bucket != getattr(settings, 'STORE_MEDIA_BUCKET', 'rotten.world'):
+        return ''
+    return base + '/' + quote(key, safe='/')
+
+
 def photo_url(photo):
+    public = permanent_url(photo.bucket, photo.key)
+    if public:
+        return public
     return s3_client().generate_presigned_url(
         'get_object', Params={'Bucket': photo.bucket, 'Key': photo.key},
         ExpiresIn=getattr(settings, 'STORE_MEDIA_URL_TTL', 3600))
@@ -87,3 +105,20 @@ def delete_image(bucket, key):
         s3_client().delete_object(Bucket=bucket, Key=key)
     except Exception:
         logger.exception('Unable to remove store image s3://%s/%s', bucket, key)
+
+
+def record_photo_version(photo):
+    from .models import ProductPhotoVersion
+    ProductPhotoVersion.objects.get_or_create(photo=photo, version=photo.version, defaults={
+        'bucket': photo.bucket, 'key': photo.key, 'width': photo.width, 'height': photo.height})
+
+
+def snapshot_image(variant):
+    # Prefer this option's photo, then a generic product photo. Never use another option's photo.
+    photos = list(variant.product.photos.all())
+    photo = next((p for p in photos if p.variant_id == variant.pk), None)
+    photo = photo or next((p for p in photos if p.variant_id is None), None)
+    if not photo:
+        return {}
+    return {'image_bucket': photo.bucket, 'image_key': photo.key,
+            'image_alt': photo.alt_text or variant.product.name}

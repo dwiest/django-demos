@@ -4,6 +4,7 @@ import json
 import uuid
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse
 from django.utils import timezone
@@ -17,7 +18,7 @@ from django.views.decorators.http import require_POST
 from .cart import KEY, cart_context
 from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm, CheckoutForm, OrderUpdateForm, OrderItemFormSet, ShippingAddressForm, OrderEmailForm
 from .models import Catalog, Product, ProductPhoto, StoreBranding, StoreOrder, StoreOrderItem, OrderEvent, ProductVariant
-from .media import delete_image, upload_image, upload_asset
+from .media import delete_image, upload_image, upload_asset, record_photo_version, snapshot_image
 from .orders import totals, notify
 
 
@@ -146,9 +147,10 @@ def upload_photos(request, pk):
                 for index, prepared in enumerate(form.cleaned_data['photos']):
                     bucket, key = upload_image(item, prepared)
                     uploaded.append((bucket, key))
-                    ProductPhoto.objects.create(
+                    photo = ProductPhoto.objects.create(
                         product=item, bucket=bucket, key=key, sort_order=position + index,
                         width=prepared['width'], height=prepared['height'])
+                    record_photo_version(photo)
             return redirect('demos:store:product_edit', pk=item.pk)
         except Exception:
             logger.exception('Store photo upload failed for product %s', item.pk)
@@ -159,14 +161,49 @@ def upload_photos(request, pk):
 
 
 @permission_required(('demo_store.change_product', 'demo_store.change_productphoto'), raise_exception=True)
-@require_POST
 def edit_photo(request, pk, photo_pk):
     photo = get_object_or_404(ProductPhoto, pk=photo_pk, product_id=pk)
-    form = PhotoDetailsForm(request.POST, instance=photo)
-    if form.is_valid():
-        form.save()
-        return redirect('demos:store:product_edit', pk=pk)
+    form = PhotoDetailsForm(request.POST if request.method == 'POST' else None,
+                            request.FILES if request.method == 'POST' else None, instance=photo)
+    uploaded = None
+    if request.method == 'POST' and form.is_valid():
+        try:
+            with transaction.atomic():
+                current = ProductPhoto.objects.select_for_update().get(pk=photo.pk)
+                record_photo_version(current)
+                prepared = form.cleaned_data.get('replacement_image')
+                if prepared:
+                    uploaded = upload_image(current.product, prepared)
+                    current.bucket, current.key = uploaded
+                    current.width, current.height = prepared['width'], prepared['height']
+                    current.version += 1
+                for field in ('alt_text', 'sort_order', 'variant'):
+                    setattr(current, field, form.cleaned_data[field])
+                current.save()
+                record_photo_version(current)
+            return redirect('demos:store:product_edit', pk=pk)
+        except Exception:
+            logger.exception('Photo replacement failed')
+            if uploaded:
+                delete_image(*uploaded)
+            form.add_error(None, 'Photo could not be saved. Previous versions were retained.')
     return page(request, 'photo_edit.html', photo=photo, form=form)
+
+
+@permission_required(('demo_store.change_product', 'demo_store.change_productphoto'), raise_exception=True)
+@require_POST
+def restore_photo(request, pk, photo_pk, version):
+    from .models import ProductPhotoVersion
+    with transaction.atomic():
+        photo = get_object_or_404(ProductPhoto.objects.select_for_update(), pk=photo_pk, product_id=pk)
+        previous = get_object_or_404(ProductPhotoVersion, photo=photo, version=version)
+        record_photo_version(photo)
+        for field in ('bucket', 'key', 'width', 'height'):
+            setattr(photo, field, getattr(previous, field))
+        photo.version += 1
+        photo.save()
+        record_photo_version(photo)
+    return redirect('demos:store:photo_edit', pk=pk, photo_pk=photo_pk)
 
 
 @permission_required(('demo_store.change_product', 'demo_store.delete_productphoto'), raise_exception=True)
@@ -188,7 +225,7 @@ def branding(request):
             with transaction.atomic():
                 previous = StoreBranding.objects.select_for_update().filter(pk=1).first()
                 item = form.save(commit=False)
-                for location in ('header', 'footer'):
+                for location in ('header', 'footer', 'email_header', 'email_footer'):
                     bucket_field, key_field = location + '_image_bucket', location + '_image_key'
                     old_bucket = getattr(previous, bucket_field, '')
                     old_key = getattr(previous, key_field, '')
@@ -203,8 +240,6 @@ def branding(request):
                         bucket, key = old_bucket, old_key
                     setattr(item, bucket_field, bucket)
                     setattr(item, key_field, key)
-                    if old_key and (prepared or remove):
-                        transaction.on_commit(lambda bucket=old_bucket, key=old_key: delete_image(bucket, key))
                 item.save()
             return redirect('demos:store:home')
         except Exception:
@@ -212,7 +247,8 @@ def branding(request):
             for bucket, key in uploaded:
                 delete_image(bucket, key)
             form.add_error(None, 'Store settings could not be saved. Please try again or check the S3 configuration.')
-    return page(request, 'branding.html', form=form)
+    return page(request, 'branding.html', form=form,
+                email_media_ready=bool(getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '')))
 
 
 def checkout(request):
@@ -268,7 +304,7 @@ def checkout(request):
                         variant = row['variant']
                         StoreOrderItem.objects.create(order=order, variant=variant,
                             product_name=variant.product.name, variant_name=variant.name, sku=variant.sku,
-                            quantity=row['quantity'], unit_price=variant.price)
+                            quantity=row['quantity'], unit_price=variant.price, **snapshot_image(variant))
                     event = OrderEvent.objects.create(order=order, message='Thank you! Your demo order has been received. No payment was collected.')
                     transaction.on_commit(lambda: notify(event.pk))
                 else:

@@ -21,3 +21,9 @@ USPS tracking: {{ order.tracking_number|default:'Not shipped' }}
 {% if branding.email_footer %}
 {{ branding.email_footer }}{% endif %}
 {% endautoescape %}
+
+{% if branding.email_footer_heading %}{{ branding.email_footer_heading }}{% endif %}
+{% if branding.contact_email %}Questions about your order? {{ branding.contact_email }}{% endif %}
+{% if branding.email_shop_url %}Visit {{ branding.name }}: {{ branding.email_shop_url }}{% endif %}
+{% if branding.email_help_url %}Order help: {{ branding.email_help_url }}{% endif %}
+{% if branding.copyright_text %}{{ branding.copyright_text }}{% else %}© {% now "Y" %} {{ branding.name }}{% endif %}
