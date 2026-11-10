@@ -3,7 +3,12 @@ from django.contrib import admin
 from .models import Catalog, Product, ProductVariant
 
 
+from .forms import VariantForm, VariantFormSetBase
+
+
 class VariantInline(admin.TabularInline):
+    form = VariantForm
+    formset = VariantFormSetBase
     model = ProductVariant
     extra = 1
 

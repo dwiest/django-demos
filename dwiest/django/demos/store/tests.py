@@ -119,8 +119,8 @@ class StoreTests(TestCase):
             'catalogs': [self.catalog.pk],
             'variants-TOTAL_FORMS': '2', 'variants-INITIAL_FORMS': '0',
             'variants-MIN_NUM_FORMS': '1', 'variants-MAX_NUM_FORMS': '1000',
-            'variants-0-name': 'Small', 'variants-0-sku': 'POSTER-S', 'variants-0-price': '10.00', 'variants-0-active': 'on',
-            'variants-1-name': 'Large', 'variants-1-sku': 'POSTER-L', 'variants-1-price': '20.00', 'variants-1-active': 'on',
+            'variants-0-name': 'Small', 'variants-0-sku': 'POSTER-S', 'variants-0-price': '10.00', 'variants-0-active': 'on', 'variants-0-fulfillment_method': 'pod',
+            'variants-1-name': 'Large', 'variants-1-sku': 'POSTER-L', 'variants-1-price': '20.00', 'variants-1-active': 'on', 'variants-1-fulfillment_method': 'pod',
         })
         self.assertRedirects(response, self.url('manage'))
         self.assertEqual(Product.objects.get(slug='poster').variants.count(), 2)

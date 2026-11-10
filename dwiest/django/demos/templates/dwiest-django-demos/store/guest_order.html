@@ -9,7 +9,7 @@
     {% for item in order.items.all %}
       <li class="order-detail-item">
         {% if item.email_image_url %}<img src="{{ item.email_image_url }}" alt="{{ item.image_alt|default:item.product_name }}" class="order-item-image" loading="lazy">{% else %}<span class="order-item-placeholder" aria-hidden="true">{{ item.product_name|first }}</span>{% endif %}
-        <div class="order-item-description"><strong>{{ item.product_name }}</strong><p>{{ item.variant_name }} · Qty {{ item.quantity }}</p><p>${{ item.unit_price|floatformat:2 }} each</p></div>
+        <div class="order-item-description"><strong>{{ item.product_name }}</strong><p>{{ item.variant_name }}{% if item.delivery_estimate %} · {{ item.delivery_estimate }}{% endif %} · Qty {{ item.quantity }}</p><p>${{ item.unit_price|floatformat:2 }} each</p></div>
         <strong class="order-item-total">${{ item.subtotal|floatformat:2 }}</strong>
       </li>
     {% endfor %}

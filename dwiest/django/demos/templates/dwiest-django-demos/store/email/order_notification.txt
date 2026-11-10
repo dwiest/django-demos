@@ -5,7 +5,7 @@ Order {{ order.number }}
 
 Status: {{ order.get_status_display }}
 {% for item in order.items.all %}
-{{ item.quantity }} × {{ item.product_name }} ({{ item.variant_name }}) — ${{ item.subtotal|floatformat:2 }} USD{% endfor %}
+{{ item.quantity }} × {{ item.product_name }} ({{ item.variant_name }}{% if item.delivery_estimate %} · {{ item.delivery_estimate }}{% endif %}) — ${{ item.subtotal|floatformat:2 }} USD{% endfor %}
 
 Subtotal: ${{ order.subtotal|floatformat:2 }}
 Discount: ${{ order.discount|floatformat:2 }}

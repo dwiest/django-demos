@@ -1,0 +1,9 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}
+<div class="page-heading"><h1>Inventory</h1><a href="{% url 'demos:store:manage' %}">Manage store</a></div>
+<p>On hand is physical stock. Reserved stock belongs to open orders. Available = on hand − reserved. Print-on-demand orders do not use physical stock.</p>
+<section class="store-grid">{% for variant in variants %}<article class="checkout-panel"><h2>{{ variant.product.name }} · {{ variant.name }}</h2><p>{{ variant.sku }} · {{ variant.availability }}<br>{{ variant.get_fulfillment_method_display }}</p><dl><dt>On hand</dt><dd>{{ variant.stock_on_hand }}</dd><dt>Reserved</dt><dd>{{ variant.stock_reserved }}</dd><dt>Available</dt><dd>{{ variant.available_stock }}</dd></dl><a href="{% url 'demos:store:product_edit' variant.product_id %}">Edit fulfillment & estimates</a></article>{% empty %}<p>No variants yet.</p>{% endfor %}</section>
+<section class="checkout-panel"><h2>Receive or adjust stock</h2><form method="post" class="store-form">{% csrf_token %}{{ form.as_p }}<button class="button primary">Record adjustment</button></form></section>
+<h2>Stock history</h2>{% for entry in movements %}<article class="checkout-panel"><strong>{{ entry.variant.sku }}</strong><p>{{ entry.created_at }} · {{ entry.actor|default:'Checkout' }} · {{ entry.reason }}</p><p>On hand: {{ entry.on_hand_change|stringformat:'+d' }} · Reserved: {{ entry.reserved_change|stringformat:'+d' }}{% if entry.order %} · <a href="{% url 'demos:store:order_edit' entry.order_id %}">{{ entry.order.number }}</a>{% endif %}</p></article>{% empty %}<p>No stock movements yet.</p>{% endfor %}
+<nav aria-label="Stock history pages">{% if movements.has_previous %}<a href="?page={{ movements.previous_page_number }}">Previous</a>{% endif %} Page {{ movements.number }} of {{ movements.paginator.num_pages }} {% if movements.has_next %}<a href="?page={{ movements.next_page_number }}">Next</a>{% endif %}</nav>
+{% endblock %}
