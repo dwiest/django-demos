@@ -11,4 +11,4 @@
 <p>Shipping: {{ order.shipping_label }} · ${{ order.shipping_cost|floatformat:2 }} · Discount: ${{ order.discount|floatformat:2 }}</p>
 {% if order.tracking_number %}<p>USPS tracking: {{ order.tracking_number }}</p>{% endif %}
 <div class="order-thanks-actions"><a class="button order-continue" href="{% url 'demos:store:home' %}">{{ store_branding.thank_you_button_label }} <span aria-hidden="true">→</span></a></div></section>
-{% endblock %}
+{% include 'dwiest-django-demos/store/shipments.html' %}{% endblock %}

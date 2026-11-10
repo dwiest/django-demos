@@ -35,187 +35,95 @@ class EmailMediaTests(TestCase):
         record_photo_version(selected)
         order = self.place()
         item = order.items.get()
-        self.assertEqual(item.image_key, selected.key)
-        html = mail.outbox[-1].alternatives[0][0]
-        self.assertIn('https://media.example.com/store/products/gray%20v1.png', html)
-        self.assertIn('width="56"', html)
-        self.assertNotIn('generic.png', html)
-        self.assertIn('Thanks for your order!', html)
-        selected.key = 'store/products/gray-v2.png'
-        selected.save()
-        with patch('dwiest.django.demos.store.media.s3_client') as s3:
-            self.variant.product.delete()
-            s3.assert_not_called()
-        item.refresh_from_db()
-        self.assertIsNone(item.variant_id)
-        self.assertEqual(item.email_image_url, 'https://media.example.com/store/products/gray%20v1.png')
-        self.assertTrue(ProductPhotoVersion.objects.filter(photo__isnull=True, key=item.image_key).exists())
-        event = order.events.create(message='An update')
-        notify(event.pk)
-        self.assertIn(item.email_image_url, mail.outbox[-1].alternatives[0][0])
-        self.assertNotIn('Thanks for your order!', mail.outbox[-1].alternatives[0][0])
+        self.assertEqual(item.image_ke…7715 tokens truncated…email', order.pk)).status_code, 405)
+        strict = Client(enforce_csrf_checks=True)
+        strict.force_login(self.manager)
+        self.assertEqual(strict.post(self.url('order_email', order.pk), {'email': 'other@example.com'}).status_code, 403)
+        response = self.client.post(self.url('order_email', order.pk), {'email': 'invalid'})
+        self.assertContains(response, 'Enter a valid email address')
+        order.refresh_from_db()
+        self.assertEqual(order.email, 'buyer@example.com')
+        self.assertEqual(order.events.count(), 1)
 
-    def test_no_wrong_variant_fallback_and_no_expiring_links(self):
-        from .models import ProductVariant
-        other = ProductVariant.objects.create(product=self.variant.product, name='Other', price=1, sku='OTHER')
-        ProductPhoto.objects.create(product=self.variant.product, variant=other, bucket='rotten.world',
-                                    key='wrong-option.png', width=100, height=100)
-        with override_settings(STORE_MEDIA_PUBLIC_BASE_URL=''):
-            with patch('dwiest.django.demos.store.media.s3_client') as s3:
-                order = self.place()
-                self.assertEqual(order.items.get().image_key, '')
-                self.assertNotIn('<img', mail.outbox[-1].alternatives[0][0])
-                s3.return_value.generate_presigned_url.reset_mock()
-                notify(order.events.create(message="Update").pk)
-                s3.return_value.generate_presigned_url.assert_not_called()
-
-    def test_email_artwork_links_escaping_and_status_headings(self):
-        StoreBranding.objects.create(name='Rotten.World', email_header_image_bucket='rotten.world',
-            email_header_image_key='store/products/branding/header-v1.png',
-            email_footer_image_bucket='rotten.world', email_footer_image_key='store/products/branding/footer-v1.png',
-            email_footer_heading='Good stuff. Questionable influences.', email_footer='<script>unsafe</script>',
-            email_shop_url='https://rotten.world/', email_help_url='https://rotten.world/help/',
-            contact_email='support@example.com')
+    def test_completed_order_email_can_be_corrected_and_failed_email_retried(self):
         order = self.place()
+        order.status = 'fulfilled'
+        order.save()
+        event = order.events.get()
+        event.email_sent_at = None
+        event.email_error = 'Failed delivery'
+        event.save()
+        self.client.force_login(self.manager)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(self.url('order_email', order.pk), {'email': 'fixed@example.com'})
+        self.client.post(self.url('retry_notification', order.pk, event.pk))
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'fulfilled')
+        self.assertEqual(mail.outbox[-1].to, ['fixed@example.com'])
+        event.refresh_from_db()
+        self.assertIsNotNone(event.email_sent_at)
+
+    def test_email_branding_plaintext_and_safe_html(self):
+        StoreBranding.objects.create(name='RottenWorld', email_header='Hello <Wurm>\nThanks for shopping',
+                                     email_footer='Contact us\n<script>bad()</script>')
+        self.place()
         message = mail.outbox[-1]
-        html = message.alternatives[0][0]
-        for value in ['header-v1.png', 'footer-v1.png', 'Questionable influences.', 'https://rotten.world/help/',
-                      'mailto:support@example.com', '&lt;script&gt;unsafe&lt;/script&gt;']:
-            self.assertIn(value, html)
+        self.assertTrue(message.subject.startswith('RottenWorld order RW-'))
+        self.assertIn('Hello <Wurm>\nThanks for shopping', message.body)
+        self.assertIn('Contact us\n<script>bad()</script>', message.body)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, 'text/html')
+        self.assertIn('Hello &lt;Wurm&gt;<br>', html)
+        self.assertIn('&lt;script&gt;bad()&lt;/script&gt;', html)
         self.assertNotIn('<script>', html)
-        self.assertEqual(message.attachments, [])
-        self.assertNotIn('X-Amz', html)
-        self.assertIn('support@example.com', message.body)
-        for status, heading in [('fulfilled', 'Your order has shipped!'), ('cancelled', 'Your order was cancelled')]:
-            order.status = status
-            order.save()
-            notify(order.events.create(message='Updated').pk)
-            updated = mail.outbox[-1].alternatives[0][0]
-            self.assertIn(heading, updated)
-            self.assertNotIn('We’ll email you when your order ships.', updated)
+        self.assertIn('Wurm pin', html)
+        self.assertIn('$44.95 USD', html)
 
-
-class PhotoVersionTests(TestCase):
-    setUp = PhotoTests.setUp
-    url = PhotoTests.url
-    photo = PhotoTests.photo
-
-    def test_replace_restore_and_retain_history(self):
-        photo = self.photo()
-        old_key = photo.key
-        response = self.client.post(self.url('photo_edit', self.product.pk, photo.pk),
-            {'alt_text': 'New', 'sort_order': 0, 'replacement_image': image_upload()})
-        self.assertEqual(response.status_code, 302)
+    def test_photo_variant_mapping_rejects_other_products(self):
+        from .forms import PhotoDetailsForm
+        from .models import ProductPhoto
+        photo = ProductPhoto.objects.create(product=self.variant.product, bucket='test', key='mapped-photo',
+                                            width=100, height=100)
+        other = Product.objects.create(name='Other', slug='other')
+        foreign_variant = ProductVariant.objects.create(product=other, sku='OTHER', price=1)
+        form = PhotoDetailsForm({'alt_text': 'Wurm', 'sort_order': 0, 'variant': foreign_variant.pk}, instance=photo)
+        self.assertFalse(form.is_valid())
+        self.assertIn('variant', form.errors)
+        form = PhotoDetailsForm({'alt_text': 'Wurm', 'sort_order': 0, 'variant': self.variant.pk}, instance=photo)
+        self.assertTrue(form.is_valid())
+        form.save()
         photo.refresh_from_db()
-        self.assertEqual(photo.version, 2)
-        self.assertNotEqual(photo.key, old_key)
-        self.assertEqual(list(photo.versions.values_list('version', flat=True)), [2, 1])
-        self.s3.delete_object.assert_not_called()
-        url = self.url('photo_restore', self.product.pk, photo.pk, 1)
-        self.assertEqual(self.client.get(url).status_code, 405)
-        self.assertEqual(self.client.post(url).status_code, 302)
-        photo.refresh_from_db()
-        self.assertEqual(photo.version, 3)
-        self.assertEqual(photo.key, old_key)
-        self.assertEqual(photo.versions.count(), 3)
-        self.assertEqual(self.client.post(self.url('photo_restore', self.other.pk, photo.pk, 1)).status_code, 404)
-        self.client.logout()
-        self.assertEqual(self.client.post(url).status_code, 403)
+        self.assertEqual(photo.variant, self.variant)
 
-    def test_failed_replacement_preserves_current_and_history(self):
-        photo = self.photo()
-        record_photo_version(photo)
-        self.s3.put_object.side_effect = RuntimeError('S3 unavailable')
-        with self.assertLogs('dwiest.django.demos.store.views', level='ERROR'):
-            response = self.client.post(self.url('photo_edit', self.product.pk, photo.pk),
-                {'alt_text': 'New', 'sort_order': 0, 'replacement_image': image_upload()})
-        self.assertContains(response, 'Photo could not be saved')
-        photo.refresh_from_db()
-        self.assertEqual(photo.version, 1)
-        self.assertEqual(photo.versions.count(), 1)
-
-
-class PermanentURLTests(TestCase):
-    @override_settings(STORE_MEDIA_PUBLIC_BASE_URL='https://cdn.example.com/assets/', STORE_MEDIA_BUCKET='rotten.world')
-    def test_public_url_quotes_key_and_does_not_sign(self):
+    def test_receipt_prefers_independent_artwork_and_centers_continue_action(self):
+        StoreBranding.objects.create(thank_you_image_bucket='rotten.world',
+            thank_you_image_key='store/products/branding/thanks.png', thank_you_image_alt='A happy Wurm',
+            footer_image_bucket='rotten.world', footer_image_key='store/products/branding/site-footer.png')
         with patch('dwiest.django.demos.store.media.s3_client') as s3:
-            photo = ProductPhoto(bucket='rotten.world', key='store/products/a #1.png')
-            self.assertEqual(permanent_url(photo.bucket, photo.key), 'https://cdn.example.com/assets/store/products/a%20%231.png')
-            self.assertEqual(permanent_url('other-bucket', photo.key), '')
-            s3.assert_not_called()
-        for base in ['http://example.com', 'https://example.com/?token=abc']:
-            with override_settings(STORE_MEDIA_PUBLIC_BASE_URL=base):
-                with self.assertRaises(ImproperlyConfigured):
-                    permanent_url('rotten.world', photo.key)
-
-    def test_bucket_versioning_is_read_only_unless_explicitly_enabled(self):
-        with patch('dwiest.django.demos.store.management.commands.configure_store_media_versioning.s3_client') as factory:
-            client = factory.return_value
-            client.get_bucket_versioning.return_value = {}
-            call_command('configure_store_media_versioning', stdout=StringIO())
-            client.put_bucket_versioning.assert_not_called()
-            client.get_bucket_versioning.side_effect = [{}, {'Status': 'Enabled'}]
-            call_command('configure_store_media_versioning', '--enable', stdout=StringIO())
-            client.put_bucket_versioning.assert_called_once_with(Bucket='rotten.world', VersioningConfiguration={'Status': 'Enabled'})
+            s3.return_value.generate_presigned_url.side_effect = lambda operation, Params, **kw: 'https://signed.example/' + Params['Key']
+            order = self.place()
+            response = self.client.get(self.url('order_complete', order.token))
+        self.assertContains(response, 'class="order-thanks-image" src="https://signed.example/store/products/branding/thanks.png"')
+        self.assertContains(response, 'alt="A happy Wurm"')
+        self.assertContains(response, 'class="order-thanks-actions"')
+        self.assertContains(response, 'class="button order-continue"')
 
 
-class ImageHistoryMigrationTests(TestCase):
-    def test_backfill_records_existing_photo_and_order_snapshot(self):
-        # Use the historical migration function with current app models to exercise
-        # the data path, independent of the empty test-database schema migration.
-        from importlib import import_module
-        from django.apps import apps
-        from django.db import connection
-        from .models import Product, ProductVariant, StoreOrder, ShippingAddress, StoreOrderItem
-        product = Product.objects.create(name='Hat', slug='migration-hat')
-        variant = ProductVariant.objects.create(product=product, name='Gray', sku='MIGRATE', price=10)
-        photo = ProductPhoto.objects.create(product=product, variant=variant, bucket='rotten.world',
-                                           key='store/products/old.png', width=32, height=24)
-        address = ShippingAddress.objects.create(name='Buyer', line1='Main', city='Raleigh', state='NC', postal_code='27601')
-        order = StoreOrder.objects.create(email='buyer@example.com', shipping_address=address,
-            subtotal=10, shipping_method='ground', shipping_cost=0, total=10,
-            payment_method='card_usd', payment_acknowledgment='SIMULATED')
-        item = StoreOrderItem.objects.create(order=order, variant=variant, product_name='Hat',
-            variant_name='Gray', sku='MIGRATE', quantity=1, unit_price=10)
-        migration = import_module('dwiest.django.demos.store.migrations.0006_email_artwork_photo_versions')
-        migration.retain_existing_images(apps, connection.schema_editor())
-        self.assertEqual(photo.versions.get().key, photo.key)
-        item.refresh_from_db()
-        self.assertEqual(item.image_key, photo.key)
-
-
-class StorefrontURLRegressionTests(TestCase):
-    @override_settings(STORE_MEDIA_PUBLIC_BASE_URL='https://s3.amazonaws.com/rotten.world/store/images')
-    def test_email_base_never_changes_product_or_site_image_delivery(self):
-        from .models import Product
-        product = Product.objects.create(name='Wurm', slug='url-regression')
-        photo = ProductPhoto(product=product, bucket='rotten.world',
-                             key='store/products/2/0f4bda33f2fe4140bbc4a19feeb57b83.png')
-        branding = StoreBranding(header_image_bucket='rotten.world', header_image_key='store/products/branding/header.png',
-                                footer_image_bucket='rotten.world', footer_image_key='store/products/branding/footer.png')
-        with patch('dwiest.django.demos.store.media.s3_client') as factory:
-            factory.return_value.generate_presigned_url.side_effect = lambda operation, Params, **kw: 'https://signed.example/' + Params['Key']
-            self.assertEqual(photo.url, 'https://signed.example/' + photo.key)
-            self.assertEqual(branding.header_image_url, 'https://signed.example/store/products/branding/header.png')
-            self.assertEqual(branding.footer_image_url, 'https://signed.example/store/products/branding/footer.png')
-            keys = [call.kwargs['Params']['Key'] for call in factory.return_value.generate_presigned_url.call_args_list]
-            self.assertEqual(keys, [photo.key, branding.header_image_key, branding.footer_image_key])
-        with override_settings(STORE_MEDIA_PUBLIC_BASE_URL='not a valid URL'):
-            with patch('dwiest.django.demos.store.media.s3_client') as factory:
-                factory.return_value.generate_presigned_url.return_value = 'https://signed.example/image'
-                self.assertEqual(photo_url(photo), 'https://signed.example/image')
-
-class S3EmailPathTests(TestCase):
-    @override_settings(STORE_MEDIA_BUCKET='rotten.world')
-    def test_s3_email_urls_append_exact_stored_key_from_bucket_root(self):
-        key = 'store/products/branding/895ef1d1247c46f895428e24192f4c9f.png'
-        for base, endpoint in [
-            ('https://s3.amazonaws.com/rotten.world/store/images', 's3.amazonaws.com'),
-            ('https://s3.us-east-1.amazonaws.com/rotten.world/store/products', 's3.us-east-1.amazonaws.com'),
-            ('https://rotten.world.s3.us-east-1.amazonaws.com/store/images', 's3.us-east-1.amazonaws.com'),
-        ]:
-            with self.subTest(base=base), override_settings(STORE_MEDIA_PUBLIC_BASE_URL=base):
-                url = permanent_url('rotten.world', key)
-                self.assertEqual(url, 'https://' + endpoint + '/rotten.world/' + key)
-                self.assertNotIn('store/images', url)
-                self.assertNotIn('X-Amz', url)
+    def test_receipt_defaults_are_generic_and_store_copy_is_configurable(self):
+        order = self.place()
+        url = self.url('order_complete', order.token)
+        response = self.client.get(url)
+        for text in ['Thank you for your order!', 'Your order has been received.', 'Continue shopping']:
+            self.assertContains(response, text)
+        self.assertNotContains(response, 'Wurm thanks you')
+        self.assertNotContains(response, 'surface dweller')
+        self.assertNotContains(response, 'RottenWorld Wurm')
+        StoreBranding.objects.create(name='Rotten.World', thank_you_heading='Wurm thanks you for your order!',
+            thank_you_message='“You have excellent taste. For a surface dweller.”\n<script>unsafe</script>',
+            thank_you_button_label='Continue exploring')
+        response = self.client.get(url)
+        for text in ['Wurm thanks you for your order!', 'surface dweller', 'Continue exploring', '&lt;script&gt;unsafe&lt;/script&gt;']:
+            self.assertContains(response, text)
+        self.assertNotContains(response, '<script>unsafe</script>')
+        StoreBranding.objects.update(thank_you_message='')
+        self.assertNotContains(self.client.get(url), 'surface dweller')

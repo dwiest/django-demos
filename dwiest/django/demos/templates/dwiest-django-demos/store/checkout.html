@@ -1,12 +1,12 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% block content %}
 <div class="page-heading"><h1>Checkout</h1><a href="{% url 'demos:store:cart' %}">Edit cart</a></div>
-<p class="notice">Demo checkout · No money will be charged. USPS prices are illustrative. Sales tax is not calculated.</p>
+<p class="notice">Demo checkout · No money will be charged. Sales tax is not calculated.</p>
 {% if saved_addresses %}<section class="checkout-panel"><h2>Use a saved address</h2>{% for address in saved_addresses %}<p><a href="?address={{ address.pk }}">{{ address.name }} · {{ address.line1 }} · {{ address.postal_code }}</a></p>{% endfor %}</section>{% endif %}
 <form method="post" class="store-form" id="checkout-form">{% csrf_token %}{{ form.non_field_errors }}{{ form.checkout_key }}
 <div class="checkout-grid"><div class="checkout-details">
 <section class="checkout-panel"><h2>1. Contact & shipping</h2>
-{% for field in form %}{% if field.name != 'checkout_key' and field.name != 'payment_method' and field.name != 'acknowledge' and field.name != 'coupon' %}<p>{{ field.label_tag }} {{ field }}{{ field.errors }}</p>{% endif %}{% endfor %}
+{% for field in form %}{% if field.name != 'checkout_key' and field.name != 'payment_method' and field.name != 'acknowledge' and field.name != 'coupon' %}<p>{{ field.label_tag }} {{ field }}{{ field.errors }} {{ field.help_text }}</p>{% endif %}{% endfor %}
 <p class="muted">US addresses only. Delivery estimates are illustrative and are not guarantees. No live USPS address validation.</p></section>
 <section class="checkout-panel"><h2>2. Payment</h2>
 <p>Preview of a Stripe payment selection</p>
@@ -18,7 +18,7 @@
 <div class="checkout-acknowledge"><label for="{{ form.acknowledge.id_for_label }}">{{ form.acknowledge }}<span>{{ form.acknowledge.label }}</span></label>{{ form.acknowledge.errors }}</div></section>
 <section class="checkout-panel"><h2>3. Review order</h2>
 <button class="button secondary" name="action" value="review">Update order review</button>
-{% if quote %}<dl class="order-totals"><dt>Subtotal</dt><dd>${{ quote.subtotal|floatformat:2 }}</dd><dt>Discount {{ quote.coupon_code }} ({{ quote.discount_percent }}%)</dt><dd>−${{ quote.discount|floatformat:2 }}</dd><dt>USPS shipping estimate</dt><dd>${{ quote.shipping_cost|floatformat:2 }}</dd><dt>Tax (not calculated)</dt><dd>$0.00</dd><dt><strong>Total USD</strong></dt><dd><strong>${{ quote.total|floatformat:2 }}</strong></dd></dl>
+{% if quote %}<dl class="order-totals"><dt>Subtotal</dt><dd>${{ quote.subtotal|floatformat:2 }}</dd><dt>Discount {{ quote.coupon_code }} ({{ quote.discount_percent }}%)</dt><dd>−${{ quote.discount|floatformat:2 }}</dd><dt>Shipping</dt><dd>${{ quote.shipping_cost|floatformat:2 }}</dd><dt>Tax (not calculated)</dt><dd>$0.00</dd><dt><strong>Total USD</strong></dt><dd><strong>${{ quote.total|floatformat:2 }}</strong></dd></dl>
 <button class="button primary" name="action" value="submit">Submit demo order</button>{% else %}<p>Complete the form and update the review to see your total before submitting.</p>{% endif %}
 </section></div>
 <aside class="checkout-sidebar" aria-label="Order summary">

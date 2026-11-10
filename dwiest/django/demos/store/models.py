@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.functional import cached_property
+from django.utils import timezone
 
 
 class Catalog(models.Model):
@@ -171,6 +172,9 @@ class StoreBranding(models.Model):
     contact_email = models.EmailField(blank=True)
     footer_link_label = models.CharField(max_length=80, blank=True)
     footer_link_url = models.URLField(blank=True)
+    shipping_rate = models.DecimalField(max_digits=10, decimal_places=2, default='6.95', validators=[MinValueValidator(0)])
+    free_shipping_threshold = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)], help_text='After discounts; blank disables free shipping.')
+    shipping_estimate = models.CharField(max_length=180, blank=True, default='Processing time varies by item.')
     coupon_code = models.CharField(max_length=40, blank=True, default='DISCOUNT')
     coupon_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
     thank_you_heading = models.CharField(max_length=180, default='Thank you for your order!',
@@ -278,6 +282,12 @@ class StoreOrder(models.Model):
         ordering = ['-created_at']
 
     @property
+    def fulfillment_status(self):
+        shipped = sum(line.quantity for shipment in self.shipments.all() for line in shipment.lines.all())
+        total = sum(item.quantity for item in self.items.all())
+        return 'Shipped' if shipped and shipped == total else ('Partially shipped' if shipped else 'Unfulfilled')
+
+    @property
     def shipping_label(self):
         from .forms import SHIPPING
         return SHIPPING.get(self.shipping_method, (self.shipping_method, ''))[0]
@@ -356,3 +366,30 @@ class StockMovement(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-pk']
+
+
+class Shipment(models.Model):
+    order = models.ForeignKey(StoreOrder, related_name='shipments', on_delete=models.PROTECT)
+    carrier = models.CharField(max_length=80)
+    tracking_number = models.CharField(max_length=100)
+    tracking_url = models.URLField(blank=True)
+    shipped_at = models.DateTimeField(default=timezone.now)
+    fulfillment_method = models.CharField(max_length=20, choices=[('self', 'Shipped by me'), ('supplier', 'Shipped by supplier')], default='self')
+    supplier = models.CharField(max_length=160, blank=True)
+    private_notes = models.TextField(blank=True)
+    event = models.OneToOneField(OrderEvent, null=True, blank=True, on_delete=models.PROTECT, related_name='shipment')
+    submission_key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
+    class Meta:
+        ordering = ['shipped_at', 'pk']
+
+
+class ShipmentLine(models.Model):
+    shipment = models.ForeignKey(Shipment, related_name='lines', on_delete=models.CASCADE)
+    item = models.ForeignKey(StoreOrderItem, related_name='shipment_lines', on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    stock_quantity = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['shipment', 'item'], name='store_shipment_item_unique'),
+                       models.CheckConstraint(check=models.Q(quantity__gt=0), name='store_shipment_quantity_positive')]

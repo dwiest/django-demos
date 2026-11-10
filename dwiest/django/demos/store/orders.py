@@ -20,15 +20,17 @@ def totals(subtotal, shipping_method, coupon):
         raise ValueError('That coupon is not active.')
     percent = branding.coupon_percent if code else Decimal('0')
     discount = (subtotal * percent / 100).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-    shipping = Decimal(SHIPPING[shipping_method][1])
+    shipping = Decimal(branding.shipping_rate) if shipping_method == 'standard' else Decimal(SHIPPING[shipping_method][1])
+    if shipping_method == 'standard' and branding.free_shipping_threshold is not None and subtotal - discount >= branding.free_shipping_threshold:
+        shipping = Decimal('0.00')
     return dict(subtotal=subtotal, coupon_code=code, discount_percent=percent,
                 discount=discount, shipping_cost=shipping, tax=Decimal('0.00'),
                 total=subtotal - discount + shipping)
 
 
-def notify(event_id):
+def notify(event_id, force=False):
     event = OrderEvent.objects.select_related('order').get(pk=event_id)
-    if event.email_sent_at:
+    if event.email_sent_at and not force:
         return
     try:
         branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
@@ -40,7 +42,10 @@ def notify(event_id):
         context = {'order': event.order, 'event': event, 'branding': branding,
                    'email_title': title, 'initial_order': initial}
 
-        template = 'dwiest-django-demos/store/email/order_notification'
+        shipment = getattr(event, 'shipment', None)
+        if shipment:
+            context.update(shipment=shipment, email_title='Your shipment is on its way!')
+        template = 'dwiest-django-demos/store/email/' + ('shipment' if shipment else 'order_notification')
         count = send_mail(
             '{} order {} update'.format(branding.name, event.order.number),
             render_to_string(template + '.txt', context),

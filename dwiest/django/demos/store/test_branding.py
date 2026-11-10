@@ -21,7 +21,7 @@ class BrandingTests(TestCase):
         self.s3.generate_presigned_url.side_effect = lambda op, Params, **kw: 'https://s3.example/'+Params['Key']
         self.addCleanup(self.s3_patch.stop)
         self.url = reverse('demos:store:branding')
-        self.data = {'name': 'My store', 'tagline': 'Unexpected finds', 'introduction': 'Welcome here',
+        self.data = {'shipping_rate': '6.95', 'shipping_estimate': '', 'name': 'My store', 'tagline': 'Unexpected finds', 'introduction': 'Welcome here',
                      'footer_heading': 'Stay curious', 'footer_text': 'Made for you',
                      'contact_email': 'hello@example.com', 'footer_link_label': 'About',
                      'footer_link_url': 'https://example.com/about', 'copyright_text': 'All ours', 'coupon_code': 'DISCOUNT', 'coupon_percent': '5'}
