@@ -259,3 +259,23 @@ Before accepting real sales, add verified Stripe payment/webhook handling,
 refunds, live shipping rates and label purchase, address verification, tax
 calculation, inventory rules, and returns/privacy policies. Registration and
 account-based order history can build on the existing optional user links.
+
+
+### Catalog quick add and order email corrections
+
+Catalog cards include **Add to cart**. A product with one active variant adds one
+unit directly; products with several variants require a selection showing the
+variant name and price. Photo previews remain independent of purchase options.
+Adding returns to the current published catalog (or All products), shows a
+confirmation, and updates the cart count. Products without active variants have
+no add button. The existing POST/CSRF, publication, variant ownership, active
+variant, server price, and quantity checks still apply.
+
+In **Orders → open an order → Customer email**, enter a corrected address and
+choose **Update email & notify customer**. This separate action does not require
+changing shipping or status and works on fulfilled/cancelled orders too. The
+change records the administrator and old/new addresses in order history and
+sends an update to the corrected recipient. Failed notifications can then be
+retried using **Retry email**; retries read the current order email. Previously
+successful notifications are not resent. Email correction does not change any
+linked user's account email. This update needs no database migration.

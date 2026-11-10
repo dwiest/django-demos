@@ -172,3 +172,7 @@ class ShippingAddressForm(forms.ModelForm):
 
     clean_state = CheckoutForm.clean_state
     clean_postal_code = CheckoutForm.clean_postal_code
+
+
+class OrderEmailForm(forms.Form):
+    email = forms.EmailField(label='Customer email', help_text='Order updates and notification retries use this address.')

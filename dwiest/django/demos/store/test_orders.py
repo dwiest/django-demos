@@ -156,3 +156,49 @@ class OrderTests(TestCase):
         self.assertContains(response, 'That coupon is not active')
         self.data['coupon'] = ''
         self.assertEqual(self.place().discount, 0)
+
+    def test_correct_order_email_audited_and_notifies_new_recipient(self):
+        order = self.place()
+        self.client.force_login(self.manager)
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(self.url('order_email', order.pk), {'email': 'corrected@example.com'})
+        self.assertRedirects(response, self.url('order_edit', order.pk))
+        order.refresh_from_db()
+        self.assertEqual(order.email, 'corrected@example.com')
+        event = order.events.last()
+        self.assertEqual(event.actor, self.manager)
+        self.assertIn('buyer@example.com to corrected@example.com', event.message)
+        self.assertEqual(mail.outbox[-1].to, ['corrected@example.com'])
+        self.assertEqual(order.status, 'placed')
+
+    def test_email_validation_permissions_and_csrf(self):
+        order = self.place()
+        self.assertEqual(Client().post(self.url('order_email', order.pk), {'email': 'other@example.com'}).status_code, 403)
+        self.client.force_login(self.manager)
+        self.assertEqual(self.client.get(self.url('order_email', order.pk)).status_code, 405)
+        strict = Client(enforce_csrf_checks=True)
+        strict.force_login(self.manager)
+        self.assertEqual(strict.post(self.url('order_email', order.pk), {'email': 'other@example.com'}).status_code, 403)
+        response = self.client.post(self.url('order_email', order.pk), {'email': 'invalid'})
+        self.assertContains(response, 'Enter a valid email address')
+        order.refresh_from_db()
+        self.assertEqual(order.email, 'buyer@example.com')
+        self.assertEqual(order.events.count(), 1)
+
+    def test_completed_order_email_can_be_corrected_and_failed_email_retried(self):
+        order = self.place()
+        order.status = 'fulfilled'
+        order.save()
+        event = order.events.get()
+        event.email_sent_at = None
+        event.email_error = 'Failed delivery'
+        event.save()
+        self.client.force_login(self.manager)
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(self.url('order_email', order.pk), {'email': 'fixed@example.com'})
+        self.client.post(self.url('retry_notification', order.pk, event.pk))
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'fulfilled')
+        self.assertEqual(mail.outbox[-1].to, ['fixed@example.com'])
+        event.refresh_from_db()
+        self.assertIsNotNone(event.email_sent_at)

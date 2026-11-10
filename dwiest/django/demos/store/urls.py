@@ -7,6 +7,7 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('orders/<uuid:token>/', views.order_complete, name='order_complete'),
     path('manage/orders/', views.order_list, name='order_list'),
+    path('manage/orders/<int:pk>/email/', views.order_email, name='order_email'),
     path('manage/orders/<int:pk>/', views.order_edit, name='order_edit'),
     path('manage/orders/<int:pk>/notifications/<int:event_pk>/retry/', views.retry_notification, name='retry_notification'),
     path('', views.home, name='home'),
