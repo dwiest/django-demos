@@ -452,3 +452,20 @@ backend in deployments with multiple workers: the email and IP request limits
 are only per-process with the default local-memory backend. Source limits use
 REMOTE_ADDR, so configure the trusted proxy to supply the actual client address.
 No database migrations are required.
+
+### Customer accounts
+
+The store uses the host site's existing Django authentication URLs (`login`,
+`registration`, `registration_resend`, `password_reset`, and `change_password`).
+Registration and initial email verification remain owned by `django-users`.
+Configure `LOGIN_URL` to the host login route and deploy with `manage.py migrate`
+to apply store migration `0009_customeraddress`.
+
+The storefront links to account settings and paginated order history. History
+shows orders linked to the authenticated user; guest orders continue to use the
+email lookup flow and are not claimed by matching an email address. Saved
+addresses can be added, edited, deleted, and selected at checkout. Checkout
+creates a separate shipping snapshot so address book edits cannot alter orders.
+Email changes require the current password, a one-hour confirmation link sent
+to the new address, and a confirmation POST while signed in to the same account.
+For email-based usernames, confirmation also changes the login username.

@@ -1,0 +1,7 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block content %}<h1>My account</h1><p><a href="{% url 'demos:store:customer_orders' %}">Order history</a></p>
+{% if notice %}<p role="status">{{ notice }}</p>{% endif %}
+<section class="checkout-panel"><h2>Your name</h2><form method="post" class="store-form">{% csrf_token %}{{ profile_form.as_p }}<button name="action" value="profile">Save name</button></form></section>
+<section class="checkout-panel"><h2>Email & password</h2>{% url 'registration_resend' as verification_url %}{% if verification_url %}<p><a href="{{ verification_url }}">Resend registration verification</a></p>{% endif %}<p>Current email: {{ request.user.email }}</p><form method="post" class="store-form">{% csrf_token %}{{ email_form.as_p }}<button name="action" value="email">Verify new email</button></form>
+{% url 'change_password' as password_url %}{% if password_url %}<p><a href="{{ password_url }}">Change password</a></p>{% endif %}</section>
+<section class="checkout-panel"><h2>Saved addresses</h2>{% for address in addresses %}<p>{{ address.name }} · {{ address.line1 }} · {{ address.city }}, {{ address.state }} {{ address.postal_code }} <a href="{% url 'demos:store:customer_address' address.pk %}">Edit address</a></p>{% empty %}<p>No saved addresses yet.</p>{% endfor %}<a href="{% url 'demos:store:customer_address_new' %}">Add address</a></section>{% endblock %}

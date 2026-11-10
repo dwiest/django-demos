@@ -275,8 +275,17 @@ def checkout(request):
         request.session['store_checkout_key'] = key
     if not cart_data['cart_rows']:
         return redirect('demos:store:cart')
-    form = CheckoutForm(request.POST if request.method == 'POST' else None,
-                        initial={'checkout_key': key, 'shipping_method': 'ground', 'payment_method': 'card_usd'})
+    initial = {'checkout_key': key, 'shipping_method': 'ground', 'payment_method': 'card_usd'}
+    saved_addresses = []
+    if request.user.is_authenticated:
+        from .models import CustomerAddress
+        saved_addresses = CustomerAddress.objects.filter(user=request.user)
+        initial.update(email=request.user.email, name=request.user.get_full_name())
+        if request.method == 'GET' and request.GET.get('address'):
+            address = get_object_or_404(saved_addresses, pk=request.GET['address'])
+            initial.update({field: getattr(address, field) for field in
+                            ('name', 'line1', 'line2', 'city', 'state', 'postal_code')})
+    form = CheckoutForm(request.POST if request.method == 'POST' else None, initial=initial)
     quote = None
     if request.method == 'POST' and form.is_valid():
         if str(form.cleaned_data['checkout_key']) != key:
@@ -322,7 +331,7 @@ def checkout(request):
             request.session['store_receipts'] = (receipts + [str(order.token)])[-50:]
             request.session[KEY] = {}
             return redirect('demos:store:order_complete', token=order.token)
-    return page(request, 'checkout.html', form=form, quote=quote)
+    return page(request, 'checkout.html', form=form, quote=quote, saved_addresses=saved_addresses)
 
 
 def order_complete(request, token):
