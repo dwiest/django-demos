@@ -83,7 +83,7 @@ html:has(.storefront){scroll-padding-top:64px}
 .payment-preview { padding:1rem; background:#f4f4f7; color:#222; border-radius:8px; margin:1rem 0; }
 .order-totals { display:grid; grid-template-columns:1fr auto; gap:.7rem; }
 .order-totals dd { margin:0; text-align:right; }
-.wurm-thanks { width:100%; max-width:650px; height:auto; border-radius:12px; }
+.wurm-thanks { display:block; width:100%; height:clamp(110px, 22vw, 160px); object-fit:cover; object-position:center bottom; border-radius:12px; }
 .order-thanks { max-width:760px; margin:2rem auto; }
 @media(max-width:700px) { .checkout-grid { grid-template-columns:1fr; } .checkout-grid aside { position:static; } }
 
@@ -123,3 +123,8 @@ html:has(.storefront){scroll-padding-top:64px}
 .store-card .store-quick-add .store-cart-outline:focus-visible{outline-color:#957124}
 .store-card .store-quick-add-single{justify-content:space-between;flex-wrap:wrap;gap:8px 12px}
 .store-card-price{font-size:14px;white-space:nowrap}
+
+.order-thanks-actions{display:flex;justify-content:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.storefront .button.order-continue{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:10px 22px;border:1px solid #b38a35;border-radius:999px;background:transparent;color:#725514;font-weight:600;text-decoration:none;min-height:44px}
+.storefront .button.order-continue:hover{background:#fff5dc;border-color:#8b681e;color:#503b0e}
+.storefront .button.order-continue:focus-visible{outline:3px solid var(--teal);outline-offset:3px}

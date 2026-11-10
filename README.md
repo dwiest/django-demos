@@ -391,3 +391,26 @@ Immutable object keys, rather than S3 version IDs in URLs, keep old emails stabl
 
 Deploy this change with `python manage.py migrate` (migration 0006), configure and
 verify the public media URL, upload email artwork, and send a new test order.
+
+### Thank-you page artwork and email S3 paths
+
+Migration `0007_thank_you_artwork` adds **Thank-you page image** and alt text to
+Store settings. This upload is independent of website and email artwork; until
+set, the receipt retains its website footer/header fallback. The image is shown
+in a shallow 110–160px frame, aligned to the bottom to retain Wurm and the soil.
+Use wide artwork with its subject near the bottom. Continue exploring is centered
+beneath the receipt as a gold outline button with a visible keyboard focus state.
+Replaced thank-you artwork is retained in S3 like other branding assets.
+
+Email URL building now canonicalizes recognized direct S3 endpoints to the bucket
+root before appending the exact stored key. For example,
+`s3://rotten.world/store/products/branding/895ef1d1247c46f895428e24192f4c9f.png`
+becomes
+`https://s3.amazonaws.com/rotten.world/store/products/branding/895ef1d1247c46f895428e24192f4c9f.png`,
+without an inserted `/store/images` directory. Regional endpoints are preserved;
+virtual-host S3 endpoints use path-style addresses for dotted bucket names.
+Custom CDN base paths are kept as configured because they may represent origin
+mappings. This URL correction does not make a private bucket public: use the
+unsigned CloudFront OAC media origin described above for private S3 objects.
+Already-sent messages keep their original URLs; send a fresh test notification
+once the deployment and media origin settings are corrected.

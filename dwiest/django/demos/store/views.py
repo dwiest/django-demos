@@ -225,7 +225,7 @@ def branding(request):
             with transaction.atomic():
                 previous = StoreBranding.objects.select_for_update().filter(pk=1).first()
                 item = form.save(commit=False)
-                for location in ('header', 'footer', 'email_header', 'email_footer'):
+                for location in ('header', 'footer', 'email_header', 'email_footer', 'thank_you'):
                     bucket_field, key_field = location + '_image_bucket', location + '_image_key'
                     old_bucket = getattr(previous, bucket_field, '')
                     old_key = getattr(previous, key_field, '')

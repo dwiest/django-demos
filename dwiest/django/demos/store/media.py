@@ -1,5 +1,6 @@
 """Product images live in S3; Django stores only their object location and metadata."""
 import logging
+import re
 from io import BytesIO
 from uuid import uuid4
 import warnings
@@ -87,6 +88,12 @@ def permanent_url(bucket, key):
         raise ImproperlyConfigured('STORE_MEDIA_PUBLIC_BASE_URL must be a permanent HTTPS base URL.')
     if bucket != getattr(settings, 'STORE_MEDIA_BUCKET', 'rotten.world'):
         return ''
+    # A direct S3 endpoint always maps a complete stored key from the bucket
+    # root. UI/media folders in its configured path are not S3 key prefixes.
+    host = parsed.hostname or ''
+    endpoint = host[len(bucket) + 1:] if host.startswith(bucket + '.') else host
+    if re.fullmatch(r's3(?:[.-][a-z0-9-]+)?\.amazonaws\.com', endpoint):
+        base = 'https://{}/{}'.format(endpoint, quote(bucket, safe=''))
     return base + '/' + quote(key, safe='/')
 
 
