@@ -1,7 +1,13 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% block content %}<section class="checkout-panel">
 <h1>Find my order</h1>
+{% if submitted %}
+<div role="status"><h2>Check your email</h2>
+<p>If the order number and email address match our records, you’ll receive a secure link to view your order.</p>
+<p>The link is valid for 24 hours. If the email doesn’t arrive within a few minutes, check your spam folder.</p></div>
+<p><a href="{% url 'demos:store:guest_order_lookup' %}">Check your details and try again</a></p>
+{% else %}
 <p>Enter your order number and the email address used at checkout. We’ll email you a secure link to view your order. No account needed.</p>
-{% if submitted %}<p role="status">If those details match an order, a secure link will be sent to the email address on the order. Check your inbox and spam folder. Links expire after 24 hours. If needed, try again in an hour.</p>{% else %}
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="button">Email my order link</button></form>{% endif %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="button">Email my order link</button></form>
+{% endif %}
 </section>{% endblock %}

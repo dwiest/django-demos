@@ -20,7 +20,7 @@ class GuestOrderTests(TestCase):
         guest = Client()
         response = guest.post(self.url('guest_order_lookup'), {
             'order_number': order.number.lower(), 'email': order.email.upper()})
-        self.assertContains(response, 'If those details match an order')
+        self.assertContains(response, 'If the order number and email address match our records')
         self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(mail.outbox[-1].to, [order.email])
         import re
@@ -72,7 +72,7 @@ class GuestOrderTests(TestCase):
         cache.clear()
         with patch('dwiest.django.demos.store.views.send_mail', side_effect=RuntimeError('offline')):
             with self.assertLogs('dwiest.django.demos.store.views', level='ERROR'):
-                self.assertContains(guest.post(self.url('guest_order_lookup'), data), 'If those details match an order')
+                self.assertContains(guest.post(self.url('guest_order_lookup'), data), 'If the order number and email address match our records')
 
     def test_configured_public_https_origin_is_used(self):
         from .models import StoreBranding
@@ -93,6 +93,28 @@ class GuestOrderTests(TestCase):
         headers = {'HTTP_REFERER': 'https://testserver' + url,
                    'HTTP_ORIGIN': 'https://testserver'}
         self.assertContains(guest.post(url, data, secure=True, **headers),
-                            'If those details match an order')
+                            'If the order number and email address match our records')
         data.pop('csrfmiddlewaretoken')
         self.assertEqual(guest.post(url, data, secure=True, **headers).status_code, 403)
+
+    def test_lookup_email_uses_full_shared_branding(self):
+        from .models import StoreBranding
+        StoreBranding.objects.create(name='Rotten.World', email_header='Hello <Wurm>',
+            email_header_image_bucket='brand', email_header_image_key='header.png',
+            email_footer_image_bucket='brand', email_footer_image_key='footer.png',
+            email_footer_heading='Stay rotten', email_footer='Good stuff & questionable influences.',
+            contact_email='help@example.com', email_shop_url='https://shop.example.com/',
+            email_help_url='https://shop.example.com/help/', copyright_text='Copyright Rotten.World')
+        order = self.place()
+        with patch('dwiest.django.demos.store.media.permanent_url',
+                   side_effect=lambda bucket, key: 'https://images.example.com/' + key):
+            response = self.client.post(self.url('guest_order_lookup'),
+                {'order_number': order.number, 'email': order.email})
+        self.assertContains(response, 'Check your email')
+        self.assertNotContains(response, 'No account needed')
+        html = mail.outbox[-1].alternatives[0][0]
+        for value in ['https://images.example.com/header.png', 'https://images.example.com/footer.png',
+                      'Hello &lt;Wurm&gt;', 'Stay rotten', 'mailto:help@example.com',
+                      'https://shop.example.com/help/', 'Copyright Rotten.World']:
+            self.assertIn(value, html)
+        self.assertIn('Good stuff & questionable influences.', mail.outbox[-1].body)

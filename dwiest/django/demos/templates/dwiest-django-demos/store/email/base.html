@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ email_title }}</title></head>
+<body style="margin:0;background:#f3f4f2;color:#242927;font-family:Arial,Helvetica,sans-serif;line-height:1.5">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:20px 8px">
+<!--[if mso]><table role="presentation" width="600"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;margin:auto">
+{% if branding.email_header_image_url %}<tr><td><img src="{{ branding.email_header_image_url }}" alt="{{ branding.email_header_image_alt|default:branding.name }}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr>{% endif %}
+{% if branding.email_header or not branding.email_header_image_url %}<tr><td style="padding:16px 24px;background:#153b34;color:#fff;font-size:20px;font-weight:bold">{{ branding.email_header|default:branding.name|linebreaksbr }}</td></tr>{% endif %}
+<tr><td style="padding:24px">
+{% block email_content %}{% endblock %}
+</td></tr>
+{% if branding.email_footer_image_url %}<tr><td><img src="{{ branding.email_footer_image_url }}" alt="{{ branding.email_footer_image_alt }}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr>{% endif %}
+<tr><td align="center" style="padding:20px 24px;font-size:13px;color:#59625e">
+{% if branding.email_footer_heading %}<p style="font-size:16px;font-weight:bold;color:#242927;margin:0 0 8px">{{ branding.email_footer_heading }}</p>{% endif %}
+{% if branding.email_footer %}<p>{{ branding.email_footer|linebreaksbr }}</p>{% endif %}
+{% if branding.contact_email %}<p>Questions about your order? <a style="color:#07584f" href="mailto:{{ branding.contact_email }}">{{ branding.contact_email }}</a></p>{% endif %}
+{% if branding.email_shop_url or branding.email_help_url %}<p>{% if branding.email_shop_url %}<a style="color:#07584f" href="{{ branding.email_shop_url }}">Visit {{ branding.name }}</a>{% endif %}{% if branding.email_shop_url and branding.email_help_url %} · {% endif %}{% if branding.email_help_url %}<a style="color:#07584f" href="{{ branding.email_help_url }}">Order help</a>{% endif %}</p>{% endif %}
+<p>{% if branding.copyright_text %}{{ branding.copyright_text }}{% else %}© {% now "Y" %} {{ branding.name }}{% endif %}</p>
+</td></tr></table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr></table></body></html>
