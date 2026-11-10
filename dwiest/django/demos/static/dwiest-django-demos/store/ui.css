@@ -110,3 +110,8 @@ html:has(.storefront){scroll-padding-top:64px}
 .store-quick-add label{margin:0}
 .store-quick-add select{min-width:0;max-width:100%}
 .store-quick-add .button{align-self:flex-start}
+
+/* Compact catalog purchase controls; labels remain available to screen readers. */
+.store-card .store-quick-add{flex-direction:row;align-items:center;gap:6px;margin:10px 0}
+.store-card .store-quick-add select{flex:1 1 0;width:0;min-width:0;min-height:34px;padding:5px 7px;font-size:13px}
+.store-card .store-quick-add .button{flex:0 0 auto;align-self:center;min-height:34px;padding:5px 9px;font-size:12px;white-space:nowrap}

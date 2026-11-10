@@ -202,3 +202,35 @@ class OrderTests(TestCase):
         self.assertEqual(mail.outbox[-1].to, ['fixed@example.com'])
         event.refresh_from_db()
         self.assertIsNotNone(event.email_sent_at)
+
+    def test_email_branding_plaintext_and_safe_html(self):
+        StoreBranding.objects.create(name='RottenWorld', email_header='Hello <Wurm>\nThanks for shopping',
+                                     email_footer='Contact us\n<script>bad()</script>')
+        self.place()
+        message = mail.outbox[-1]
+        self.assertTrue(message.subject.startswith('RottenWorld order RW-'))
+        self.assertIn('Hello <Wurm>\nThanks for shopping', message.body)
+        self.assertIn('Contact us\n<script>bad()</script>', message.body)
+        html, mimetype = message.alternatives[0]
+        self.assertEqual(mimetype, 'text/html')
+        self.assertIn('Hello &lt;Wurm&gt;<br>', html)
+        self.assertIn('&lt;script&gt;bad()&lt;/script&gt;', html)
+        self.assertNotIn('<script>', html)
+        self.assertIn('Wurm pin', html)
+        self.assertIn('$44.95 USD', html)
+
+    def test_photo_variant_mapping_rejects_other_products(self):
+        from .forms import PhotoDetailsForm
+        from .models import ProductPhoto
+        photo = ProductPhoto.objects.create(product=self.variant.product, bucket='test', key='mapped-photo',
+                                            width=100, height=100)
+        other = Product.objects.create(name='Other', slug='other')
+        foreign_variant = ProductVariant.objects.create(product=other, sku='OTHER', price=1)
+        form = PhotoDetailsForm({'alt_text': 'Wurm', 'sort_order': 0, 'variant': foreign_variant.pk}, instance=photo)
+        self.assertFalse(form.is_valid())
+        self.assertIn('variant', form.errors)
+        form = PhotoDetailsForm({'alt_text': 'Wurm', 'sort_order': 0, 'variant': self.variant.pk}, instance=photo)
+        self.assertTrue(form.is_valid())
+        form.save()
+        photo.refresh_from_db()
+        self.assertEqual(photo.variant, self.variant)

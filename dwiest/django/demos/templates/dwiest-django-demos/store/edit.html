@@ -36,6 +36,7 @@
                   {% csrf_token %}
                   <p><label for="alt-{{ photo.pk }}">Alt text</label><input id="alt-{{ photo.pk }}" name="alt_text" value="{{ photo.alt_text }}" maxlength="255"></p>
                   <p><label for="order-{{ photo.pk }}">Display order</label><input id="order-{{ photo.pk }}" name="sort_order" type="number" min="0" value="{{ photo.sort_order }}" required></p>
+                  <p><label for="photo-variant-{{ photo.pk }}">Purchase option (optional)</label><select id="photo-variant-{{ photo.pk }}" name="variant"><option value="">Photo preview only</option>{% for variant in form.instance.variants.all %}<option value="{{ variant.pk }}"{% if photo.variant_id == variant.pk %} selected{% endif %}>{{ variant.name }} · {{ variant.sku }}</option>{% endfor %}</select></p>
                   <button class="button secondary" type="submit">Save photo details</button>
                 </form>
               {% endif %}

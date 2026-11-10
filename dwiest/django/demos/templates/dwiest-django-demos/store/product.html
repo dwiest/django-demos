@@ -3,13 +3,13 @@
 {% block title %}{{ product.name }} | {{ store_branding.name }}{% endblock %}
 {% block content %}
   <p><a href="{% url 'demos:store:home' %}">← All products</a></p>
-  <div class="store-detail">
+  <div class="store-detail" data-product-options>
     <section aria-label="Product photos" data-photo-gallery>
       {% include 'dwiest-django-demos/store/image.html' %}
       {% if product.photos.all %}
         <div class="store-photo-thumbnails">
           {% for photo in product.photos.all %}
-            <a href="{{ photo.url }}" data-photo-link data-alt="{{ photo.alt_text|default:product.name }}" aria-label="View photo {{ forloop.counter }} of {{ product.name }}">
+            <a href="{{ photo.url }}" data-photo-link data-photo-variant="{{ photo.variant_id|default:'' }}" data-alt="{{ photo.alt_text|default:product.name }}" aria-label="View photo {{ forloop.counter }} of {{ product.name }}">
               <img src="{{ photo.url }}" alt="{{ photo.alt_text|default:product.name }}" loading="lazy" referrerpolicy="no-referrer">
             </a>
           {% endfor %}
@@ -21,7 +21,7 @@
       <h1>{{ product.name }}</h1>
       <div class="store-description">{{ product.description|linebreaks }}</div>
       {% if form.fields.variant.queryset %}
-        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form">
+        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form" data-variant-selection="{{ product.pk }}" data-bound="{{ form.is_bound|yesno:'true,false' }}">
           {% csrf_token %}
           {{ form.non_field_errors }}
           <div class="field">
@@ -39,7 +39,7 @@
           <button class="button primary" type="submit">Add to cart</button>
         </form>
       {% else %}<p>Currently unavailable.</p>{% endif %}
-      <p class="store-demo-note">Purchases and payments are not available yet.</p>
+      <p class="store-demo-note">Demo checkout available. No payment is collected.</p>
     </section>
   </div>
   <script src="{% static 'dwiest-django-demos/store/gallery.js' %}" defer></script>
