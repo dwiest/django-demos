@@ -469,7 +469,8 @@ def guest_order_lookup(request):
                 except Exception:
                     logger.error('Guest order lookup email delivery failed')
     response = page(request, 'guest_lookup.html', form=form, submitted=submitted)
-    response['Referrer-Policy'] = 'no-referrer'
+    # Preserve the same-origin Referer for HTTPS CSRF validation on form POSTs.
+    response['Referrer-Policy'] = 'same-origin'
     return response
 
 
