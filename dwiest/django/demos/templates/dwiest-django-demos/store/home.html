@@ -2,7 +2,8 @@
 {% block content %}
   <h1 class="sr-only">{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
   <p class="store-catalog-description">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
-  <p class="store-demo-note">Prices in USD · Checkout coming soon.</p>
+  <p class="store-demo-note">Prices in USD · Demo checkout available.</p>
+  {% if cart_notice %}<p class="notice" role="status">{{ cart_notice }} <a href="{% url 'demos:store:cart' %}">View cart</a></p>{% endif %}
   <nav class="store-catalogs" aria-label="Product catalogs">
     <a class="button secondary" href="{% url 'demos:store:home' %}"{% if not catalog %} aria-current="page"{% endif %}>All products</a>
     {% for collection in catalogs %}
@@ -29,6 +30,16 @@
         {% endwith %}
         <p class="muted">{{ product.description|truncatewords:22 }}</p>
         <p>{% if product.starting_price != None %}From ${{ product.starting_price|floatformat:2 }} USD{% else %}Currently unavailable{% endif %}</p>
+        {% with variants=product.available_variants %}
+        {% if variants %}
+        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form store-quick-add">
+          {% csrf_token %}<input type="hidden" name="quantity" value="1"><input type="hidden" name="quick_add" value="1"><input type="hidden" name="catalog" value="{{ catalog.slug }}">
+          {% if variants|length == 1 %}<input type="hidden" name="variant" value="{{ variants.0.pk }}">
+          {% else %}<label for="quick-variant-{{ product.pk }}">Choose an option <span class="sr-only">for {{ product.name }}</span></label>
+          <select id="quick-variant-{{ product.pk }}" name="variant" required><option value="">Select an option</option>{% for variant in variants %}<option value="{{ variant.pk }}">{{ variant.name }} · ${{ variant.price|floatformat:2 }}</option>{% endfor %}</select>{% endif %}
+          <button class="button primary" type="submit">Add to cart<span class="sr-only">: {{ product.name }}</span></button>
+        </form>
+        {% endif %}{% endwith %}
         <a href="{% url 'demos:store:product' product.slug %}">View product →</a>
       </article>
     {% empty %}

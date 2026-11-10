@@ -3,6 +3,10 @@
 <p>{{ order.email }} · {{ order.created_at }} · {{ order.get_status_display }}</p><p>Payment: {{ order.payment_method }} · {{ order.payment_acknowledgment }} · No funds collected.</p>
 <p>Shipping: {{ order.shipping_label }} · Fulfilled: {{ order.fulfilled_at|default:'—' }} · Cancelled: {{ order.cancelled_at|default:'—' }}</p>
 <p>Total: ${{ order.total|floatformat:2 }} USD · Discount: ${{ order.discount|floatformat:2 }} · Shipping: ${{ order.shipping_cost|floatformat:2 }}</p>
+<section class="checkout-panel"><h2>Customer email</h2>
+<form method="post" action="{% url 'demos:store:order_email' order.pk %}" class="store-form">{% csrf_token %}{{ email_form.as_p }}
+<button class="button secondary">Update email & notify customer</button></form>
+<p class="muted">Email corrections are recorded in order history and are available for every order status. Use Retry email below to resend a failed notification to the corrected address.</p></section>
 <form method="post" class="store-form">{% csrf_token %}{{ form.as_p }}<h2>Shipping address</h2>{{ address_form.as_p }}<h2>Order items</h2>{{ items.management_form }}{{ items.non_form_errors }}
 {% for item in items %}<div class="checkout-panel"><p>{{ item.instance.product_name }} · {{ item.instance.variant_name }} · {{ item.instance.sku }} · ${{ item.instance.unit_price|floatformat:2 }} each</p>{{ item.as_p }}</div>{% endfor %}
 <p>Item edits use the original unit prices and coupon percentage. Cancelled and fulfilled orders are read-only; messages remain available.</p><button class="button primary">Save & notify customer</button></form>

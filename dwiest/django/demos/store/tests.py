@@ -151,3 +151,29 @@ class StoreTests(TestCase):
         response = self.client.get(self.url('product', 'hat'))
         self.assertContains(response, '&lt;script&gt;')
         self.assertNotContains(response, '<script>alert(1)</script>')
+
+    def test_quick_add_preserves_catalog_and_cart_validation(self):
+        response = self.client.post(self.url('add', 'hat'), {
+            'variant': self.variant.pk, 'quantity': 1, 'quick_add': '1', 'catalog': 'hats'})
+        self.assertRedirects(response, self.url('catalog', 'hats'))
+        self.assertEqual(self.client.session[KEY][str(self.variant.pk)], 1)
+        response = self.client.post(self.url('add', 'hat'), {
+            'variant': self.other_variant.pk, 'quantity': 1, 'quick_add': '1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.session[KEY], {str(self.variant.pk): 1})
+        response = self.client.post(self.url('add', 'hat'), {
+            'variant': self.variant.pk, 'quantity': 1, 'quick_add': '1', 'catalog': 'https://example.com'})
+        self.assertRedirects(response, self.url('home'))
+        self.assertEqual(self.client.session[KEY][str(self.variant.pk)], 2)
+
+    def test_quick_add_shows_only_active_variants(self):
+        other = ProductVariant.objects.create(product=self.product, sku='HAT2', name='Green', price='30.00')
+        inactive = ProductVariant.objects.create(product=self.product, sku='HAT3', name='Unavailable color', price='15.00', active=False)
+        response = self.client.get(self.url('home'))
+        self.assertContains(response, 'Select an option')
+        self.assertContains(response, 'Green · $30.00')
+        self.assertNotContains(response, 'Unavailable color')
+        self.client.post(self.url('add', 'hat'), {'variant': inactive.pk, 'quantity': 1, 'quick_add': '1'})
+        self.assertNotIn(KEY, self.client.session)
+        self.client.post(self.url('add', 'hat'), {'variant': other.pk, 'quantity': 1, 'quick_add': '1'})
+        self.assertEqual(self.client.session[KEY][str(other.pk)], 1)

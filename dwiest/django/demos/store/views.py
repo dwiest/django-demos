@@ -10,13 +10,13 @@ from django.utils import timezone
 
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
-from django.db.models import Max, Min, Q
+from django.db.models import Max, Min, Q, Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .cart import KEY, cart_context
-from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm, CheckoutForm, OrderUpdateForm, OrderItemFormSet, ShippingAddressForm
-from .models import Catalog, Product, ProductPhoto, StoreBranding, StoreOrder, StoreOrderItem, OrderEvent
+from .forms import AddToCartForm, CatalogForm, ProductForm, QuantityForm, VariantFormSet, PhotoUploadForm, PhotoDetailsForm, StoreBrandingForm, CheckoutForm, OrderUpdateForm, OrderItemFormSet, ShippingAddressForm, OrderEmailForm
+from .models import Catalog, Product, ProductPhoto, StoreBranding, StoreOrder, StoreOrderItem, OrderEvent, ProductVariant
 from .media import delete_image, upload_image, upload_asset
 from .orders import totals, notify
 
@@ -34,11 +34,14 @@ def page(request, template, **context):
 def home(request, slug=None):
     catalogs = Catalog.objects.filter(published=True)
     catalog = get_object_or_404(catalogs, slug=slug) if slug else None
-    products = Product.objects.filter(published=True).prefetch_related('photos').annotate(
+    products = Product.objects.filter(published=True).prefetch_related(
+        'photos', Prefetch('variants', queryset=ProductVariant.objects.filter(active=True),
+                           to_attr='available_variants')).annotate(
         starting_price=Min('variants__price', filter=Q(variants__active=True)))
     if catalog:
         products = products.filter(catalogs=catalog)
-    return page(request, 'home.html', catalogs=catalogs, catalog=catalog, products=products)
+    return page(request, 'home.html', catalogs=catalogs, catalog=catalog, products=products,
+                cart_notice=request.session.pop('store_cart_notice', ''))
 
 
 def product(request, slug):
@@ -62,6 +65,12 @@ def add(request, slug):
         if quantity <= 99:
             stored[key] = quantity
             request.session[KEY] = stored
+            if request.POST.get('quick_add') == '1':
+                request.session['store_cart_notice'] = '{} added to your cart.'.format(item.name)
+                catalog_slug = request.POST.get('catalog', '')
+                if catalog_slug and Catalog.objects.filter(slug=catalog_slug, published=True).exists():
+                    return redirect('demos:store:catalog', slug=catalog_slug)
+                return redirect('demos:store:home')
             return redirect('demos:store:cart')
         form.add_error('quantity', 'You can add up to 99 of each item.')
     return page(request, 'product.html', product=item, form=form)
@@ -340,7 +349,8 @@ def order_edit(request, pk):
                     message='\n'.join(details + ([data['message']] if data['message'].strip() else [])))
                 transaction.on_commit(lambda: notify(event.pk))
                 return redirect('demos:store:order_edit', pk=pk)
-    return page(request, 'order_edit.html', order=order, form=form, items=items, address_form=address_form)
+    return page(request, 'order_edit.html', order=order, form=form, items=items, address_form=address_form,
+                email_form=OrderEmailForm(initial={'email': order.email}))
 
 
 @permission_required('demo_store.change_storeorder', raise_exception=True)
@@ -349,3 +359,27 @@ def retry_notification(request, pk, event_pk):
     event = get_object_or_404(OrderEvent, pk=event_pk, order_id=pk)
     notify(event.pk)
     return redirect('demos:store:order_edit', pk=pk)
+
+
+@permission_required(('demo_store.view_storeorder', 'demo_store.change_storeorder'), raise_exception=True)
+@require_POST
+def order_email(request, pk):
+    with transaction.atomic():
+        order = get_object_or_404(StoreOrder.objects.select_for_update(), pk=pk)
+        form = OrderEmailForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            if email == order.email:
+                form.add_error('email', 'Enter a different email address.')
+            else:
+                previous = order.email
+                order.email = email
+                order.save(update_fields=['email', 'updated_at'])
+                event = OrderEvent.objects.create(order=order, actor=request.user,
+                    message='Order email corrected from {} to {}.'.format(previous, email))
+                transaction.on_commit(lambda: notify(event.pk))
+                return redirect('demos:store:order_edit', pk=pk)
+    return page(request, 'order_edit.html', order=order, email_form=form,
+                form=OrderUpdateForm(initial={'status': order.status, 'tracking_number': order.tracking_number}),
+                address_form=ShippingAddressForm(instance=order.shipping_address, prefix='address'),
+                items=OrderItemFormSet(queryset=order.items.all()))
