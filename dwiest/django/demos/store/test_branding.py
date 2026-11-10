@@ -48,7 +48,7 @@ class BrandingTests(TestCase):
         self.assertEqual(StoreBranding.objects.count(), 1)
         self.assertEqual(StoreBranding.objects.get().name, 'Updated name')
 
-    def test_uploaded_images_use_s3_and_replaced_objects_cleaned_after_commit(self):
+    def test_uploaded_images_use_s3_and_retain_replaced_objects(self):
         response = self.client.post(self.url, {**self.data, 'header_image': image_upload(), 'footer_image': image_upload()})
         self.assertEqual(response.status_code, 302)
         branding = StoreBranding.objects.get()
@@ -60,7 +60,7 @@ class BrandingTests(TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             self.client.post(self.url, {**self.data, 'remove_header_image': 'on'})
             self.s3.delete_object.assert_not_called()
-        self.s3.delete_object.assert_called_once_with(Bucket=branding.header_image_bucket, Key=branding.header_image_key)
+        self.s3.delete_object.assert_not_called()
         branding.refresh_from_db()
         self.assertEqual(branding.header_image_key, '')
         self.assertNotEqual(branding.footer_image_key, '')
@@ -125,3 +125,20 @@ class BrandingTests(TestCase):
         self.assertEqual(Product.objects.count(), 1)
         from django.contrib.auth.models import Group
         self.assertTrue(Group.objects.get(name='Shop administrators').permissions.filter(codename='change_storebranding').exists())
+
+
+    def test_email_artwork_upload_replace_remove_retains_original(self):
+        self.client.post(self.url, {**self.data, 'email_header_image': image_upload(),
+                                  'email_footer_image': image_upload()})
+        branding = StoreBranding.objects.get()
+        original = branding.email_header_image_key
+        self.assertTrue(original)
+        self.assertTrue(branding.email_footer_image_key)
+        self.assertEqual(branding.header_image_key, '')
+        self.client.post(self.url, {**self.data, 'email_header_image': image_upload()})
+        branding.refresh_from_db()
+        self.assertNotEqual(branding.email_header_image_key, original)
+        self.client.post(self.url, {**self.data, 'remove_email_footer_image': 'on'})
+        branding.refresh_from_db()
+        self.assertEqual(branding.email_footer_image_key, '')
+        self.s3.delete_object.assert_not_called()

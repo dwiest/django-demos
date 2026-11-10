@@ -2,10 +2,18 @@
 {% block content %}
   <h1>Edit photo for {{ photo.product.name }}</h1>
   <img class="store-photo-preview" src="{{ photo.url }}" alt="{{ photo.alt_text|default:photo.product.name }}">
-  <form method="post" class="store-form">
+  <form method="post" enctype="multipart/form-data" class="store-form">
     {% csrf_token %}
     {{ form.as_p }}
     <button class="button primary" type="submit">Save photo details</button>
     <a href="{% url 'demos:store:product_edit' photo.product_id %}">Back to product</a>
   </form>
+  <h2>Image history</h2>
+  <p>Current version: {{ photo.version }}. Replacing or removing a photo retains old images for receipts.</p>
+  {% for version in photo.versions.all %}
+    <p><a href="{{ version.url }}" target="_blank" rel="noopener">Version {{ version.version }}</a> · {{ version.created_at }}</p>
+    {% if version.version != photo.version %}
+    <form method="post" action="{% url 'demos:store:photo_restore' photo.product_id photo.pk version.version %}">{% csrf_token %}<button class="button secondary" type="submit">Restore version {{ version.version }}</button></form>
+    {% endif %}
+  {% endfor %}
 {% endblock %}

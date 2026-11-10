@@ -87,8 +87,8 @@ Files are stored as private S3 objects, not database blobs. The `ProductPhoto`
 table stores bucket, key, dimensions, alt text, display order, and creation time.
 Uploads are decoded and re-encoded as still JPEG, PNG, or WebP images, with
 orientation applied and embedded metadata removed. Limits are **10 files per
-request, 10 MB per file, and 24 million pixels per image**. Neither image bytes nor signed URLs are stored in the table. The browser receives
-only time-limited image links; uploads use the server runtime’s IAM credentials.
+request, 10 MB per file, and 24 million pixels per image**. Neither image bytes nor signed URLs are stored in the table. The browser receives permanent CDN image URLs when configured, otherwise
+time-limited image links; uploads use the server runtime’s IAM credentials.
 
 Configure the host's `settings.py`:
 
@@ -110,8 +110,8 @@ this prefix. A bucket using a customer-managed KMS key also needs the appropriat
 KMS key permissions. This change does not create or modify buckets, IAM roles,
 or bucket policies.
 
-**Keep S3 Block Public Access enabled.** Images use short-lived signed GET URLs;
-refresh the page after links expire. URL signing uses path-style HTTPS addressing
+**Keep S3 Block Public Access enabled.** Without a public media base URL, images
+use short-lived signed GET URLs; refresh the page after links expire. URL signing uses path-style HTTPS addressing
 for the dotted `rotten.world` bucket name. Uploads go through Django, so browser
 S3 CORS configuration is not required. `MEDIA_ROOT`, `MEDIA_URL`, and
 `collectstatic` do not handle these uploaded files; `collectstatic` still installs
@@ -137,12 +137,12 @@ for this application (for example, `105m` accommodates a batch of ten 10 MB file
 plus form overhead), validate the nginx configuration, and reload it. Align any
 other upstream request-size limits with the intended batch size.
 
-Removing a photo removes its metadata and attempts S3 deletion after the database
-commit. Product deletion also cleans up its photos. A failed upload rolls back
+Removing a photo or product retains its S3 objects for historic receipts. Product
+photo versions retain their immutable object locations. A failed upload rolls back
 its metadata and attempts to remove previously uploaded objects in that batch.
-S3 cleanup failures are logged with bucket/key so retained objects can be retried;
-they do not break the page or restore deleted photo records. Lifecycle/version
-retention policies remain controlled by your bucket configuration.
+S3 cleanup failures are logged with bucket/key; they do not break the page.
+Lifecycle/version retention policies remain controlled by your bucket configuration.
+See **Branded order emails and retained image versions** below.
 
 The isolated test command above now also covers photo uploads, gallery/cover
 ordering, metadata edits, permissions and CSRF, file validation, rollback and
@@ -177,8 +177,7 @@ and copyright line. Text is escaped; HTML is not accepted. Blank copyright text
 uses the current year and configured store name. The images use the same
 validation and private S3 delivery as product photos, under
 `store/products/branding/`, so the existing media IAM policy already covers them.
-Replacing or removing artwork attempts deletion of the old S3 object after the
-settings commit. No image bytes are stored in the database.
+Replacing or removing artwork retains the old S3 object for historical emails. No image bytes are stored in the database.
 
 Catalog cards show clickable round photo thumbnails when a product has multiple
 photos with **Display order = 0**. These are photo previews by default. An optional Purchase option mapping in
@@ -316,3 +315,77 @@ the optional photo-to-variant relation. Restart Django afterwards. The normal
 schema-neutral deployment workflow will not apply this migration automatically.
 Existing notifications are not resent by migration or settings changes. New
 notifications and retries use current branding.
+
+### Branded order emails and retained image versions
+
+Order emails have separate header/footer artwork uploads in **Store settings**,
+plus plain-text header/footer copy, a footer heading, storefront/help links, and
+image alt text. They include 56px product images, selected options, quantities,
+full totals, address and status. Confirmation, shipment and cancellation headings
+are distinct; HTML is escaped and a plain-text alternative is always sent.
+Upload the approved email graphics to the email fields rather than the website
+fields. Suggested footer heading: `Good stuff. Questionable influences.` Set the
+contact email to a monitored mailbox and supply real storefront/help URLs; blank
+links are omitted. Text and contact details remain readable when images are blocked.
+
+Configure a **permanent unsigned HTTPS media base URL** in the host Django settings:
+
+```python
+STORE_MEDIA_BUCKET = 'rotten.world'
+STORE_MEDIA_PUBLIC_BASE_URL = 'https://YOUR-MEDIA-DISTRIBUTION.cloudfront.net'
+```
+
+The base URL maps to the bucket root: an object at `store/products/1/abc.png`
+must be reachable at `<base>/store/products/1/abc.png`. An optional base path is
+supported if the distribution is configured accordingly. Use CloudFront with an
+S3 REST origin and Origin Access Control (OAC), granting that distribution
+`s3:GetObject` on `arn:aws:s3:::rotten.world/store/products/*` while keeping S3
+Block Public Access enabled. Images are publicly viewable through CloudFront;
+never use signed CloudFront URLs, cookies, authentication, or expiring S3 URLs for
+email. Use an existing distribution only if that prefix routes directly to the
+media origin. Check an uploaded object's URL without AWS credentials before
+sending test receipts. The app does not provision a distribution or change bucket
+access policies automatically.
+
+Without this setting, the storefront retains its existing signed-URL behavior,
+and **emails deliberately omit images** rather than send links that will expire.
+Adding the setting also gives the storefront permanent URLs. Only objects in the
+configured media bucket are eligible. Existing third-party `Product.image_url`
+images are not used in emails: upload them into the managed S3 gallery first.
+
+Each product photo has numbered versions. Use **Replace image / version history**
+in the product editor to upload a replacement or restore a prior version.
+Replacement creates a fresh UUID object key; restoring records a new version
+referencing the retained original bytes. Photo alt text, display order and variant
+assignment remain editable independently. Removing a photo or product removes it
+from the catalog but retains its S3 objects and version records. Replacing or
+removing branding artwork also retains the old objects. Only unsuccessful uploads
+that never committed are cleaned up.
+
+Orders snapshot the chosen variant's image location at checkout, falling back to
+a generic product photo, never to another variant's photo. Later catalog edits,
+image replacements and product deletion do not change that receipt image. The
+migration records version 1 for existing photos and fills existing order image
+snapshots using currently available matching photos; it cannot recover images
+already deleted or reconstruct past variant selections beyond stored order data.
+Already-delivered emails are not rewritten.
+
+Application image history complements **S3 bucket versioning**, which protects
+against accidental overwrites. Inspect it with:
+
+```sh
+python manage.py configure_store_media_versioning
+# Explicit, one-time administrative operation:
+python manage.py configure_store_media_versioning --enable
+```
+
+The command uses `STORE_MEDIA_BUCKET` and needs `s3:GetBucketVersioning`; enabling
+also needs `s3:PutBucketVersioning` on `arn:aws:s3:::rotten.world`. Use an
+administrative role for the one-time change rather than broadening the application
+role. Versioning applies to the entire bucket, adds storage costs and does not
+retroactively recover deleted content. Avoid lifecycle expiration or manual removal
+of media referenced by receipts, including noncurrent versions you wish to retain.
+Immutable object keys, rather than S3 version IDs in URLs, keep old emails stable.
+
+Deploy this change with `python manage.py migrate` (migration 0006), configure and
+verify the public media URL, upload email artwork, and send a new test order.

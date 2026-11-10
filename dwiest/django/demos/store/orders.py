@@ -32,7 +32,14 @@ def notify(event_id):
         return
     try:
         branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
-        context = {'order': event.order, 'event': event, 'branding': branding}
+        first_event = event.order.events.order_by('created_at', 'pk').first()
+        initial = first_event.pk == event.pk
+        title = 'Thanks for your order!' if initial else {
+            'fulfilled': 'Your order has shipped!', 'cancelled': 'Your order was cancelled',
+        }.get(event.order.status, 'An update on your order')
+        context = {'order': event.order, 'event': event, 'branding': branding,
+                   'email_title': title, 'initial_order': initial}
+
         template = 'dwiest-django-demos/store/email/order_notification'
         count = send_mail(
             '{} order {} update'.format(branding.name, event.order.number),
