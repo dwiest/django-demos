@@ -208,3 +208,13 @@ class ShippingAddressForm(forms.ModelForm):
 
 class OrderEmailForm(forms.Form):
     email = forms.EmailField(label='Customer email', help_text='Order updates and notification retries use this address.')
+
+
+class GuestOrderLookupForm(forms.Form):
+    order_number = forms.RegexField(
+        regex=r'(?i)^RW-[0-9]{8,}$', max_length=32, label='Order number',
+        error_messages={'invalid': 'Enter an order number such as RW-00000001.'})
+    email = forms.EmailField(label='Email used for the order')
+
+    def clean_order_number(self):
+        return self.cleaned_data['order_number'].upper()

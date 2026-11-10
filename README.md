@@ -433,3 +433,22 @@ website artwork fallbacks use their configured alt text rather than mascot wordi
 Existing stores receive generic copy on migration; set the branded values explicitly
 for Rotten.World after deploying. Order details and the simulation notice remain
 system-generated so store copy cannot obscure the current demo payment behavior.
+
+### Guest order lookup
+
+The storefront’s **Find my order** link accepts an order number and checkout email.
+Matching requests send a signed link valid for 24 hours; the link opens a read-only
+order page in any browser without registration. Changing an order’s email
+invalidates its existing links. Request responses never confirm whether an order
+exists. Lookup emails use the store’s email header/footer text.
+
+Set Store settings → email shop URL to the public HTTPS storefront URL so email
+links use the correct public origin behind a proxy. Otherwise the request origin
+is used, requiring correct Django host/proxy configuration. Keep order lookup
+routes out of CDN caches (responses also send private/no-store headers), and
+avoid recording their full token URLs in access logs. Use a shared Django cache
+backend in deployments with multiple workers: the email and IP request limits
+(3 per recipient and 10 per source per hour) use Django’s configured cache and
+are only per-process with the default local-memory backend. Source limits use
+REMOTE_ADDR, so configure the trusted proxy to supply the actual client address.
+No database migrations are required.

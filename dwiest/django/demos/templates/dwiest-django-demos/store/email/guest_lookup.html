@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><body>
+<h1>{{ branding.email_header|default:branding.name|linebreaksbr }}</h1>
+<p><a href="{{ lookup_url }}">View order {{ order.number }}</a></p>
+<p>This link expires after 24 hours. Anyone with this link can view your order, so keep it private.</p>
+<p>If you did not request this email, you can ignore it.</p>
+<p>{{ branding.email_footer|linebreaksbr }}</p>
+</body></html>

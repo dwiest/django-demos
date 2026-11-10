@@ -4,6 +4,8 @@ from . import views
 
 app_name = 'store'
 urlpatterns = [
+    path('orders/lookup/', views.guest_order_lookup, name='guest_order_lookup'),
+    path('orders/lookup/<str:token>/', views.guest_order_detail, name='guest_order_detail'),
     path('checkout/', views.checkout, name='checkout'),
     path('orders/<uuid:token>/', views.order_complete, name='order_complete'),
     path('manage/orders/', views.order_list, name='order_list'),
