@@ -68,7 +68,7 @@ html:has(.storefront){scroll-padding-top:64px}
 .store-footer-copy{max-width:60ch}
 .store-footer nav{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .store-footer a{color:#e0eee6}
-.store-footer-image{position:absolute;inset:0;z-index:-1;display:block;width:100%;height:100%;object-fit:cover;object-position:center bottom;pointer-events:none}
+.store-footer-image{position:absolute;inset:0;z-index:-1;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none}
 .store-copyright{font-size:13px;margin-top:12px;color:#c7d2cc}
 .store-card-choices{display:flex;gap:8px;flex-wrap:wrap;margin-block:12px}
 .store-photo-choice{width:46px;height:46px;padding:3px;border:2px solid var(--line);border-radius:50%;background:white}
