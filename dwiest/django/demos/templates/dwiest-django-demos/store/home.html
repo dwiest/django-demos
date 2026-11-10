@@ -1,12 +1,7 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% block content %}
-  <div class="page-heading">
-    <div>
-      {% if not store_branding.header_image_url %}<p class="demo-eyebrow">{{ store_branding.name }}</p>{% endif %}
-      <h1>{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
-    </div>
-  </div>
-  <p class="muted">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
+  <h1 class="sr-only">{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
+  <p class="store-catalog-description">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
   <p class="store-demo-note">Prices in USD · Checkout coming soon.</p>
   <nav class="store-catalogs" aria-label="Product catalogs">
     <a class="button secondary" href="{% url 'demos:store:home' %}"{% if not catalog %} aria-current="page"{% endif %}>All products</a>

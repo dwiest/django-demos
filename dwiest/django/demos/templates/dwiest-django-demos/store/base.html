@@ -10,6 +10,13 @@
 </head>
 <body class="storefront">
   <a class="skip" href="#main">Skip to content</a>
+    <div class="container store-header-inner">
+      <nav class="store-header-links" aria-label="Store navigation">
+        {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}
+        {% if perms.demo_store.change_storebranding %}<a href="{% url 'demos:store:branding' %}">Store settings</a>{% endif %}
+        <a class="button secondary" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>
+      </nav>
+    </div>
   <header class="store-header">
     <div class="store-masthead">
       <a class="store-brand" href="{% url 'demos:store:home' %}">
@@ -20,14 +27,7 @@
         {% endif %}
       </a>
     </div>
-    <div class="container store-header-inner">
-      <nav class="store-header-links" aria-label="Store navigation">
-        <a href="{% url 'demos:store:home' %}">Shop</a>
-        {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}
-        {% if perms.demo_store.change_storebranding %}<a href="{% url 'demos:store:branding' %}">Store settings</a>{% endif %}
-        <a class="button secondary" href="{% url 'demos:store:cart' %}">Cart ({{ cart_count }})</a>
-      </nav>
-    </div>
+
   </header>
   <main id="main" class="container">
     {% block content %}{% endblock %}
