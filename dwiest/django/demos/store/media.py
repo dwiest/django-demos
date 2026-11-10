@@ -65,13 +65,16 @@ def prepare_image(upload):
 
 
 def prepare_thank_you_image(upload):
-    """Validate a GIF and preserve its original bytes so animation survives."""
+    """Normalize still images but preserve original GIF bytes and animation."""
     if upload.size > MAX_BYTES:
         raise ValidationError('The thank-you image must be 10 MB or smaller.')
     try:
         with warnings.catch_warnings():
             warnings.simplefilter('error', Image.DecompressionBombWarning)
-            with Image.open(upload, formats=['GIF']) as image:
+            with Image.open(upload, formats=list(FORMATS) + ['GIF']) as image:
+                if image.format != 'GIF':
+                    upload.seek(0)
+                    return prepare_image(upload)
                 width, height = image.size
                 if width * height > MAX_PIXELS:
                     raise ValidationError('The thank-you image must contain at most 24 million pixels.')
@@ -80,7 +83,7 @@ def prepare_thank_you_image(upload):
         data = upload.read()
     except (UnidentifiedImageError, OSError, ValueError, SyntaxError,
             Image.DecompressionBombWarning, Image.DecompressionBombError):
-        raise ValidationError('Upload a valid GIF image for the thank-you page.')
+        raise ValidationError('Upload a valid JPEG, PNG, WebP, or GIF image.')
     finally:
         upload.seek(0)
     if len(data) > MAX_BYTES:
