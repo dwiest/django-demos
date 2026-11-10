@@ -129,3 +129,36 @@ html:has(.storefront){scroll-padding-top:64px}
 .storefront .button.order-continue{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:10px 22px;border:1px solid #b38a35;border-radius:999px;background:transparent;color:#725514;font-weight:600;text-decoration:none;min-height:44px}
 .storefront .button.order-continue:hover{background:#fff5dc;border-color:#8b681e;color:#503b0e}
 .storefront .button.order-continue:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+/* Customer dashboard: quiet account actions and independent address cards. */
+.customer-account{max-width:1050px;margin:32px auto 48px}
+.account-heading,.account-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:20px}
+.account-heading{margin-bottom:28px}
+.account-heading h1{margin:0 0 10px}
+.account-heading p{margin:0}
+.account-signout-form{margin:0;flex-shrink:0}
+.storefront .account-signout{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:inherit;padding:8px 0;font:inherit;cursor:pointer;white-space:nowrap}
+.account-signout:hover{text-decoration:underline}
+.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start}
+.account-card{min-width:0;padding:26px;border:1px solid var(--line);border-radius:12px;background:#fffdfa;box-shadow:0 2px 3px #18272208;overflow-wrap:anywhere}
+.account-card h2{font-size:23px;margin:0 0 22px}
+.account-details{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 24px;margin:0 0 28px}
+.account-details dt,.account-security-copy{color:var(--muted)}
+.account-details dd{margin:0}
+.account-security-copy{margin:0 0 24px;line-height:1.6}
+.storefront .account-outline{display:inline-flex;align-items:center;justify-content:center;width:fit-content;min-height:42px;padding:8px 18px;border:1px solid #b18a36;border-radius:7px;background:transparent;color:#795b1c;font:inherit;font-weight:600;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.storefront .account-outline:hover{background:#fbf4e3;filter:none}
+.account-editor{margin-top:20px}
+.account-editor summary{cursor:pointer;color:#795b1c}
+.account-editor[open] summary{margin-bottom:18px}
+.account-editor .store-form p{margin:14px 0}
+.account-addresses{grid-column:1/-1}
+.account-section-heading{align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.account-section-heading h2{margin:0}
+.account-address{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-top:1px solid var(--line)}
+.account-address p{margin:6px 0 0;line-height:1.6}
+.account-address>a{flex-shrink:0}
+.account-notice{padding:14px 18px;background:#f8f1df;border-radius:8px}
+.account-signout:focus-visible,.account-editor summary:focus-visible,.account-outline:focus-visible{outline:3px solid #957124;outline-offset:4px}
+.store-header-links a[aria-current=page]{text-decoration:underline;text-decoration-color:#c99b44;text-underline-offset:8px;text-decoration-thickness:2px}
+@media(max-width:700px){.customer-account{margin-top:24px}.account-grid{grid-template-columns:1fr;gap:16px}.account-card{padding:20px}.account-heading{gap:12px}.account-heading h1{font-size:28px}.account-details{gap:10px 16px}}

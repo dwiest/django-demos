@@ -1,7 +1,40 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
-{% block content %}<h1>My account</h1><p><a href="{% url 'demos:store:customer_orders' %}">Order history</a></p>
-{% if notice %}<p role="status">{{ notice }}</p>{% endif %}
-<section class="checkout-panel"><h2>Your name</h2><form method="post" class="store-form">{% csrf_token %}{{ profile_form.as_p }}<button name="action" value="profile">Save name</button></form></section>
-<section class="checkout-panel"><h2>Email & password</h2>{% url 'registration_resend' as verification_url %}{% if verification_url %}<p><a href="{{ verification_url }}">Resend registration verification</a></p>{% endif %}<p>Current email: {{ request.user.email }}</p><form method="post" class="store-form">{% csrf_token %}{{ email_form.as_p }}<button name="action" value="email">Verify new email</button></form>
-{% url 'change_password' as password_url %}{% if password_url %}<p><a href="{{ password_url }}">Change password</a></p>{% endif %}</section>
-<section class="checkout-panel"><h2>Saved addresses</h2>{% for address in addresses %}<p>{{ address.name }} · {{ address.line1 }} · {{ address.city }}, {{ address.state }} {{ address.postal_code }} <a href="{% url 'demos:store:customer_address' address.pk %}">Edit address</a></p>{% empty %}<p>No saved addresses yet.</p>{% endfor %}<a href="{% url 'demos:store:customer_address_new' %}">Add address</a></section>{% endblock %}
+{% block content %}
+<div class="customer-account">
+  <div class="account-heading">
+    <div><h1>My account</h1><p class="muted">Manage your details and saved addresses.</p></div>
+    {% url 'logout' as logout_url %}
+    {% if logout_url %}<form method="post" action="{{ logout_url }}" class="account-signout-form">{% csrf_token %}
+      <button type="submit" class="account-signout">Sign out <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 4H4v16h5M13 7l5 5-5 5M8 12h11"/></svg></button>
+    </form>{% endif %}
+  </div>
+  {% if notice %}<p class="account-notice" role="status">{{ notice }}</p>{% endif %}
+  <div class="account-grid">
+    <section class="account-card" aria-labelledby="account-details-title">
+      <h2 id="account-details-title">Your details</h2>
+      <dl class="account-details"><dt>Name</dt><dd>{{ request.user.get_full_name|default:'Not set' }}</dd><dt>Email</dt><dd>{{ request.user.email }}</dd></dl>
+      <details class="account-editor"{% if profile_form.errors %} open{% endif %}>
+        <summary class="account-outline">Edit details</summary>
+        <form method="post" class="store-form">{% csrf_token %}{{ profile_form.as_p }}<button class="button account-outline" name="action" value="profile">Save name</button></form>
+      </details>
+    </section>
+    <section class="account-card" aria-labelledby="account-security-title">
+      <h2 id="account-security-title">Security</h2>
+      <p class="account-security-copy">Manage your password and verify changes to your email address.</p>
+      {% url 'change_password' as password_url %}
+      {% if password_url %}<p><a class="button account-outline" href="{{ password_url }}">Change password</a></p>{% endif %}
+      <details class="account-editor"{% if email_form.errors or notice %} open{% endif %}>
+        <summary>Change email address</summary>
+        <p>Your current email stays active until you confirm the new address.</p>
+        <form method="post" class="store-form">{% csrf_token %}{{ email_form.as_p }}<button class="button account-outline" name="action" value="email">Verify new email</button></form>
+      </details>
+    </section>
+    <section class="account-card account-addresses" aria-labelledby="account-addresses-title">
+      <div class="account-section-heading"><h2 id="account-addresses-title">Saved addresses</h2><a class="button account-outline" href="{% url 'demos:store:customer_address_new' %}">Add address</a></div>
+      {% for address in addresses %}
+      <div class="account-address"><div><strong>{{ address.name }}</strong><p>{{ address.line1 }}{% if address.line2 %}<br>{{ address.line2 }}{% endif %}<br>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p></div><a href="{% url 'demos:store:customer_address' address.pk %}" aria-label="Edit address for {{ address.name }} at {{ address.line1 }}">Edit</a></div>
+      {% empty %}<p class="muted">No saved addresses yet. Add one to make checkout quicker.</p>{% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}
