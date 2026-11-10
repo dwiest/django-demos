@@ -1,7 +1,8 @@
-<!doctype html><html lang="en"><body>
-<h1>{{ branding.email_header|default:branding.name|linebreaksbr }}</h1>
-<p><a href="{{ lookup_url }}">View order {{ order.number }}</a></p>
-<p>This link expires after 24 hours. Anyone with this link can view your order, so keep it private.</p>
+{% extends 'dwiest-django-demos/store/email/base.html' %}
+{% block email_content %}
+<h1 style="font-size:28px;line-height:1.2;margin:0 0 16px;color:#07584f">View your order</h1>
+<p>Your secure link for order <strong>{{ order.number }}</strong> is ready.</p>
+<p style="margin:24px 0"><a href="{{ lookup_url }}" style="display:inline-block;background:#07584f;color:#fff;padding:12px 20px;text-decoration:none;font-weight:bold;border-radius:4px">View order {{ order.number }}</a></p>
+<p>This link expires in 24 hours. Keep it private: anyone with the link can view your order details.</p>
 <p>If you did not request this email, you can ignore it.</p>
-<p>{{ branding.email_footer|linebreaksbr }}</p>
-</body></html>
+{% endblock %}

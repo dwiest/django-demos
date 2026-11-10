@@ -460,7 +460,8 @@ def guest_order_lookup(request):
                 origin = urlsplit(branding.email_shop_url)
                 link = (urlunsplit(('https', origin.netloc, path, '', ''))
                         if origin.scheme == 'https' and origin.netloc else request.build_absolute_uri(path))
-                context = {'order': order, 'branding': branding, 'lookup_url': link}
+                context = {'order': order, 'branding': branding, 'lookup_url': link,
+                           'email_title': 'View your order'}
                 try:
                     send_mail('{}: view order {}'.format(branding.name, order.number),
                               render_to_string(PREFIX + 'email/guest_lookup.txt', context),

@@ -1,4 +1,4 @@
-{{ branding.email_header|default:branding.name }}
+{% autoescape off %}{{ branding.email_header|default:branding.name }}
 
 View order {{ order.number }} using this secure link:
 {{ lookup_url }}
@@ -7,3 +7,10 @@ This link expires after 24 hours. Anyone with this link can view your order, so 
 If you did not request this email, you can ignore it.
 
 {{ branding.email_footer }}
+
+{% if branding.email_footer_heading %}{{ branding.email_footer_heading }}{% endif %}
+{% if branding.contact_email %}Questions about your order? {{ branding.contact_email }}{% endif %}
+{% if branding.email_shop_url %}Visit {{ branding.name }}: {{ branding.email_shop_url }}{% endif %}
+{% if branding.email_help_url %}Order help: {{ branding.email_help_url }}{% endif %}
+{% if branding.copyright_text %}{{ branding.copyright_text }}{% else %}© {% now "Y" %} {{ branding.name }}{% endif %}
+{% endautoescape %}
