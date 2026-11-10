@@ -64,6 +64,31 @@ def prepare_image(upload):
             'width': width, 'height': height}
 
 
+def prepare_thank_you_image(upload):
+    """Validate a GIF and preserve its original bytes so animation survives."""
+    if upload.size > MAX_BYTES:
+        raise ValidationError('The thank-you image must be 10 MB or smaller.')
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            with Image.open(upload, formats=['GIF']) as image:
+                width, height = image.size
+                if width * height > MAX_PIXELS:
+                    raise ValidationError('The thank-you image must contain at most 24 million pixels.')
+                image.verify()
+        upload.seek(0)
+        data = upload.read()
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError,
+            Image.DecompressionBombWarning, Image.DecompressionBombError):
+        raise ValidationError('Upload a valid GIF image for the thank-you page.')
+    finally:
+        upload.seek(0)
+    if len(data) > MAX_BYTES:
+        raise ValidationError('The thank-you image must be 10 MB or smaller.')
+    return {'data': data, 'extension': 'gif', 'content_type': 'image/gif',
+            'width': width, 'height': height}
+
+
 def upload_asset(directory, prepared):
     bucket = getattr(settings, 'STORE_MEDIA_BUCKET', 'rotten.world')
     prefix = getattr(settings, 'STORE_MEDIA_PREFIX', 'store/products').strip('/')
