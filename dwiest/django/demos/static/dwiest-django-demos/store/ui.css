@@ -14,7 +14,7 @@
 .store-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;margin-top:24px;align-items:start}
 .store-description{margin-top:20px;overflow-wrap:anywhere}
 .store-form label{display:block;font-weight:600;margin-bottom:6px}
-.store-form input:not([type=checkbox]):not([type=hidden]),.store-form select,.store-form textarea{width:100%;padding:9px;border:1px solid #bdc8d5;border-radius:6px;min-height:44px;background:white}
+.store-form input:not([type=checkbox]):not([type=radio]):not([type=hidden]),.store-form select,.store-form textarea{width:100%;padding:9px;border:1px solid #bdc8d5;border-radius:6px;min-height:44px;background:white}
 .store-form textarea{min-height:120px}
 .store-form .field{margin-bottom:16px}
 .store-form input[type=number]{max-width:140px}
@@ -86,3 +86,22 @@ html:has(.storefront){scroll-padding-top:64px}
 .wurm-thanks { width:100%; max-width:650px; height:auto; border-radius:12px; }
 .order-thanks { max-width:760px; margin:2rem auto; }
 @media(max-width:700px) { .checkout-grid { grid-template-columns:1fr; } .checkout-grid aside { position:static; } }
+
+
+/* Compact product previews in carts and order summaries. */
+.store-cart-product,.checkout-item{display:flex;align-items:center;gap:14px;min-width:0}
+.store-cart-product{flex:1 1 280px}
+.store-cart-product>div,.checkout-item>div{min-width:0;overflow-wrap:anywhere}
+.store-line-thumbnail{display:block;flex:0 0 72px;width:72px;height:72px}
+.store-line-thumbnail .store-image,.store-line-thumbnail .store-placeholder{display:flex;width:72px;height:72px;aspect-ratio:1;object-fit:contain}
+.store-line-thumbnail .store-placeholder span{font-size:24px;letter-spacing:-2px}
+.store-line-thumbnail .store-placeholder small{display:none}
+.checkout-item{margin-bottom:18px}
+.checkout-item p{margin:0}
+.checkout-details,.checkout-sidebar{min-width:0}
+.store-form .payment-options{border:0;padding:0;margin:16px 0;min-width:0}
+.payment-options legend{font-weight:600;margin-bottom:8px}
+.store-form .payment-option,.store-form .checkout-acknowledge label{display:flex;align-items:flex-start;gap:12px;margin:0;padding:12px 0;cursor:pointer;font-weight:500;line-height:1.5}
+.store-form input[type=radio],.store-form .checkout-acknowledge input[type=checkbox]{flex:0 0 20px;width:20px;height:20px;min-height:20px;padding:0;margin:2px 0 0;accent-color:var(--teal)}
+.checkout-coupon .button{margin-bottom:12px}
+.checkout-sidebar>.checkout-panel:first-child{margin-top:1rem}

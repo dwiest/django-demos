@@ -4,9 +4,10 @@
   {% if cart_error %}<p class="notice" role="alert">{{ cart_error }}</p>{% endif %}
   {% for row in cart_rows %}
     <article class="store-cart-row">
-      <div>
-        <h2><a href="{% url 'demos:store:product' row.variant.product.slug %}">{{ row.variant.product.name }}</a></h2>
-        <p>{{ row.variant.name }} · ${{ row.variant.price|floatformat:2 }} USD each</p>
+      <div class="store-cart-product">
+        <a class="store-line-thumbnail" href="{% url 'demos:store:product' row.variant.product.slug %}">{% include 'dwiest-django-demos/store/image.html' with product=row.variant.product %}</a>
+        <div><h2><a href="{% url 'demos:store:product' row.variant.product.slug %}">{{ row.variant.product.name }}</a></h2>
+        <p>{{ row.variant.name }} · ${{ row.variant.price|floatformat:2 }} USD each</p></div>
       </div>
       <form method="post" action="{% url 'demos:store:update' row.variant.pk %}">
         {% csrf_token %}

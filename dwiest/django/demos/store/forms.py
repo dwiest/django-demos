@@ -116,7 +116,11 @@ SHIPPING = {
 }
 
 
+US_STATES = [('AL', 'Alabama'), ('AK', 'Alaska'), ('AZ', 'Arizona'), ('AR', 'Arkansas'), ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'), ('DC', 'District of Columbia'), ('FL', 'Florida'), ('GA', 'Georgia'), ('HI', 'Hawaii'), ('ID', 'Idaho'), ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'), ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'), ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'), ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'), ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'), ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'), ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'), ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'), ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'), ('WI', 'Wisconsin'), ('WY', 'Wyoming')]
+
+
 class CheckoutForm(forms.ModelForm):
+    state = forms.ChoiceField(choices=[('', 'Select a state')] + US_STATES)
     email = forms.EmailField()
     shipping_method = forms.ChoiceField(choices=[(key, '{} · ${}'.format(value[0], value[1])) for key, value in SHIPPING.items()])
     payment_method = forms.ChoiceField(choices=[('card_usd', 'Stripe · card in USD (simulation)'), ('usdc', 'Stripe · USDC stablecoin (simulation)')], widget=forms.RadioSelect)
@@ -126,11 +130,11 @@ class CheckoutForm(forms.ModelForm):
 
     class Meta:
         model = ShippingAddress
-        fields = ['email', 'name', 'line1', 'line2', 'city', 'state', 'postal_code', 'shipping_method', 'payment_method', 'coupon', 'acknowledge', 'checkout_key']
+        fields = ['name', 'email', 'line1', 'line2', 'city', 'state', 'postal_code', 'shipping_method', 'payment_method', 'coupon', 'acknowledge', 'checkout_key']
 
     def clean_state(self):
         value = self.cleaned_data['state'].upper()
-        if value not in 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split():
+        if value not in dict(US_STATES):
             raise forms.ValidationError('Enter a US state abbreviation or DC.')
         return value
 
@@ -161,6 +165,7 @@ OrderItemFormSet = forms.modelformset_factory(
 
 
 class ShippingAddressForm(forms.ModelForm):
+    state = forms.ChoiceField(choices=[('', 'Select a state')] + US_STATES)
     class Meta:
         model = ShippingAddress
         fields = ['name', 'line1', 'line2', 'city', 'state', 'postal_code']
