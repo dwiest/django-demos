@@ -21,7 +21,7 @@
           {% if choices|length > 1 %}
             <div class="store-card-choices" role="group" aria-label="Featured photos of {{ product.name }}">
               {% for photo in choices %}
-                <button type="button" class="store-photo-choice" data-card-photo data-src="{{ photo.url }}" data-alt="{{ photo.alt_text|default:product.name }}" aria-label="{{ photo.alt_text|default:product.name }} — photo {{ forloop.counter }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+                <button type="button" class="store-photo-choice" data-card-photo data-photo-variant="{{ photo.variant_id|default:'' }}" data-src="{{ photo.url }}" data-alt="{{ photo.alt_text|default:product.name }}" aria-label="{{ photo.alt_text|default:product.name }} — photo {{ forloop.counter }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
                   <img src="{{ photo.url }}" alt="" loading="lazy">
                 </button>
               {% endfor %}
@@ -32,10 +32,10 @@
         <p>{% if product.starting_price != None %}From ${{ product.starting_price|floatformat:2 }} USD{% else %}Currently unavailable{% endif %}</p>
         {% with variants=product.available_variants %}
         {% if variants %}
-        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form store-quick-add">
+        <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form store-quick-add" data-variant-selection="{{ product.pk }}">
           {% csrf_token %}<input type="hidden" name="quantity" value="1"><input type="hidden" name="quick_add" value="1"><input type="hidden" name="catalog" value="{{ catalog.slug }}">
           {% if variants|length == 1 %}<input type="hidden" name="variant" value="{{ variants.0.pk }}">
-          {% else %}<label for="quick-variant-{{ product.pk }}">Choose an option <span class="sr-only">for {{ product.name }}</span></label>
+          {% else %}<label class="sr-only" for="quick-variant-{{ product.pk }}">Choose an option for {{ product.name }}</label>
           <select id="quick-variant-{{ product.pk }}" name="variant" required><option value="">Select an option</option>{% for variant in variants %}<option value="{{ variant.pk }}">{{ variant.name }} · ${{ variant.price|floatformat:2 }}</option>{% endfor %}</select>{% endif %}
           <button class="button primary" type="submit">Add to cart<span class="sr-only">: {{ product.name }}</span></button>
         </form>

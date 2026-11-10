@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Order {{ order.number }}</title></head>
+<body style="margin:0;background:#f4f5f2;color:#172234;font-family:Arial,sans-serif;line-height:1.5">
+<table role="presentation" style="width:100%;border-spacing:0"><tr><td style="padding:24px 12px">
+<table role="presentation" style="width:100%;max-width:600px;margin:auto;border-spacing:0;background:#ffffff;border:1px solid #dce2e9">
+<tr><td style="padding:20px 24px;background:#182c2b;color:#ffffff;font-size:20px;font-weight:bold">{{ branding.email_header|default:branding.name|linebreaksbr }}</td></tr>
+<tr><td style="padding:24px"><h1 style="font-size:24px;margin:0 0 12px">Order {{ order.number }}</h1>{{ event.message|linebreaks }}
+<p><strong>Status:</strong> {{ order.get_status_display }}</p>
+<table style="width:100%;border-collapse:collapse"><caption style="text-align:left;font-weight:bold;padding-bottom:8px">Your items</caption>
+{% for item in order.items.all %}<tr><td style="padding:10px 0;border-bottom:1px solid #dce2e9">{{ item.quantity }} × {{ item.product_name }}<br><small>{{ item.variant_name }}</small></td><td style="text-align:right;border-bottom:1px solid #dce2e9">${{ item.subtotal|floatformat:2 }}</td></tr>{% endfor %}
+</table>
+<p>Subtotal: ${{ order.subtotal|floatformat:2 }}<br>Discount: −${{ order.discount|floatformat:2 }}<br>Shipping: ${{ order.shipping_cost|floatformat:2 }}<br>Tax (not calculated): ${{ order.tax|floatformat:2 }}</p>
+<p style="font-size:20px"><strong>Total: ${{ order.total|floatformat:2 }} USD</strong></p>
+<p>Payment simulated; no funds charged.</p><h2 style="font-size:18px">Shipping</h2><p>{{ order.shipping_address }}{% if order.shipping_address.line2 %}<br>{{ order.shipping_address.line2 }}{% endif %}<br>{{ order.shipping_label }}<br>USPS tracking: {{ order.tracking_number|default:'Not shipped' }}{% if order.fulfilled_at %}<br>Fulfilled: {{ order.fulfilled_at }}{% endif %}</p>
+</td></tr>
+{% if branding.email_footer %}<tr><td style="padding:20px 24px;background:#eef2ee;font-size:14px">{{ branding.email_footer|linebreaksbr }}</td></tr>{% endif %}
+</table></td></tr></table></body></html>

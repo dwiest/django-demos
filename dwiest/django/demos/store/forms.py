@@ -66,7 +66,11 @@ class PhotoUploadForm(forms.Form):
 class PhotoDetailsForm(forms.ModelForm):
     class Meta:
         model = ProductPhoto
-        fields = ['alt_text', 'sort_order']
+        fields = ['alt_text', 'sort_order', 'variant']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['variant'].queryset = ProductVariant.objects.filter(product_id=self.instance.product_id)
 
 
 class StoreBrandingForm(forms.ModelForm):
@@ -79,7 +83,7 @@ class StoreBrandingForm(forms.ModelForm):
         model = StoreBranding
         fields = ['name', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
-                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent']
+                  'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer']
 
     def clean_coupon_code(self):
         return self.cleaned_data['coupon_code'].strip().upper()

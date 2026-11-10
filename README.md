@@ -181,8 +181,8 @@ Replacing or removing artwork attempts deletion of the old S3 object after the
 settings commit. No image bytes are stored in the database.
 
 Catalog cards show clickable round photo thumbnails when a product has multiple
-photos with **Display order = 0**. These are photo previews, not purchase-option
-selectors; they do not change cart variants or prices. Use each photo's alt text
+photos with **Display order = 0**. These are photo previews by default. An optional Purchase option mapping in
+photo settings makes a photo select its explicitly linked variant. Use each photo's alt text
 to label its color or view. The first uploaded photo among those tied at zero is
 the initial cover. If no photo is marked zero, only the first ordered photo is
 shown on the card. Product pages retain their full photo galleries regardless
@@ -279,3 +279,40 @@ sends an update to the corrected recipient. Failed notifications can then be
 retried using **Retry email**; retries read the current order email. Previously
 successful notifications are not resent. Email correction does not change any
 linked user's account email. This update needs no database migration.
+
+
+### Email branding and compact purchase controls
+
+**Store settings → Email header / Email footer** configure plain-text content
+for order confirmations, customer messages, and status updates. Blank header
+uses the store name; blank footer is omitted. Emails now include an HTML version
+with a matching plain-text fallback. HTML entered in settings or customer/order
+content is escaped in the HTML email. Sender credentials and DEFAULT_FROM_EMAIL
+remain host settings. No images or raw HTML are accepted in these text fields.
+
+Catalog purchase options and a smaller Add to cart button share one compact row.
+Explicit variant choices are remembered within the browser tab across catalog
+and product pages, where that variant is still available. Form validation errors
+retain the submitted selection. With JavaScript/storage unavailable, normal
+server-side cart validation and form submission continue to work.
+
+**Manage store → Edit product → Product photos → Purchase option (optional)**
+links a photo to a variant of the same product. A mapped photo selects that
+variant in the purchase dropdown. Changing the dropdown shows the first matching
+photo when one is available. Catalog matching uses the featured photos shown on
+the card; product pages use the full gallery. Unmapped photos remain previews;
+existing photos are not assigned automatically. This prevents buying one color
+while believing that previewing a different color selected it.
+
+Back up the host database, install this revision, then run:
+
+```sh
+python manage.py migrate demo_store
+python manage.py collectstatic --noinput
+```
+
+Migration `0005_email_branding_photo_variants` adds email header/footer text and
+the optional photo-to-variant relation. Restart Django afterwards. The normal
+schema-neutral deployment workflow will not apply this migration automatically.
+Existing notifications are not resent by migration or settings changes. New
+notifications and retries use current branding.

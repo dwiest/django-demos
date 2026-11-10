@@ -5,6 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
+from django.template.loader import render_to_string
 
 from .models import OrderEvent, StoreBranding
 from .forms import SHIPPING
@@ -30,11 +31,14 @@ def notify(event_id):
     if event.email_sent_at:
         return
     try:
-        count = send_mail('RottenWorld order {} update'.format(event.order.number),
-                         '{}\n\nOrder: {}\nStatus: {}\nTotal: ${} USD\nPayment: simulated; no funds charged.\nUSPS tracking: {}\n'.format(
-                             event.message + '\n\nItems:\n' + '\n'.join('{} × {} ({}) — ${} USD'.format(item.quantity, item.product_name, item.variant_name, item.subtotal) for item in event.order.items.all()) + '\nShip to: ' + str(event.order.shipping_address) + ' ' + event.order.shipping_address.line2, event.order.number, event.order.get_status_display(),
-                             event.order.total, event.order.tracking_number or 'Not shipped'),
-                         settings.DEFAULT_FROM_EMAIL, [event.order.email])
+        branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+        context = {'order': event.order, 'event': event, 'branding': branding}
+        template = 'dwiest-django-demos/store/email/order_notification'
+        count = send_mail(
+            '{} order {} update'.format(branding.name, event.order.number),
+            render_to_string(template + '.txt', context),
+            settings.DEFAULT_FROM_EMAIL, [event.order.email],
+            html_message=render_to_string(template + '.html', context))
         if count != 1:
             raise RuntimeError('Email backend did not acknowledge delivery.')
         event.email_sent_at = timezone.now()
