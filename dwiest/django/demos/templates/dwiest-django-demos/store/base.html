@@ -24,7 +24,10 @@
   </header>
   <div class="container store-header-inner">
     <nav class="store-header-links" aria-label="Store navigation">
-      <a href="{% url 'demos:store:guest_order_lookup' %}">Find my order</a>
+      {% if request.user.is_authenticated %}<a href="{% url 'demos:store:account' %}">My account</a><a href="{% url 'demos:store:customer_orders' %}">My orders</a>
+{% url 'logout' as logout_url %}{% if logout_url %}<form method="post" action="{{ logout_url }}">{% csrf_token %}<button>Sign out</button></form>{% endif %}
+{% else %}{% url 'login' as login_url %}{% url 'registration' as registration_url %}{% url 'password_reset' as reset_url %}{% if login_url %}<a href="{{ login_url }}?next={% url 'demos:store:account' %}">Sign in</a>{% endif %}{% if registration_url %}<a href="{{ registration_url }}">Create account</a>{% endif %}{% if reset_url %}<a href="{{ reset_url }}">Forgot password?</a>{% endif %}{% endif %}
+<a href="{% url 'demos:store:guest_order_lookup' %}">Find my order</a>
 {% if perms.demo_store.view_storeorder %}<a href="{% url 'demos:store:order_list' %}">Orders</a>{% endif %}
       {% if perms.demo_store.view_product and perms.demo_store.view_catalog %}<a href="{% url 'demos:store:manage' %}">Manage store</a>{% endif %}
       {% if perms.demo_store.change_storebranding %}<a href="{% url 'demos:store:branding' %}">Store settings</a>{% endif %}

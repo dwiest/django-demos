@@ -2,6 +2,7 @@
 {% block content %}
 <div class="page-heading"><h1>Checkout</h1><a href="{% url 'demos:store:cart' %}">Edit cart</a></div>
 <p class="notice">Demo checkout · No money will be charged. USPS prices are illustrative. Sales tax is not calculated.</p>
+{% if saved_addresses %}<section class="checkout-panel"><h2>Use a saved address</h2>{% for address in saved_addresses %}<p><a href="?address={{ address.pk }}">{{ address.name }} · {{ address.line1 }} · {{ address.postal_code }}</a></p>{% endfor %}</section>{% endif %}
 <form method="post" class="store-form" id="checkout-form">{% csrf_token %}{{ form.non_field_errors }}{{ form.checkout_key }}
 <div class="checkout-grid"><div class="checkout-details">
 <section class="checkout-panel"><h2>1. Contact & shipping</h2>

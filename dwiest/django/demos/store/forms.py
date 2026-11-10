@@ -218,3 +218,37 @@ class GuestOrderLookupForm(forms.Form):
 
     def clean_order_number(self):
         return self.cleaned_data['order_number'].upper()
+
+
+class CustomerProfileForm(forms.Form):
+    first_name = forms.CharField(max_length=150, required=False)
+    last_name = forms.CharField(max_length=150, required=False)
+
+
+class CustomerEmailForm(forms.Form):
+    email = forms.EmailField(label='New email address', max_length=150)
+    password = forms.CharField(label='Current password', widget=forms.PasswordInput)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        value = self.cleaned_data['password']
+        if not self.user.check_password(value):
+            raise forms.ValidationError('Your current password is incorrect.')
+        return value
+
+    def clean_email(self):
+        from django.contrib.auth import get_user_model
+        value = self.cleaned_data['email'].lower()
+        from django.db.models import Q
+        if get_user_model().objects.filter(Q(email__iexact=value) | Q(username__iexact=value)).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError('That email address is unavailable.')
+        return value
+
+
+class CustomerAddressForm(ShippingAddressForm):
+    class Meta(ShippingAddressForm.Meta):
+        from .models import CustomerAddress
+        model = CustomerAddress

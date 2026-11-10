@@ -277,3 +277,18 @@ class OrderEvent(models.Model):
 
     class Meta:
         ordering = ['created_at', 'pk']
+
+
+class CustomerAddress(models.Model):
+    """Address book entries, independent of immutable order shipping snapshots."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=160)
+    line1 = models.CharField(max_length=200)
+    line2 = models.CharField(max_length=200, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=2)
+    postal_code = models.CharField(max_length=10)
+    country = models.CharField(max_length=2, default='US', editable=False)
+
+    class Meta:
+        ordering = ['pk']

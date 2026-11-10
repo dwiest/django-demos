@@ -1,9 +1,15 @@
 from django.urls import path
 
-from . import views
+from . import views, customer_views
 
 app_name = 'store'
 urlpatterns = [
+    path('account/', customer_views.account, name='account'),
+    path('account/email/<str:token>/', customer_views.confirm_email, name='confirm_email'),
+    path('account/addresses/new/', customer_views.address, name='customer_address_new'),
+    path('account/addresses/<int:pk>/', customer_views.address, name='customer_address'),
+    path('account/orders/', customer_views.orders, name='customer_orders'),
+    path('account/orders/<int:pk>/', customer_views.order, name='customer_order'),
     path('orders/lookup/', views.guest_order_lookup, name='guest_order_lookup'),
     path('orders/lookup/<str:token>/', views.guest_order_detail, name='guest_order_detail'),
     path('checkout/', views.checkout, name='checkout'),
