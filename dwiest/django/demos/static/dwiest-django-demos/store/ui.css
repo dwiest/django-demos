@@ -115,3 +115,11 @@ html:has(.storefront){scroll-padding-top:64px}
 .store-card .store-quick-add{flex-direction:row;align-items:center;gap:6px;margin:10px 0}
 .store-card .store-quick-add select{flex:1 1 0;width:0;min-width:0;min-height:34px;padding:5px 7px;font-size:13px}
 .store-card .store-quick-add .button{flex:0 0 auto;align-self:center;min-height:34px;padding:5px 9px;font-size:12px;white-space:nowrap}
+
+
+/* Quiet gold purchase action, beside the exact price for single-option items. */
+.store-card .store-quick-add .store-cart-outline{background:transparent;border:1px solid #b18a36;color:#735619;font-weight:500;min-height:32px;padding:4px 8px}
+.store-card .store-quick-add .store-cart-outline:hover{background:#fbf4e3;border-color:#957124;filter:none}
+.store-card .store-quick-add .store-cart-outline:focus-visible{outline-color:#957124}
+.store-card .store-quick-add-single{justify-content:space-between;flex-wrap:wrap;gap:8px 12px}
+.store-card-price{font-size:14px;white-space:nowrap}
