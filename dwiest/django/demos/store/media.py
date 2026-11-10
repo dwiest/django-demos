@@ -91,9 +91,8 @@ def permanent_url(bucket, key):
 
 
 def photo_url(photo):
-    public = permanent_url(photo.bucket, photo.key)
-    if public:
-        return public
+    # Storefront and branding retain authenticated S3 delivery. The public base
+    # setting is exclusively for email; it must never redirect existing images.
     return s3_client().generate_presigned_url(
         'get_object', Params={'Bucket': photo.bucket, 'Key': photo.key},
         ExpiresIn=getattr(settings, 'STORE_MEDIA_URL_TTL', 3600))

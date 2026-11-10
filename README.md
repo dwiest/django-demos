@@ -87,8 +87,7 @@ Files are stored as private S3 objects, not database blobs. The `ProductPhoto`
 table stores bucket, key, dimensions, alt text, display order, and creation time.
 Uploads are decoded and re-encoded as still JPEG, PNG, or WebP images, with
 orientation applied and embedded metadata removed. Limits are **10 files per
-request, 10 MB per file, and 24 million pixels per image**. Neither image bytes nor signed URLs are stored in the table. The browser receives permanent CDN image URLs when configured, otherwise
-time-limited image links; uploads use the server runtime’s IAM credentials.
+request, 10 MB per file, and 24 million pixels per image**. Neither image bytes nor signed URLs are stored in the table. The browser receives time-limited signed image links; uploads use the server runtime’s IAM credentials.
 
 Configure the host's `settings.py`:
 
@@ -110,7 +109,7 @@ this prefix. A bucket using a customer-managed KMS key also needs the appropriat
 KMS key permissions. This change does not create or modify buckets, IAM roles,
 or bucket policies.
 
-**Keep S3 Block Public Access enabled.** Without a public media base URL, images
+**Keep S3 Block Public Access enabled.** Storefront images
 use short-lived signed GET URLs; refresh the page after links expire. URL signing uses path-style HTTPS addressing
 for the dotted `rotten.world` bucket name. Uploads go through Django, so browser
 S3 CORS configuration is not required. `MEDIA_ROOT`, `MEDIA_URL`, and
@@ -337,7 +336,9 @@ STORE_MEDIA_PUBLIC_BASE_URL = 'https://YOUR-MEDIA-DISTRIBUTION.cloudfront.net'
 
 The base URL maps to the bucket root: an object at `store/products/1/abc.png`
 must be reachable at `<base>/store/products/1/abc.png`. An optional base path is
-supported if the distribution is configured accordingly. Use CloudFront with an
+supported if the distribution is configured accordingly. Do not append a made-up
+`/store/images` folder: the complete stored key is appended unchanged, including
+`store/products/`. A direct S3 URL will not grant access to a private bucket. Use CloudFront with an
 S3 REST origin and Origin Access Control (OAC), granting that distribution
 `s3:GetObject` on `arn:aws:s3:::rotten.world/store/products/*` while keeping S3
 Block Public Access enabled. Images are publicly viewable through CloudFront;
@@ -349,7 +350,8 @@ access policies automatically.
 
 Without this setting, the storefront retains its existing signed-URL behavior,
 and **emails deliberately omit images** rather than send links that will expire.
-Adding the setting also gives the storefront permanent URLs. Only objects in the
+This setting applies only to email; storefront product and site branding images
+always keep their signed S3 URLs. Only objects in the
 configured media bucket are eligible. Existing third-party `Product.image_url`
 images are not used in emails: upload them into the managed S3 gallery first.
 

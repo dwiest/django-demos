@@ -17,7 +17,12 @@ from .test_photos import PhotoTests, image_upload
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
                    STORE_MEDIA_PUBLIC_BASE_URL='https://media.example.com', STORE_MEDIA_BUCKET='rotten.world')
 class EmailMediaTests(TestCase):
-    setUp = OrderTests.setUp
+    def setUp(self):
+        OrderTests.setUp(self)
+        signer = patch('dwiest.django.demos.store.media.s3_client')
+        self.addCleanup(signer.stop)
+        signer.start().return_value.generate_presigned_url.return_value = 'https://signed.example/image'
+
     url = OrderTests.url
     place = OrderTests.place
 
@@ -135,7 +140,7 @@ class PermanentURLTests(TestCase):
     def test_public_url_quotes_key_and_does_not_sign(self):
         with patch('dwiest.django.demos.store.media.s3_client') as s3:
             photo = ProductPhoto(bucket='rotten.world', key='store/products/a #1.png')
-            self.assertEqual(photo_url(photo), 'https://cdn.example.com/assets/store/products/a%20%231.png')
+            self.assertEqual(permanent_url(photo.bucket, photo.key), 'https://cdn.example.com/assets/store/products/a%20%231.png')
             self.assertEqual(permanent_url('other-bucket', photo.key), '')
             s3.assert_not_called()
         for base in ['http://example.com', 'https://example.com/?token=abc']:
@@ -177,3 +182,25 @@ class ImageHistoryMigrationTests(TestCase):
         self.assertEqual(photo.versions.get().key, photo.key)
         item.refresh_from_db()
         self.assertEqual(item.image_key, photo.key)
+
+
+class StorefrontURLRegressionTests(TestCase):
+    @override_settings(STORE_MEDIA_PUBLIC_BASE_URL='https://s3.amazonaws.com/rotten.world/store/images')
+    def test_email_base_never_changes_product_or_site_image_delivery(self):
+        from .models import Product
+        product = Product.objects.create(name='Wurm', slug='url-regression')
+        photo = ProductPhoto(product=product, bucket='rotten.world',
+                             key='store/products/2/0f4bda33f2fe4140bbc4a19feeb57b83.png')
+        branding = StoreBranding(header_image_bucket='rotten.world', header_image_key='store/products/branding/header.png',
+                                footer_image_bucket='rotten.world', footer_image_key='store/products/branding/footer.png')
+        with patch('dwiest.django.demos.store.media.s3_client') as factory:
+            factory.return_value.generate_presigned_url.side_effect = lambda operation, Params, **kw: 'https://signed.example/' + Params['Key']
+            self.assertEqual(photo.url, 'https://signed.example/' + photo.key)
+            self.assertEqual(branding.header_image_url, 'https://signed.example/store/products/branding/header.png')
+            self.assertEqual(branding.footer_image_url, 'https://signed.example/store/products/branding/footer.png')
+            keys = [call.kwargs['Params']['Key'] for call in factory.return_value.generate_presigned_url.call_args_list]
+            self.assertEqual(keys, [photo.key, branding.header_image_key, branding.footer_image_key])
+        with override_settings(STORE_MEDIA_PUBLIC_BASE_URL='not a valid URL'):
+            with patch('dwiest.django.demos.store.media.s3_client') as factory:
+                factory.return_value.generate_presigned_url.return_value = 'https://signed.example/image'
+                self.assertEqual(photo_url(photo), 'https://signed.example/image')
