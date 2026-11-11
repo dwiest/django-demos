@@ -1,0 +1,85 @@
+/* Separate versioned asset so cached store CSS cannot hide discovery controls. */
+.store-discovery {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.8fr) repeat(3, minmax(140px, 1fr)) auto;
+  align-items: end;
+  gap: 16px;
+  margin: 24px 0 12px;
+  padding: 20px;
+  border: 1px solid #e3dfd5;
+  border-radius: 12px;
+  background: #f8f6f0;
+}
+.store-discovery-field { min-width: 0; }
+.store-discovery-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #52605c;
+  font-size: 12px;
+  font-weight: 600;
+}
+.store-discovery-field input,
+.store-discovery-field select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #c7cdc7;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+.store-discovery-field input::placeholder { color: #6b756f; }
+.store-discovery-field input:focus-visible,
+.store-discovery-field select:focus-visible {
+  outline: 2px solid #957124;
+  outline-offset: 2px;
+}
+.store-discovery-actions { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.storefront .store-discovery-apply {
+  min-height: 44px;
+  padding: 9px 18px;
+  border: 1px solid #b18a36;
+  background: #fff;
+  color: #735619;
+}
+.storefront .store-discovery-apply:hover { background: #fbf0d7; filter: none; }
+.store-discovery-actions a { color: #52605c; font-size: 13px; padding-block: 12px; }
+.store-results-count { margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+.store-availability { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.store-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #efeeed;
+  color: #615d5b;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.store-status-stock { background: #e6f3e9; color: #22603b; }
+.store-status-pod { background: #e8f0ed; color: #345f54; }
+.store-status-soon { background: #fff1d6; color: #805a12; }
+.store-status-out { background: #efeeed; color: #615d5b; }
+@media (max-width: 1100px) {
+  .store-discovery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .store-discovery-search { grid-column: 1 / 3; }
+  .store-discovery-actions { grid-column: 3; justify-content: flex-end; }
+}
+@media (max-width: 650px) {
+  .store-discovery { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px; gap: 12px; margin-top: 18px; }
+  .store-discovery-search { grid-column: 1 / -1; }
+  .store-discovery-field input, .store-discovery-field select { font-size: 16px; padding-inline: 8px; }
+  .store-discovery-actions { grid-column: auto; justify-content: flex-end; gap: 10px; }
+}
+@media (max-width: 350px) {
+  .store-discovery { grid-template-columns: minmax(0, 1fr); }
+  .store-discovery-search { grid-column: auto; }
+  .store-discovery-actions { justify-content: space-between; }
+}
