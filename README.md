@@ -502,3 +502,35 @@ Stock adjustments require `demo_store.change_productvariant`; existing product a
 order permissions continue to control their management screens. Variants with stock
 history cannot be deleted; deactivate them to retain the ledger. Product management
 forms update only editable attributes, never stale inventory counters.
+
+
+### Sale prices, coupons, and free shipping
+
+In **Manage store → Edit product → Variants and prices**, enter the regular
+**Price** and an optional **Sale price** for each purchase option. For a product
+with one option, this is its product sale price. A sale price must be nonnegative
+and below the regular price; zero is allowed. Clear it to end a sale. Existing
+variants keep their regular prices. Catalog cards and product pages identify
+sales and show the regular price, while price sorting and the cart use the sale
+price. Completed orders retain the unit price actually used even after a sale ends.
+A price change between review and submission requires another review.
+
+**Store settings** retains the basic store-wide percentage coupon: one
+case-insensitive code and a percentage from 0 to 100. Clear the code to disable
+it. Coupons apply to the current merchandise subtotal, including sale prices.
+The optional **Free shipping threshold** applies to standard shipping when the
+merchandise subtotal **after the coupon discount** meets or exceeds the threshold;
+leave it blank to disable. The cart and checkout explain the threshold. No coupon
+scheduling, usage limits, or product restrictions are included.
+
+Deploy after backing up the database:
+
+```sh
+python manage.py migrate demo_store
+python manage.py collectstatic --noinput
+```
+
+Migration `0012_productvariant_sale_price_and_more` adds nullable sale prices and
+a database constraint. Restart Django after installing. The schema-neutral
+workflow cannot apply this migration automatically. Coupon and shipping settings
+already present in the store are preserved.

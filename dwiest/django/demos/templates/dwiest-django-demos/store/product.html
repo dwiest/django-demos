@@ -29,7 +29,7 @@
             <label for="{{ form.variant.id_for_label }}">Option and price (USD)</label>
             <select id="{{ form.variant.id_for_label }}" name="variant" required>
               {% for variant in form.fields.variant.queryset %}
-                <option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}{% if form.variant.value|stringformat:'s' == variant.pk|stringformat:'s' %} selected{% endif %}>{{ variant.name }} — ${{ variant.price|floatformat:2 }} · {{ variant.availability }}</option>
+                <option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}{% if form.variant.value|stringformat:'s' == variant.pk|stringformat:'s' %} selected{% endif %}>{{ variant.name }} — ${{ variant.effective_price|floatformat:2 }} · {{ variant.availability }}{% if variant.sale_price != None %} · Sale (was ${{ variant.price|floatformat:2 }}){% endif %}</option>
               {% endfor %}
             </select>
             {{ form.variant.errors }}
@@ -40,7 +40,7 @@
           <button class="button primary" type="submit"{% if not product.has_purchasable_variants %} disabled{% endif %}>Add to cart</button>
         </form>
       {% else %}<p>Currently unavailable.</p>{% endif %}
-      {% for variant in product.variants.all %}{% if variant.active %}<p><strong>{{ variant.name }}: {{ variant.availability }}</strong>{% if variant.purchasable %}<br>{{ variant.delivery_note }}{% endif %}</p>{% endif %}{% endfor %}
+      {% for variant in product.variants.all %}{% if variant.active %}<p><strong>{{ variant.name }}: {{ variant.availability }}</strong>{% if variant.sale_price != None %}<br><del>${{ variant.price|floatformat:2 }}</del> <strong>${{ variant.effective_price|floatformat:2 }} USD · Sale</strong>{% endif %}{% if variant.purchasable %}<br>{{ variant.delivery_note }}{% endif %}</p>{% endif %}{% endfor %}
       <p class="store-demo-note">Demo checkout available. No payment is collected.</p>
     </section>
   </div>

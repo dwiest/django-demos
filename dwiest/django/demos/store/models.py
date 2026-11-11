@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.functional import cached_property
@@ -61,6 +62,19 @@ class ProductVariant(models.Model):
     sku = models.CharField(max_length=80, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2,
                                 validators=[MinValueValidator(Decimal('0'))])
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                    validators=[MinValueValidator(Decimal('0'))],
+                                    help_text='Optional sale price below the regular price; blank ends the sale.')
+
+    @property
+    def effective_price(self):
+        return self.sale_price if self.sale_price is not None else self.price
+
+    def clean(self):
+        super().clean()
+        if self.sale_price is not None and self.price is not None and self.sale_price >= self.price:
+            raise ValidationError({'sale_price': 'Sale price must be below the regular price.'})
+
     active = models.BooleanField(default=True)
     fulfillment_method = models.CharField(max_length=20, default='pod', choices=[
         ('pod', 'Print on demand'), ('stock', 'Stock only'),
@@ -105,6 +119,9 @@ class ProductVariant(models.Model):
         ordering = ['pk']
         constraints = [models.CheckConstraint(check=models.Q(price__gte=0),
                                               name='demo_store_price_nonnegative'),
+                       models.CheckConstraint(check=models.Q(sale_price__isnull=True) | (
+                           models.Q(sale_price__gte=0) & models.Q(sale_price__lt=models.F('price'))),
+                           name='store_sale_below_regular'),
                        models.CheckConstraint(check=models.Q(stock_on_hand__gte=models.F('stock_reserved')), name='store_reservations_within_stock')]
 
     def __str__(self):

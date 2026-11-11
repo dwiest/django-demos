@@ -45,7 +45,7 @@ class VariantForm(forms.ModelForm):
 
     class Meta:
         model = ProductVariant
-        fields = ['name', 'sku', 'price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate']
+        fields = ['name', 'sku', 'price', 'sale_price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate']
 
 
 class VariantFormSetBase(forms.BaseInlineFormSet):
@@ -57,7 +57,7 @@ class VariantFormSetBase(forms.BaseInlineFormSet):
 
 
 VariantFormSet = forms.inlineformset_factory(
-    Product, ProductVariant, form=VariantForm, formset=VariantFormSetBase, fields=['name', 'sku', 'price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate'],
+    Product, ProductVariant, form=VariantForm, formset=VariantFormSetBase, fields=['name', 'sku', 'price', 'sale_price', 'active', 'fulfillment_method', 'coming_soon', 'stock_estimate', 'production_estimate'],
     extra=1, can_delete=True, min_num=1, validate_min=True,
 )
 
