@@ -19,7 +19,7 @@ def cart_context(request):
         quantity = quantities[str(variant.pk)]
         valid[str(variant.pk)] = quantity
         rows.append({'variant': variant, 'quantity': quantity,
-                     'delivery_note': variant.delivery_note(quantity), 'subtotal': variant.price * quantity})
+                     'delivery_note': variant.delivery_note(quantity), 'subtotal': variant.effective_price * quantity})
     if valid != stored:
         request.session[KEY] = valid
     return {'cart_rows': rows, 'cart_count': sum(valid.values()),

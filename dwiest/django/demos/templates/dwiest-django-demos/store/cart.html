@@ -7,7 +7,7 @@
       <div class="store-cart-product">
         <a class="store-line-thumbnail" href="{% url 'demos:store:product' row.variant.product.slug %}">{% include 'dwiest-django-demos/store/image.html' with product=row.variant.product %}</a>
         <div><h2><a href="{% url 'demos:store:product' row.variant.product.slug %}">{{ row.variant.product.name }}</a></h2>
-        <p>{{ row.variant.name }} · ${{ row.variant.price|floatformat:2 }} USD each</p><p>{{ row.delivery_note }}</p></div>
+        <p>{{ row.variant.name }} · {% if row.variant.sale_price != None %}<del>${{ row.variant.price|floatformat:2 }}</del> {% endif %}${{ row.variant.effective_price|floatformat:2 }} USD each</p><p>{{ row.delivery_note }}</p></div>
       </div>
       <form method="post" action="{% url 'demos:store:update' row.variant.pk %}">
         {% csrf_token %}
@@ -22,7 +22,7 @@
   {% if cart_rows %}
     <section class="store-summary" aria-label="Cart total">
       <h2>Subtotal: ${{ cart_total|floatformat:2 }} USD</h2>
-      <p class="muted">Estimated shipping is calculated at checkout. Demo orders only.</p>
+      <p class="muted">Estimated shipping is calculated at checkout.{% if store_branding.free_shipping_threshold != None %} Free standard shipping on orders of ${{ store_branding.free_shipping_threshold|floatformat:2 }} or more after discounts.{% endif %} Demo orders only.</p>
       <a class="button primary" href="{% url 'demos:store:checkout' %}">Checkout</a>
     </section>
   {% endif %}

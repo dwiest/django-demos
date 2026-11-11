@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Max, Min, Q, Prefetch
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -49,7 +50,7 @@ def home(request, slug=None):
     products = Product.objects.filter(published=True).prefetch_related(
         'photos', Prefetch('variants', queryset=ProductVariant.objects.filter(active=True),
                            to_attr='available_variants')).annotate(
-        starting_price=Min('variants__price', filter=Q(variants__active=True)))
+        starting_price=Min(Coalesce('variants__sale_price', 'variants__price'), filter=Q(variants__active=True)))
     if catalog:
         products = products.filter(catalogs=catalog)
     search = request.GET.get('q', '').strip()[:120]
@@ -341,7 +342,7 @@ def checkout(request):
             review = hashlib.sha256(json.dumps({
                 'fields': {k: str(v) for k, v in form.cleaned_data.items()},
                 'quote': {k: str(v) for k, v in quote.items()},
-                'items': [(row['variant'].pk, row['quantity'], str(row['variant'].price), row['delivery_note'], row['variant'].fulfillment_method, row['variant'].coming_soon) for row in cart_data['cart_rows']],
+                'items': [(row['variant'].pk, row['quantity'], str(row['variant'].effective_price), row['delivery_note'], row['variant'].fulfillment_method, row['variant'].coming_soon) for row in cart_data['cart_rows']],
             }, sort_keys=True).encode()).hexdigest()
             if request.POST.get('action') == 'review':
                 request.session['store_checkout_review'] = review
@@ -366,7 +367,7 @@ def checkout(request):
                         variant = row['variant']
                         order_item = StoreOrderItem.objects.create(order=order, variant=variant,
                             product_name=variant.product.name, variant_name=variant.name, sku=variant.sku,
-                            quantity=row['quantity'], unit_price=variant.price, **snapshot_image(variant))
+                            quantity=row['quantity'], unit_price=variant.effective_price, **snapshot_image(variant))
                         allocate(order_item, row['quantity'], request.user if request.user.is_authenticated else None)
                     event = OrderEvent.objects.create(order=order, message='Thank you! Your demo order has been received. No payment was collected.')
                     transaction.on_commit(lambda: notify(event.pk))
