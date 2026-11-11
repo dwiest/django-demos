@@ -1,0 +1,12 @@
+{% extends 'dwiest-django-demos/store/base.html' %}
+{% block title %}{{ policy_title }} · {{ store_branding.name }}{% endblock %}
+{% block content %}
+<article style="max-width:48rem;margin:0 auto 3rem;line-height:1.7;overflow-wrap:anywhere">
+  <div class="page-heading"><h1>{{ policy_title }}</h1></div>
+  {% if policy_slug == 'shipping' %}<p class="muted">Current processing information: {{ store_branding.shipping_estimate|default:'See the item description and policy below.' }}</p>{% endif %}
+  {{ policy_text|linebreaks }}
+  {% if store_branding.contact_email %}<p>Questions? <a href="mailto:{{ store_branding.contact_email }}">{{ store_branding.contact_email }}</a></p>
+  {% elif policy_slug == 'contact' %}<p>Contact details have not yet been configured. Please check back before placing an order.</p>{% else %}<p><a href="{% url 'demos:store:policy' 'contact' %}">Contact the store</a></p>{% endif %}
+  <a class="button secondary" href="{% url 'demos:store:home' %}">Continue shopping</a>
+</article>
+{% endblock %}

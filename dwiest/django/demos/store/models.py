@@ -187,6 +187,12 @@ class StoreBranding(models.Model):
     footer_image_key = models.CharField(max_length=1024, blank=True, editable=False)
     footer_image_alt = models.CharField(max_length=255, blank=True)
     contact_email = models.EmailField(blank=True)
+    shipping_policy = models.TextField(blank=True, help_text="Plain text. Blank uses the generic starting policy; review before taking live orders.")
+    returns_policy = models.TextField(blank=True, help_text="Plain text. Blank uses the generic starting policy; review before taking live orders.")
+    privacy_policy = models.TextField(blank=True, help_text="Plain text. Blank uses the generic starting policy; review before taking live orders.")
+    terms_policy = models.TextField(blank=True, help_text="Plain text. Blank uses the generic starting policy; review before taking live orders.")
+    contact_policy = models.TextField(blank=True, help_text="Plain text. Blank uses the generic starting policy; review before taking live orders.")
+
     footer_link_label = models.CharField(max_length=80, blank=True)
     footer_link_url = models.URLField(blank=True)
     shipping_rate = models.DecimalField(max_digits=10, decimal_places=2, default='6.95', validators=[MinValueValidator(0)])
