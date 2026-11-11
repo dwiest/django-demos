@@ -19,6 +19,7 @@
     </section>
     <section>
       <h1>{{ product.name }}</h1>
+      <div class="store-availability">{% if product.has_purchasable_variants %}<span class="store-status store-status-stock">✓ Available to order</span>{% else %}<span class="store-status store-status-soon">✧ Check options below for availability</span>{% endif %}</div>
       <div class="store-description">{{ product.description|linebreaks }}</div>
       {% if form.fields.variant.queryset %}
         <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form" data-variant-selection="{{ product.pk }}" data-bound="{{ form.is_bound|yesno:'true,false' }}">

@@ -4,15 +4,33 @@
   <p class="store-catalog-description">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
   <p class="store-demo-note">Prices in USD · Demo checkout available.</p>
   {% if cart_notice %}<p class="notice" role="status">{{ cart_notice }} <a href="{% url 'demos:store:cart' %}">View cart</a></p>{% endif %}
-  <nav class="store-catalogs" aria-label="Product catalogs">
-    <a class="button secondary" href="{% url 'demos:store:home' %}"{% if not catalog %} aria-current="page"{% endif %}>All products</a>
-    {% for collection in catalogs %}
-      <a class="button secondary" href="{% url 'demos:store:catalog' collection.slug %}"{% if collection == catalog %} aria-current="page"{% endif %}>{{ collection.name }}</a>
-    {% endfor %}
-  </nav>
+  <form method="get" action="{% if catalog %}{% url 'demos:store:catalog' catalog.slug %}{% else %}{% url 'demos:store:home' %}{% endif %}" class="store-discovery" role="search" aria-label="Find products">
+    <div class="store-discovery-field store-discovery-search"><label for="store-search">Search products</label><input id="store-search" type="search" name="q" value="{{ search }}" placeholder="Search the Shoppe…"></div>
+    <div class="store-discovery-field"><label for="store-category">Category</label><select id="store-category" onchange="window.location.href=this.value">
+      <option value="{% url 'demos:store:home' %}"{% if not catalog %} selected{% endif %}>All products</option>
+      {% for collection in catalogs %}<option value="{% url 'demos:store:catalog' collection.slug %}"{% if collection == catalog %} selected{% endif %}>{{ collection.name }}</option>{% endfor %}
+    </select></div>
+    <div class="store-discovery-field"><label for="store-availability">Availability</label><select id="store-availability" name="availability">
+      <option value="all"{% if availability == 'all' %} selected{% endif %}>All availability</option>
+      <option value="stock"{% if availability == 'stock' %} selected{% endif %}>In stock</option>
+      <option value="pod"{% if availability == 'pod' %} selected{% endif %}>Print on demand</option>
+      <option value="soon"{% if availability == 'soon' %} selected{% endif %}>Coming soon</option>
+      <option value="out"{% if availability == 'out' %} selected{% endif %}>Sold out</option>
+    </select></div>
+    <div class="store-discovery-field"><label for="store-sort">Sort by</label><select id="store-sort" name="sort">
+      <option value="featured"{% if sort == 'featured' %} selected{% endif %}>Featured</option>
+      <option value="price_asc"{% if sort == 'price_asc' %} selected{% endif %}>Price: low to high</option>
+      <option value="price_desc"{% if sort == 'price_desc' %} selected{% endif %}>Price: high to low</option>
+      <option value="name"{% if sort == 'name' %} selected{% endif %}>Name: A–Z</option>
+      <option value="newest"{% if sort == 'newest' %} selected{% endif %}>Newest added</option>
+    </select></div>
+    <div class="store-discovery-actions"><button class="button secondary" type="submit">Apply</button><a href="{% url 'demos:store:home' %}">Clear</a></div>
+  </form>
+  <p class="store-results-count" role="status">{{ products|length }} product{{ products|length|pluralize }} found</p>
   <section class="store-grid" aria-label="Products">
     {% for product in products %}
       <article class="store-card" data-product-card>
+        <div class="store-availability">{% if product.discovery_stock %}<span class="store-status store-status-stock">✓ In stock</span>{% elif product.discovery_pod %}<span class="store-status store-status-pod">✦ Print on demand</span>{% elif product.discovery_soon %}<span class="store-status store-status-soon">✧ Coming soon</span>{% else %}<span class="store-status store-status-out">☾ Sold out</span>{% endif %}</div>
         <a href="{% url 'demos:store:product' product.slug %}">
           {% include 'dwiest-django-demos/store/image.html' %}
           <h2>{{ product.name }}</h2>
@@ -43,7 +61,7 @@
         <a href="{% url 'demos:store:product' product.slug %}">View product →</a>
       </article>
     {% empty %}
-      <p>No products here yet. Check back soon.</p>
+      <p>No products match your search or filters. <a href="{% url 'demos:store:home' %}">Clear filters</a>.</p>
     {% endfor %}
   </section>
 {% endblock %}
