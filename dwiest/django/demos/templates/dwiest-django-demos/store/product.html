@@ -1,11 +1,16 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
 {% load static %}
 {% block title %}{{ product.name }} | {{ store_branding.name }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'dwiest-django-demos/store/lightbox.v1.css' %}">{% endblock %}
 {% block content %}
   <p><a href="{% url 'demos:store:home' %}">← All products</a></p>
   <div class="store-detail" data-product-options>
     <section aria-label="Product photos" data-photo-gallery>
-      {% include 'dwiest-django-demos/store/image.html' %}
+      {% with photo=product.cover_photo %}
+        {% if photo or product.image_url %}<a class="store-photo-open" data-photo-open href="{% if photo %}{{ photo.url }}{% else %}{{ product.image_url }}{% endif %}" aria-label="Enlarge image of {{ product.name }}">{% endif %}
+        {% include 'dwiest-django-demos/store/image.html' %}
+        {% if photo or product.image_url %}</a>{% endif %}
+      {% endwith %}
       {% if product.photos.all %}
         <div class="store-photo-thumbnails">
           {% for photo in product.photos.all %}
@@ -44,5 +49,24 @@
       <p class="store-demo-note">Demo checkout available. No payment is collected.</p>
     </section>
   </div>
-  <script src="{% static 'dwiest-django-demos/store/gallery.js' %}" defer></script>
+  <dialog class="store-lightbox" data-photo-dialog aria-labelledby="store-photo-title" aria-describedby="store-photo-help">
+    <header class="store-lightbox-header">
+      <h2 id="store-photo-title">{{ product.name }}</h2>
+      <button type="button" class="store-lightbox-control" data-photo-close aria-label="Close image viewer" autofocus>×</button>
+    </header>
+    <div class="store-lightbox-stage" data-photo-stage>
+      <img data-photo-full alt="" referrerpolicy="no-referrer" tabindex="0" role="button" aria-label="Zoom image" aria-pressed="false">
+      <p data-photo-error hidden>Image could not be loaded. Please close the viewer and try again.</p>
+    </div>
+    <footer class="store-lightbox-footer">
+      <div class="store-lightbox-navigation">
+        <button type="button" class="store-lightbox-control" data-photo-prev aria-label="Previous image">←</button>
+        <span data-photo-count aria-live="polite"></span>
+        <button type="button" class="store-lightbox-control" data-photo-next aria-label="Next image">→</button>
+      </div>
+      <button type="button" class="store-lightbox-zoom" data-photo-zoom aria-pressed="false">Zoom in</button>
+      <small id="store-photo-help">Click image to zoom · Esc to close</small>
+    </footer>
+  </dialog>
+  <script src="{% static 'dwiest-django-demos/store/gallery.v2.js' %}" defer></script>
 {% endblock %}
