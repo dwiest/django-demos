@@ -188,3 +188,20 @@ html:has(.storefront){scroll-padding-top:64px}
 .order-delivery-grid address{font-style:normal;line-height:1.7}
 .order-delivery-grid p{margin:0 0 12px;line-height:1.7}
 @media(max-width:650px){.store-order-detail{padding:18px;margin:24px auto}.order-detail-heading{align-items:flex-start;flex-direction:column}.order-detail-heading h1{font-size:24px}.order-detail-item{grid-template-columns:48px minmax(0,1fr) auto;gap:10px}.order-item-image,.order-item-placeholder{width:48px;height:48px}.order-item-total{font-size:14px}.order-delivery-grid{grid-template-columns:1fr;gap:24px}.order-summary .order-grand-total{font-size:18px}}
+
+/* Responsive product discovery toolbar. */
+.store-discovery{display:grid;grid-template-columns:minmax(180px,2fr) repeat(3,minmax(135px,1fr)) auto;gap:12px;align-items:end;margin:20px 0 10px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fffdfa}
+.store-discovery-field{min-width:0}
+.store-discovery-field label{display:block;font-size:12px;font-weight:650;margin-bottom:5px;color:var(--muted)}
+.store-discovery-field input,.store-discovery-field select{display:block;width:100%;min-width:0;min-height:42px;border:1px solid #bdc8d5;border-radius:7px;padding:8px;background:white;color:var(--ink)}
+.store-discovery-actions{display:flex;align-items:center;gap:10px;min-height:42px}
+.store-discovery-actions .button{min-height:42px}
+.store-results-count{font-size:13px;color:var(--muted);margin:0 0 16px}
+.store-availability{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.store-status{font-size:12px;font-weight:650;line-height:1.4;border-radius:999px;padding:3px 9px;background:#f3f3f1;color:#555}
+.store-status-stock{background:#e6f3e9;color:#22603b}
+.store-status-pod{background:#e8f3f2;color:#27615e}
+.store-status-soon{background:#fff1d6;color:#805a12}
+.store-status-out{background:#efeeed;color:#615d5b}
+@media(max-width:950px){.store-discovery{grid-template-columns:repeat(2,minmax(0,1fr))}.store-discovery-search{grid-column:1/-1}.store-discovery-actions{justify-content:flex-end}}
+@media(max-width:450px){.store-discovery{padding:12px;gap:10px}.store-discovery-field label{font-size:11px}.store-discovery-actions{grid-column:1/-1;justify-content:space-between}}
