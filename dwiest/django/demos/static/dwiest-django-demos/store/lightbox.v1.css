@@ -1,0 +1,24 @@
+/* Warm cream, deep green and antique gold echo the storefront frame. */
+.store-photo-open{display:block;cursor:zoom-in;border-radius:6px}
+.store-photo-open:focus-visible{outline:3px solid var(--teal);outline-offset:4px}
+.store-photo-open .store-image{display:block}
+.store-lightbox{box-sizing:border-box;width:min(960px,calc(100vw - 32px));max-width:none;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;border:1px solid #a58b50;border-radius:10px;background:#142725;color:#f4f5ed;box-shadow:0 24px 80px #0008;font-family:inherit;overflow:hidden}
+.store-lightbox:not([open]){display:none}
+.store-lightbox[open]{display:flex;flex-direction:column}
+.store-lightbox::backdrop{background:rgba(5,13,12,.78)}
+.store-lightbox-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 20px;border-bottom:1px solid #a58b5066;background:#182c2b}
+.store-lightbox-header h2{margin:0;color:inherit;font-size:clamp(17px,2.5vw,22px);line-height:1.3;overflow-wrap:anywhere}
+.store-lightbox-control,.store-lightbox-zoom{font:inherit;color:#ecd59b;border:1px solid #a58b50;border-radius:6px;background:transparent;cursor:pointer;min-height:44px;padding:8px 14px}
+.store-lightbox-control{flex-shrink:0;min-width:44px;font-size:24px;line-height:1}
+.store-lightbox-control:hover,.store-lightbox-zoom:hover{background:#ecd59b18}
+.store-lightbox :focus-visible{outline:3px solid #ecd59b;outline-offset:3px}
+.store-lightbox-stage{min-height:0;overflow:auto;padding:16px;background:#0e1b1a;text-align:center;overscroll-behavior:contain}
+.store-lightbox-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:calc(100vh - 240px);max-height:calc(100dvh - 240px);object-fit:contain;margin:auto;cursor:zoom-in}
+.store-lightbox-stage img[hidden]{display:none}
+.store-lightbox-stage.is-zoomed img{max-width:none;max-height:none;cursor:zoom-out}
+.store-lightbox-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 20px;padding:12px 20px;border-top:1px solid #a58b5066}
+.store-lightbox-navigation{display:flex;align-items:center;gap:16px;color:#ecd59b}
+.store-lightbox-footer small{flex-basis:100%;text-align:center;color:#c7d2cc;font-size:13px}
+.store-lightbox [hidden]{display:none}
+html:has(.store-lightbox[open]){overflow:hidden}
+@media(max-width:650px){.store-lightbox{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}.store-lightbox-header,.store-lightbox-footer{padding:10px 12px}.store-lightbox-stage{padding:10px}.store-lightbox-stage img{max-height:calc(100dvh - 220px)}}

@@ -104,7 +104,7 @@ class PhotoTests(TestCase):
         self.assertContains(response, 'Hat front')
         self.assertContains(response, 'Hat back')
         self.assertContains(response, 'data-photo-link', count=2)
-        self.assertContains(response, 'store/gallery.js')
+        self.assertContains(response, 'store/gallery.v2.js')
         response = Client().get(self.url('home'))
         self.assertContains(response, 'alt="Hat back"')
         self.assertNotContains(response, 'alt="Hat front"')
@@ -116,6 +116,28 @@ class PhotoTests(TestCase):
         self.product.image_url = 'https://legacy.example/hat.png'
         self.product.save()
         self.assertContains(Client().get(self.url('home')), self.product.image_url)
+
+    def test_product_image_links_and_viewer_preserve_accessible_originals(self):
+        self.photo(alt_text='Hat front')
+        response = Client().get(self.url('product', self.product.slug))
+        self.assertContains(response, 'class="store-photo-open" data-photo-open href="https://s3.example/store/products/1/test.png"')
+        self.assertContains(response, 'aria-label="Enlarge image of Hat"')
+        self.assertContains(response, 'aria-labelledby="store-photo-title"')
+        self.assertContains(response, 'aria-label="Close image viewer"')
+        self.assertContains(response, 'store/lightbox.v1.css')
+        # Catalog cards should retain their normal product links, without a viewer.
+        self.assertNotContains(Client().get(self.url('home')), 'data-photo-dialog')
+
+    def test_legacy_image_can_open_and_missing_image_has_no_broken_link(self):
+        self.product.image_url = 'https://legacy.example/hat.png'
+        self.product.save()
+        response = Client().get(self.url('product', self.product.slug))
+        self.assertContains(response, 'data-photo-open href="https://legacy.example/hat.png"')
+        self.product.image_url = ''
+        self.product.save()
+        response = Client().get(self.url('product', self.product.slug))
+        self.assertNotContains(response, 'data-photo-open')
+        self.assertContains(response, 'Product image coming soon')
 
     def test_remove_and_product_cascade_delete_retain_objects(self):
         photo = self.photo()
