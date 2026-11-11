@@ -607,3 +607,13 @@ def shipment_edit(request, pk, shipment_pk):
                 transaction.on_commit(lambda: notify(shipment.event_id, force=True))
             return redirect('demos:store:order_edit', pk=pk)
     return page(request, 'shipment.html', order=shipment.order, form=form, editing=True)
+
+
+def policy(request, slug):
+    from .policies import POLICIES
+    if slug not in POLICIES:
+        raise Http404
+    branding = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    title, default = POLICIES[slug]
+    return page(request, 'policy.html', policy_title=title, policy_slug=slug,
+                policy_text=getattr(branding, slug + '_policy').strip() or default)

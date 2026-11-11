@@ -47,12 +47,15 @@
         <h2>{{ store_branding.footer_heading }}</h2>
         <div class="store-footer-copy">{{ store_branding.footer_text|linebreaks }}</div>
       </div>
-      {% if store_branding.contact_email or store_branding.footer_link_url %}
       <nav aria-label="Store footer">
+        <a href="{% url 'demos:store:policy' 'shipping' %}">Shipping</a>
+        <a href="{% url 'demos:store:policy' 'returns' %}">Returns</a>
+        <a href="{% url 'demos:store:policy' 'privacy' %}">Privacy</a>
+        <a href="{% url 'demos:store:policy' 'terms' %}">Terms</a>
+        <a href="{% url 'demos:store:policy' 'contact' %}">Contact</a>
         {% if store_branding.contact_email %}<a href="mailto:{{ store_branding.contact_email }}">{{ store_branding.contact_email }}</a>{% endif %}
         {% if store_branding.footer_link_url %}<a href="{{ store_branding.footer_link_url }}">{{ store_branding.footer_link_label }}</a>{% endif %}
       </nav>
-      {% endif %}
       </div>
     </div>
     <div class="container store-copyright">{% if store_branding.copyright_text %}{{ store_branding.copyright_text }}{% else %}© {% now 'Y' %} {{ store_branding.name }}{% endif %}</div>

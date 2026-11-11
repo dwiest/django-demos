@@ -4,6 +4,7 @@ from . import views, customer_views
 
 app_name = 'store'
 urlpatterns = [
+    path('policies/<slug:slug>/', views.policy, name='policy'),
     path('manage/orders/<int:pk>/shipments/<int:shipment_pk>/', views.shipment_edit, name='shipment_edit'),
     path('manage/orders/<int:pk>/shipments/new/', views.shipment_create, name='shipment_create'),
     path('manage/inventory/', views.inventory, name='inventory'),
