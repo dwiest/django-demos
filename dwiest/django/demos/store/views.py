@@ -51,7 +51,37 @@ def home(request, slug=None):
         starting_price=Min('variants__price', filter=Q(variants__active=True)))
     if catalog:
         products = products.filter(catalogs=catalog)
+    search = request.GET.get('q', '').strip()[:120]
+    availability = request.GET.get('availability', 'all')
+    sort = request.GET.get('sort', 'featured')
+    if availability not in ('all', 'stock', 'pod', 'soon', 'out'):
+        availability = 'all'
+    if sort not in ('featured', 'price_asc', 'price_desc', 'name', 'newest'):
+        sort = 'featured'
+    if search:
+        products = products.filter(Q(name__icontains=search) | Q(description__icontains=search))
+    products = list(products.distinct())
+    for item in products:
+        variants = item.available_variants
+        item.discovery_stock = any(v.purchasable and v.fulfillment_method != 'pod' and v.available_stock > 0 for v in variants)
+        item.discovery_pod = any(v.purchasable and (v.fulfillment_method == 'pod' or v.fulfillment_method == 'hybrid') for v in variants)
+        item.discovery_soon = bool(variants) and all(v.coming_soon for v in variants)
+        item.discovery_out = not item.has_purchasable_variants and not item.discovery_soon
+    if availability != 'all':
+        products = [p for p in products if {
+            'stock': p.discovery_stock, 'pod': p.discovery_pod,
+            'soon': p.discovery_soon, 'out': p.discovery_out,
+        }[availability]]
+    if sort == 'price_asc':
+        products.sort(key=lambda p: (p.starting_price is None, p.starting_price or 0, p.name.lower()))
+    elif sort == 'price_desc':
+        products.sort(key=lambda p: (p.starting_price is None, -(p.starting_price or 0), p.name.lower()))
+    elif sort == 'newest':
+        products.sort(key=lambda p: p.pk, reverse=True)
+    else:
+        products.sort(key=lambda p: p.name.lower())
     return page(request, 'home.html', catalogs=catalogs, catalog=catalog, products=products,
+                search=search, availability=availability, sort=sort,
                 cart_notice=request.session.pop('store_cart_notice', ''))
 
 
