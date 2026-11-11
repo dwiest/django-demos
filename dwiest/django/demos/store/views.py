@@ -44,7 +44,8 @@ def page(request, template, **context):
 
 def home(request, slug=None):
     catalogs = Catalog.objects.filter(published=True)
-    catalog = get_object_or_404(catalogs, slug=slug) if slug else None
+    selected_slug = request.GET.get('category', slug or '')
+    catalog = get_object_or_404(catalogs, slug=selected_slug) if selected_slug else None
     products = Product.objects.filter(published=True).prefetch_related(
         'photos', Prefetch('variants', queryset=ProductVariant.objects.filter(active=True),
                            to_attr='available_variants')).annotate(

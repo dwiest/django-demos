@@ -1,4 +1,5 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
 {% block content %}
   <h1 class="sr-only">{% if catalog %}{{ catalog.name }}{% else %}{{ store_branding.tagline|default:store_branding.name }}{% endif %}</h1>
   <p class="store-catalog-description">{% if catalog %}{{ catalog.description }}{% else %}{{ store_branding.introduction }}{% endif %}</p>
@@ -6,9 +7,9 @@
   {% if cart_notice %}<p class="notice" role="status">{{ cart_notice }} <a href="{% url 'demos:store:cart' %}">View cart</a></p>{% endif %}
   <form method="get" action="{% if catalog %}{% url 'demos:store:catalog' catalog.slug %}{% else %}{% url 'demos:store:home' %}{% endif %}" class="store-discovery" role="search" aria-label="Find products">
     <div class="store-discovery-field store-discovery-search"><label for="store-search">Search products</label><input id="store-search" type="search" name="q" value="{{ search }}" placeholder="Search the Shoppe…"></div>
-    <div class="store-discovery-field"><label for="store-category">Category</label><select id="store-category" onchange="window.location.href=this.value">
-      <option value="{% url 'demos:store:home' %}"{% if not catalog %} selected{% endif %}>All products</option>
-      {% for collection in catalogs %}<option value="{% url 'demos:store:catalog' collection.slug %}"{% if collection == catalog %} selected{% endif %}>{{ collection.name }}</option>{% endfor %}
+    <div class="store-discovery-field"><label for="store-category">Category</label><select id="store-category" name="category">
+      <option value=""{% if not catalog %} selected{% endif %}>All products</option>
+      {% for collection in catalogs %}<option value="{{ collection.slug }}"{% if collection == catalog %} selected{% endif %}>{{ collection.name }}</option>{% endfor %}
     </select></div>
     <div class="store-discovery-field"><label for="store-availability">Availability</label><select id="store-availability" name="availability">
       <option value="all"{% if availability == 'all' %} selected{% endif %}>All availability</option>
@@ -26,6 +27,7 @@
     </select></div>
     <div class="store-discovery-actions"><button class="button store-discovery-apply" type="submit">Apply</button><a href="{% url 'demos:store:home' %}">Reset</a></div>
   </form>
+  <script src="{% static 'dwiest-django-demos/store/discovery.v1.js' %}" defer></script>
   <p class="store-results-count" role="status">{{ products|length }} product{{ products|length|pluralize }} found</p>
   <section class="store-grid" aria-label="Products">
     {% for product in products %}

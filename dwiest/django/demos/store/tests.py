@@ -177,3 +177,17 @@ class StoreTests(TestCase):
         self.assertNotIn(KEY, self.client.session)
         self.client.post(self.url('add', 'hat'), {'variant': other.pk, 'quantity': 1, 'quick_add': '1'})
         self.assertEqual(self.client.session[KEY][str(other.pk)], 1)
+
+    def test_category_get_form_preserves_other_filters(self):
+        response = self.client.get(self.url('home'), {
+            'category': 'hats', 'q': 'Hat', 'sort': 'price_desc',
+        })
+        self.assertEqual([p.pk for p in response.context['products']], [self.product.pk])
+        self.assertEqual(response.context['sort'], 'price_desc')
+        self.assertContains(response, 'name="category"')
+        self.assertNotContains(response, 'onchange=')
+
+    def test_all_products_overrides_catalog_path(self):
+        response = self.client.get(self.url('catalog', 'hats'), {'category': ''})
+        self.assertIsNone(response.context['catalog'])
+        self.assertEqual(len(response.context['products']), 2)
