@@ -24,7 +24,7 @@
       <option value="name"{% if sort == 'name' %} selected{% endif %}>Name: A–Z</option>
       <option value="newest"{% if sort == 'newest' %} selected{% endif %}>Newest added</option>
     </select></div>
-    <div class="store-discovery-actions"><button class="button secondary" type="submit">Apply</button><a href="{% url 'demos:store:home' %}">Clear</a></div>
+    <div class="store-discovery-actions"><button class="button store-discovery-apply" type="submit">Apply</button><a href="{% url 'demos:store:home' %}">Reset</a></div>
   </form>
   <p class="store-results-count" role="status">{{ products|length }} product{{ products|length|pluralize }} found</p>
   <section class="store-grid" aria-label="Products">
@@ -52,7 +52,7 @@
         {% if variants %}
         <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form store-quick-add{% if variants|length == 1 %} store-quick-add-single{% endif %}" data-variant-selection="{{ product.pk }}">
           {% csrf_token %}<input type="hidden" name="quantity" value="1"><input type="hidden" name="quick_add" value="1"><input type="hidden" name="catalog" value="{{ catalog.slug }}">
-          {% if variants|length == 1 %}<span>{{ variants.0.availability }}</span><span class="store-card-price">${{ variants.0.price|floatformat:2 }} USD</span><input type="hidden" name="variant" value="{{ variants.0.pk }}">
+          {% if variants|length == 1 %}<span class="store-card-price">${{ variants.0.price|floatformat:2 }} USD</span><input type="hidden" name="variant" value="{{ variants.0.pk }}">
           {% else %}<label class="sr-only" for="quick-variant-{{ product.pk }}">Choose an option for {{ product.name }}</label>
           <select id="quick-variant-{{ product.pk }}" name="variant" required><option value="">Select an option</option>{% for variant in variants %}<option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}>{{ variant.name }} · ${{ variant.price|floatformat:2 }} · {{ variant.availability }}</option>{% endfor %}</select>{% endif %}
           <button class="button store-cart-outline" type="submit"{% if not product.has_purchasable_variants %} disabled{% endif %}>Add to cart<span class="sr-only">: {{ product.name }}</span></button>
