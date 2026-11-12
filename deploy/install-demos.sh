@@ -14,7 +14,8 @@ wheels=("$release"/*.whl)
 [[ ${#wheels[@]} == 1 ]] || exit 2
 cd "$PROJECT_DIR"
 "$python" -c 'import sys, django; assert sys.version_info[:2] == (3, 7); assert django.VERSION[:2] == (3, 2)'
-"$python" manage.py check
+# Validate the replacement application only after installation so broken URLs
+# in the installed release cannot block their own repair.
 sudo -n /usr/bin/systemctl is-active --quiet django.service
 backup="$HOME/django-deploy-backups/$(date -u +%Y%m%dT%H%M%SZ)-$commit"
 mkdir -p "$backup"
@@ -28,8 +29,7 @@ trap restart EXIT
 "$python" - "$backup/db.sqlite3" <<'PY'
 import os, sqlite3, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wiest-world.settings')
-import django
-django.setup()
+# Reading DATABASES needs settings only, not application initialization.
 from django.conf import settings
 db = settings.DATABASES['default']
 assert db['ENGINE'] == 'django.db.backends.sqlite3'
