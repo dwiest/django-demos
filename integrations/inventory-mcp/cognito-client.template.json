@@ -2,45 +2,104 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Inventory MCP OAuth client and scopes in an existing Cognito user pool",
   "Parameters": {
-    "UserPoolId": {"Type": "String", "Default": "us-east-1_AA8l2prNL"},
-    "CallbackURLs": {"Type": "CommaDelimitedList", "Description": "Exact callback URL(s) displayed by the ChatGPT custom MCP plugin management page; no wildcards"}
+    "UserPoolId": {
+      "Type": "String",
+      "Default": "us-east-1_AA8l2prNL"
+    },
+    "CallbackURLs": {
+      "Type": "CommaDelimitedList",
+      "Description": "Exact callback URL(s) displayed by the ChatGPT custom MCP plugin management page; no wildcards"
+    },
+    "PublicMcpUrl": {
+      "Type": "String",
+      "Default": "https://nqmt48bmv7.execute-api.us-east-1.amazonaws.com/api/inventory-mcp",
+      "AllowedPattern": "https://[^?#\\s]+[^/\\s]",
+      "Description": "Exact PUBLIC_MCP_URL; Cognito resource identifier and audience"
+    }
   },
   "Resources": {
     "InventoryResourceServer": {
       "Type": "AWS::Cognito::UserPoolResourceServer",
       "Properties": {
-        "UserPoolId": {"Ref": "UserPoolId"},
-        "Identifier": "inventory", "Name": "Inventory MCP",
+        "UserPoolId": {
+          "Ref": "UserPoolId"
+        },
+        "Identifier": {
+          "Ref": "PublicMcpUrl"
+        },
+        "Name": "Inventory MCP",
         "Scopes": [
-          {"ScopeName": "read", "ScopeDescription": "Read inventory records and history"},
-          {"ScopeName": "write", "ScopeDescription": "Modify inventory records and quantities"}
+          {
+            "ScopeName": "read",
+            "ScopeDescription": "Read inventory records and history"
+          },
+          {
+            "ScopeName": "write",
+            "ScopeDescription": "Modify inventory records and quantities"
+          }
         ]
-      }
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
     },
     "InventoryClient": {
       "Type": "AWS::Cognito::UserPoolClient",
       "DependsOn": "InventoryResourceServer",
       "Properties": {
-        "UserPoolId": {"Ref": "UserPoolId"},
+        "UserPoolId": {
+          "Ref": "UserPoolId"
+        },
         "ClientName": "inventory-mcp-chatgpt",
         "GenerateSecret": true,
         "AllowedOAuthFlowsUserPoolClient": true,
-        "AllowedOAuthFlows": ["code"],
-        "AllowedOAuthScopes": ["openid", "email", "profile", "inventory/read", "inventory/write"],
-        "SupportedIdentityProviders": ["COGNITO"],
-        "CallbackURLs": {"Ref": "CallbackURLs"},
+        "AllowedOAuthFlows": [
+          "code"
+        ],
+        "AllowedOAuthScopes": [
+          "openid",
+          "email",
+          "profile",
+          {
+            "Fn::Sub": "${PublicMcpUrl}/read"
+          },
+          {
+            "Fn::Sub": "${PublicMcpUrl}/write"
+          }
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "CallbackURLs": {
+          "Ref": "CallbackURLs"
+        },
         "PreventUserExistenceErrors": "ENABLED",
         "EnableTokenRevocation": true,
         "AccessTokenValidity": 60,
         "IdTokenValidity": 60,
         "RefreshTokenValidity": 30,
-        "TokenValidityUnits": {"AccessToken": "minutes", "IdToken": "minutes", "RefreshToken": "days"}
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        }
       }
     }
   },
   "Outputs": {
-    "ClientId": {"Value": {"Ref": "InventoryClient"}},
-    "Issuer": {"Value": {"Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}"}},
-    "Scopes": {"Value": "openid email profile inventory/read inventory/write"}
+    "ClientId": {
+      "Value": {
+        "Ref": "InventoryClient"
+      }
+    },
+    "Issuer": {
+      "Value": {
+        "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}"
+      }
+    },
+    "Scopes": {
+      "Value": {
+        "Fn::Sub": "openid email profile ${PublicMcpUrl}/read ${PublicMcpUrl}/write"
+      }
+    }
   }
 }

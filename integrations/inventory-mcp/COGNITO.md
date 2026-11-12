@@ -3,9 +3,9 @@
 This adds a dedicated confidential OAuth client to the existing
 `us-east-1_AA8l2prNL` pool, using its current hosted login domain:
 `https://us-east-1aa8l2prnl.auth.us-east-1.amazoncognito.com`.
-It creates the `inventory` resource server and `inventory/read`, `inventory/write`
-scopes. It does not modify existing voicemail/messaging clients, domains, or users.
-Check for an existing `inventory` resource server before deployment; if one
+It creates a resource server whose identifier equals `PUBLIC_MCP_URL`, with
+`<PUBLIC_MCP_URL>/read` and `<PUBLIC_MCP_URL>/write` scopes. It does not modify existing voicemail/messaging clients, domains, or users.
+Check for an existing resource server with the exact MCP URL before deployment; if one
 already exists, reconcile its ownership rather than creating a duplicate.
 
 The new flow is browser/ChatGPT -> Cognito login -> Inventory MCP -> Django API.
@@ -163,3 +163,40 @@ and the exact callback URI from your ChatGPT connection.
 - https://developers.openai.com/plugins/build/auth
 - https://docs.aws.amazon.com/cognito/latest/developerguide/using-pkce-in-authorization-code.html
 - https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-define-resource-servers.html
+
+
+## Fixing an existing short-identifier deployment
+
+Cognito resource binding requires requested custom scopes to belong to the
+resource being requested. The old `inventory/read` and `inventory/write` scopes
+belong to `inventory`, so they cannot be requested with the full MCP URL as the
+`resource`. The resource identifier, custom scope prefixes, OAuth discovery and
+JWT scope checks must all agree. Do not disable audience validation.
+
+After merging this fix:
+
+1. Pull the current source. Update the existing `inventory-mcp-cognito` stack
+   with the revised template and your existing exact callback URL. The new
+   `PublicMcpUrl` parameter defaults to the current API Gateway MCP URL; override
+   it if your configured `PUBLIC_MCP_URL` differs. Keep that URL identical,
+   including path and trailing-slash policy.
+2. Review the change set: the resource server identifier changes (replacement),
+   and the existing app client receives the URL-prefixed scopes. The template
+   retains the old resource server during replacement to avoid a dependency race
+   while updating the client's allowed scopes. The old server can remain unused;
+   remove it only after confirming no client references its scopes.
+3. Rebuild/upload the Lambda ZIP to publish discovery and validate the new
+   URL-prefixed scopes. Leave `PUBLIC_MCP_URL` unchanged.
+4. Refresh the ChatGPT plugin's tools/metadata or recreate the connection so it
+   no longer requests the old short scopes. Sign in again to obtain a new token.
+
+For the current endpoint the required custom scopes are:
+
+```text
+https://nqmt48bmv7.execute-api.us-east-1.amazonaws.com/api/inventory-mcp/read
+https://nqmt48bmv7.execute-api.us-east-1.amazonaws.com/api/inventory-mcp/write
+```
+
+The resource and JWT audience remain the MCP URL without `/read` or `/write`.
+The client ID/secret should remain unchanged; this update modifies its allowed
+scopes, not the client identity. Check stack outputs after deployment.
