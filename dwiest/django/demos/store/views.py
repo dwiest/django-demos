@@ -298,6 +298,11 @@ def branding(request):
             for bucket, key in uploaded:
                 delete_image(bucket, key)
             form.add_error(None, 'Store settings could not be saved. Please try again or check the S3 configuration.')
+    for location in ('header', 'footer', 'email_header', 'email_footer', 'thank_you'):
+        field = form[location + '_image']
+        field.is_image_setting = True
+        # Settings previews can use signed URLs even before public email media is configured.
+        field.current_image_url = instance.image_url(location)
     return page(request, 'branding.html', form=form,
                 email_media_ready=bool(getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '')))
 

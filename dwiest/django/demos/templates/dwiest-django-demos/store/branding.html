@@ -1,4 +1,14 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% block extra_head %}
+  <style>
+    .branding-image-setting{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:20px;align-items:start;margin-bottom:18px}
+    .branding-image-setting .field{min-width:0;margin:0}
+    .branding-image-preview{margin:0;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fff;text-align:center}
+    .branding-image-preview img{display:block;width:100%;height:auto;max-height:140px;object-fit:contain}
+    .branding-image-preview figcaption{margin-top:6px;color:var(--muted);font-size:13px}
+    @media(max-width:540px){.branding-image-setting{grid-template-columns:minmax(0,1fr)}.branding-image-preview{grid-row:1;max-width:220px}}
+  </style>
+{% endblock %}
 {% block content %}
   <div class="page-heading"><h1>Store settings</h1></div>
   <p class="muted">Set the name, header, introduction, and footer for your storefront. Images save to S3. Text is displayed as plain text. Configure the active coupon code and discount percentage below; leave the code blank to disable coupons.</p>
@@ -11,6 +21,16 @@
     {% for field in form %}
       {% if field.name == 'item_status_display' %}
       <fieldset><legend>Item status display</legend>{{ field }}<span class="helptext">{{ field.help_text }}</span>{{ field.errors }}</fieldset>
+      {% elif field.is_image_setting %}
+      <div class="branding-image-setting">
+        <div class="field">{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</div>
+        <figure class="branding-image-preview">
+          {% if field.current_image_url %}
+            <a href="{{ field.current_image_url }}" target="_blank" rel="noopener"><img src="{{ field.current_image_url }}" alt="Current {{ field.label|lower }}"></a>
+            <figcaption>Current image</figcaption>
+          {% else %}<figcaption>No image set</figcaption>{% endif %}
+        </figure>
+      </div>
       {% else %}<p>{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</p>{% endif %}
     {% endfor %}
     <button class="button primary" type="submit">Save store settings</button>
