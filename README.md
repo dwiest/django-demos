@@ -604,3 +604,78 @@ Migration `0012_productvariant_sale_price_and_more` adds nullable sale prices an
 a database constraint. Restart Django after installing. The schema-neutral
 workflow cannot apply this migration automatically. Coupon and shipping settings
 already present in the store are preserved.
+
+### Inventory REST API and transaction history
+
+The Inventory API uses DRF 3.14 (compatible with Python 3.7 / Django 3.2),
+session authentication with CSRF protection, or HTTP Basic authentication over
+HTTPS. All requests require a logged-in user and are scoped to that user's
+items, lists, and entries; the Bookmarks test-owner setting is not used.
+Install the package dependencies and add `rest_framework` to `INSTALLED_APPS`.
+Keep `dwiest.django.demos.inventory` installed as its existing separate app.
+
+Before deployment, back up the database. Inventory previously had no migrations
+in this repository. For an existing database with all three original Inventory
+tables, run `python manage.py migrate inventory 0001 --fake-initial`, then
+`python manage.py migrate inventory`. For a new database just run the latter.
+Verify the initial migration matches your existing schema first, including the
+host's primary-key type (`DEFAULT_AUTO_FIELD`); the supplied migrations preserve
+Django's original AutoField IDs. Do not fake the new ledger migration. Existing
+quantities are preserved; history begins with subsequent changes, whose `before`
+values record the existing balance. No historical transactions are invented.
+
+Routes below are relative to the existing Inventory mount plus `api/`:
+
+| Route | Methods | Purpose |
+| --- | --- | --- |
+| `items/`, `lists/` | GET, POST | List/search (`term`) or create catalog records |
+| `items/<id>/`, `lists/<id>/` | GET, PUT, PATCH | Retrieve or edit catalog records |
+| `entries/` | GET, POST | List/search or create stock entries with an initial ledger event |
+| `entries/<id>/` | GET | Retrieve a stock entry |
+| `entries/<id>/adjust/` | POST | Add, remove, or set quantity |
+| `entries/<id>/transactions/` | GET | Entry history |
+| `transactions/` | GET | User's history |
+
+Collections use Bookmarks-style pagination (`page`, `page_size`, maximum 100).
+Entries accept `item`, `inventory_list`, and `term` query filters. To create an
+entry, send `item` and `inventory_list` IDs, optional integer `quantity` (default
+1), and optional `status`. Catalog writes accept `name`, `description`, and
+`status`. Existing globally unique catalog names remain unchanged.
+
+Example adjustment body:
+
+```json
+{
+  "operation": "add",
+  "quantity": 3,
+  "idempotency_key": "grocery-trip-123-apples",
+  "source": "api",
+  "reference_id": "grocery-trip-123",
+  "metadata": {"confidence": 0.92}
+}
+```
+
+Operations are `add`, `remove`, and `set`; quantities are non-negative integers
+up to 2147483647 and cannot produce a negative balance. Adjustments require an
+idempotency key, unique per authenticated user. An identical retry returns the
+original transaction (including its original balance); reusing the key with a
+different body returns a validation error. Reads provide the current balance.
+Creation POSTs are not idempotent: check for an existing entry before retrying
+an uncertain create. Multiple entries for an item/list are still permitted to
+preserve the existing data model.
+
+The shared `inventory.services` functions apply quantity and ledger writes in
+one database transaction. The manual entry form uses the same service. History
+records actor, operation, before/after, source, reference, metadata, and time.
+Entries with history, and their referenced items/lists, are protected from hard
+deletion; use existing status fields to retire records. Entry reassignment is
+rejected to preserve ledger meaning. The API does not expose history edits or
+hard deletes. Direct ORM/admin/database writes bypass the service and should
+not be used for stock adjustments. Photo analysis and MCP integration are not
+part of this implementation.
+
+Run the isolated tests with:
+
+```sh
+python -m django test dwiest.django.demos.inventory --settings=dwiest.django.demos.inventory.test_settings
+```

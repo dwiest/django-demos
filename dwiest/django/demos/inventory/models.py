@@ -96,3 +96,22 @@ class InventoryEntry(BaseModel, OwnedModel):
 
 #  def inventory_list(self):
 #    return self.inventory_list.name
+
+
+class InventoryTransaction(models.Model):
+  """Append-only application ledger; protect referenced entries from deletion."""
+  entry = models.ForeignKey(InventoryEntry, on_delete=models.PROTECT, related_name='transactions')
+  actor = models.ForeignKey(User, on_delete=models.PROTECT)
+  operation = models.CharField(max_length=10)
+  quantity = models.PositiveIntegerField()
+  before = models.IntegerField()
+  after = models.IntegerField()
+  source = models.CharField(max_length=32, default='manual')
+  reference_id = models.CharField(max_length=128, blank=True)
+  metadata = models.JSONField(default=dict, blank=True)
+  idempotency_key = models.CharField(max_length=128, null=True, blank=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['-id']
+    constraints = [models.UniqueConstraint(fields=['actor', 'idempotency_key'], name='inventory_actor_request_unique')]
