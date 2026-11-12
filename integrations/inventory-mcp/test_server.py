@@ -18,7 +18,7 @@ class InventoryMCPTests(unittest.TestCase):
         self.env = patch.dict(os.environ, {
             'DJANGO_API_BASE_URL': 'https://example.test/inventory/api/',
             'DJANGO_API_AUTHORIZATION': 'Basic test-secret',
-            'MCP_AUTH_TOKEN': 'client-secret', 'PUBLIC_HOST': 'example.test',
+            'AUTH_MODE': 'static', 'MCP_AUTH_TOKEN': 'client-secret', 'PUBLIC_HOST': 'example.test',
         })
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -147,3 +147,4 @@ class InventoryMCPTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

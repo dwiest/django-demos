@@ -26,6 +26,10 @@ ledger edits, arbitrary URLs, owner overrides, photo analysis, or bulk writes.
 
 ## Configuration
 
+For browser OAuth using the existing Cognito pool, see [Cognito deployment](COGNITO.md).
+`AUTH_MODE` defaults to `static`, preserving the existing CLI setup.
+
+
 | Environment variable | Value |
 | --- | --- |
 | `DJANGO_API_BASE_URL` | `https://wiest.world/django/demos/inventory/api/` |
@@ -34,7 +38,7 @@ ledger edits, arbitrary URLs, owner overrides, photo analysis, or bulk writes.
 | `MCP_PATH` | Optional; defaults to `/api/inventory-mcp` |
 | `PUBLIC_HOST` | Public hostname serving MCP, e.g. `wiest.world` |
 
-Both authentication values are secrets: keep them out of git and client-visible
+In the default `AUTH_MODE=static`, both authentication values are secrets: keep them out of git and client-visible
 configuration. Set them through your existing secure Lambda configuration
 process. The inbound MCP bearer token is separate from outbound Django Basic
 Auth. Anyone with that MCP token can act as the configured Django user; this is
@@ -53,7 +57,7 @@ sanitized message. A timeout does not prove a write failed.
 From this directory:
 
 ```sh
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m unittest discover -s . -v
 .venv/bin/python build.py
@@ -126,3 +130,4 @@ requests through the Lambda handler, schema validation, API route mapping,
 partial updates, retry payload preservation, authentication, redirect rejection,
 and request size limits. Django HTTP is mocked; these tests do not claim live
 AWS, CloudFront, credentials, or production inventory validation.
+
