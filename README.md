@@ -614,15 +614,45 @@ items, lists, and entries; the Bookmarks test-owner setting is not used.
 Install the package dependencies and add `rest_framework` to `INSTALLED_APPS`.
 Keep `dwiest.django.demos.inventory` installed as its existing separate app.
 
-Before deployment, back up the database. Inventory previously had no migrations
-in this repository. For an existing database with all three original Inventory
-tables, run `python manage.py migrate inventory 0001 --fake-initial`, then
-`python manage.py migrate inventory`. For a new database just run the latter.
-Verify the initial migration matches your existing schema first, including the
-host's primary-key type (`DEFAULT_AUTO_FIELD`); the supplied migrations preserve
-Django's original AutoField IDs. Do not fake the new ledger migration. Existing
-quantities are preserved; history begins with subsequent changes, whose `before`
-values record the existing balance. No historical transactions are invented.
+Before deployment, back up the database. First identify your installed app layout.
+Do not change the app registration or rename existing stock tables during upgrade.
+
+**Existing umbrella app (the Wiest.World deployment):** if `INSTALLED_APPS` includes
+`dwiest.django.demos` and model introspection reports `app_label=demos` with
+`demos_inventoryentry`, use the parent app's migrations:
+
+```sh
+python manage.py showmigrations demos
+python manage.py migrate demos --plan
+python manage.py migrate demos
+```
+
+Migration `0007_inventory_baseline` records the three Inventory models in the
+parent app's migration state. It adopts existing tables after checking required
+column names, without rewriting rows or changing IDs, quantities, or column types.
+For a new database it creates those tables. Migration `0008_inventorytransaction`
+then creates `demos_inventorytransaction`. Do not fake these migrations.
+The baseline does not delete adopted tables on reversal; reversing the ledger
+migration deletes its history, so do not roll it back to undo stock changes.
+The legacy umbrella migration state uses BigAutoField, consistent with the
+parent's existing migrations; adoption does not convert existing primary keys.
+If the plan includes unexpected older pending migrations, review those before
+applying. This repository does not have your live schema or migration history.
+No standalone Inventory app entry is needed for this deployment.
+
+**Separate Inventory app:** only if `dwiest.django.demos.inventory` is already
+installed separately and models use `inventory_*` tables, verify the initial
+migration matches the existing schema and primary-key types. For existing tables,
+run `python manage.py migrate inventory 0001 --fake-initial`, then
+`python manage.py migrate inventory`. For a new database run the latter.
+Do not fake the ledger migration. Do not switch an umbrella deployment to this
+layout: it changes model labels and default table names.
+
+For both layouts, quantities are preserved; history begins with subsequent
+changes, whose `before` values record the existing balance. No historical
+transactions are invented. The EC2 installer checks for pending migrations but
+does not apply them automatically. Deploy the package, apply the appropriate
+migration path, then restart the Django service and verify history and writes.
 
 Routes below are relative to the existing Inventory mount plus `api/`:
 
