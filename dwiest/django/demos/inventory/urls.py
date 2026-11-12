@@ -1,10 +1,11 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
 from django.views.generic import TemplateView
 
 app_name = 'inventory'
 
 urlpatterns = [
+  path('api/', include('.api_urls', package=__package__)),
   path('',
     InventoryListHomeView.as_view(), name='home'),
   path('list_edit',
