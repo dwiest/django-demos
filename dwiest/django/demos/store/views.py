@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 from .forms import GuestOrderLookupForm
 from .guest_orders import make_token, read_order
 from django.core.paginator import Paginator
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 
 from django.contrib.auth.decorators import permission_required
@@ -38,12 +38,12 @@ PREFIX = 'dwiest-django-demos/store/'
 
 
 def page(request, template, **context):
-    context['store_branding'] = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    context.setdefault('store_branding', StoreBranding.objects.filter(pk=1).first() or StoreBranding())
     context.update(cart_context(request))
     return render(request, PREFIX + template, context)
 
 
-def home(request, slug=None):
+def home(request, slug=None, preview_branding=None):
     catalogs = Catalog.objects.filter(published=True)
     selected_slug = request.GET.get('category', slug or '')
     catalog = get_object_or_404(catalogs, slug=selected_slug) if selected_slug else None
@@ -84,7 +84,8 @@ def home(request, slug=None):
         products.sort(key=lambda p: p.name.lower())
     return page(request, 'home.html', catalogs=catalogs, catalog=catalog, products=products,
                 search=search, availability=availability, sort=sort,
-                cart_notice=request.session.pop('store_cart_notice', ''))
+                store_branding=preview_branding or StoreBranding.objects.filter(pk=1).first() or StoreBranding(),
+                cart_notice='' if preview_branding else request.session.pop('store_cart_notice', ''))
 
 
 def product(request, slug):
@@ -266,6 +267,55 @@ def delete_photo(request, pk, photo_pk):
 
 
 @permission_required('demo_store.change_storebranding', raise_exception=True)
+@require_POST
+@never_cache
+def branding_preview(request):
+    import base64
+    from types import SimpleNamespace
+
+    kind = request.POST.get('preview_kind')
+    if kind not in ('store', 'email'):
+        return JsonResponse({'errors': ['Choose a store or email preview.']}, status=400)
+    instance = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    form = StoreBrandingForm(request.POST, request.FILES, instance=instance)
+    if not form.is_valid():
+        errors = ['{}: {}'.format(form.fields[name].label or name.replace('_', ' ').capitalize(), error)
+                  if name in form.fields else str(error)
+                  for name, messages in form.errors.items() for error in messages]
+        return JsonResponse({'errors': errors}, status=400)
+    draft = form.save(commit=False)
+    for location in ('header', 'footer', 'email_header', 'email_footer', 'thank_you'):
+        image = form.cleaned_data.get(location + '_image')
+        if image:
+            url = 'data:{};base64,{}'.format(image['content_type'],
+                base64.b64encode(image['data']).decode('ascii'))
+        elif form.cleaned_data.get('remove_' + location + '_image'):
+            url = ''
+        else:
+            url = instance.image_url(location)
+        setattr(draft, location + '_image_url', url)
+    if kind == 'store':
+        response = home(request, preview_branding=draft)
+    else:
+        item = SimpleNamespace(product_name='Sample product', variant_name='Standard', quantity=1,
+                               subtotal=Decimal('20.00'))
+        shipping = draft.shipping_rate
+        order = SimpleNamespace(number='PREVIEW', items=SimpleNamespace(all=[item]),
+            subtotal=Decimal('20.00'), discount=0, shipping_cost=shipping, tax=0,
+            total=Decimal('20.00') + shipping, status='placed', get_status_display='Placed',
+            shipping_address=SimpleNamespace(name='Sample customer', line1='123 Example Street',
+                city='Raleigh', state='NC', postal_code='27601'), shipping_label=draft.shipping_estimate)
+        response = render(request, PREFIX + 'email/order_notification.html', {
+            'branding': draft, 'order': order, 'email_title': 'Order confirmation preview', 'initial_order': True})
+    # Keep preview links from navigating away from the draft. Forms and scripts
+    # are also disabled by the modal iframe's sandbox.
+    response.content = response.content.replace(b'</head>',
+        b'<style>a,button,input,select{pointer-events:none}</style></head>')
+    response['Cache-Control'] = 'no-store'
+    return response
+
+
+@permission_required('demo_store.change_storebranding', raise_exception=True)
 def branding(request):
     instance = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
     form = StoreBrandingForm(request.POST if request.method == 'POST' else None,
@@ -303,7 +353,24 @@ def branding(request):
         field.is_image_setting = True
         # Settings previews can use signed URLs even before public email media is configured.
         field.current_image_url = instance.image_url(location)
-    return page(request, 'branding.html', form=form,
+    section_fields = [
+        ('storefront', 'Storefront', ('name', 'item_status_display', 'tagline', 'introduction')),
+        ('header', 'Website header', ('header_image', 'remove_header_image', 'header_image_alt')),
+        ('footer', 'Website footer', ('footer_heading', 'footer_text', 'footer_image',
+            'remove_footer_image', 'footer_image_alt', 'footer_link_label', 'footer_link_url', 'copyright_text')),
+        ('shipping', 'Shipping', ('shipping_rate', 'free_shipping_threshold', 'shipping_estimate')),
+        ('discounts', 'Discounts', ('coupon_code', 'coupon_percent')),
+        ('policies', 'Contact & policies', ('contact_email', 'contact_policy', 'shipping_policy',
+            'returns_policy', 'privacy_policy', 'terms_policy')),
+        ('email', 'Order emails', ('email_header', 'email_header_image', 'remove_email_header_image',
+            'email_header_image_alt', 'email_footer_heading', 'email_footer', 'email_footer_image',
+            'remove_email_footer_image', 'email_footer_image_alt', 'email_shop_url', 'email_help_url')),
+        ('thank-you', 'Thank-you page', ('thank_you_heading', 'thank_you_message', 'thank_you_button_label',
+            'thank_you_image', 'remove_thank_you_image', 'thank_you_image_alt')),
+    ]
+    sections = [{'id': key, 'title': title, 'fields': [form[name] for name in names]}
+                for key, title, names in section_fields]
+    return page(request, 'branding.html', form=form, settings_sections=sections,
                 email_media_ready=bool(getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '')))
 
 

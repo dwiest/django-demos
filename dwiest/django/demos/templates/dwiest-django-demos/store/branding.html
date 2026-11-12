@@ -1,6 +1,18 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
 {% block extra_head %}
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/lightbox.v1.css' %}">
   <style>
+    .branding-preview-frame{width:100%;height:70vh;border:0;background:white}
+    .branding-preview-error{color:#a12626;white-space:pre-line}
+    .branding-settings-layout{display:grid;grid-template-columns:minmax(0,760px) 200px;gap:32px;align-items:start}
+    .branding-settings-layout .store-editor{min-width:0;width:100%}
+    .branding-section{scroll-margin-top:24px;border-top:1px solid var(--line);padding-top:8px;margin-bottom:32px}
+    .branding-jump-menu{position:sticky;top:24px;padding:16px;border:1px solid var(--line);border-radius:8px;background:#fff;max-height:calc(100vh - 48px);overflow-y:auto}
+    .branding-jump-menu h2{font-size:16px;margin:0 0 10px}
+    .branding-jump-menu a{display:block;padding:6px 0}
+    #settings-save{scroll-margin-top:24px}
+    @media(max-width:850px){.branding-settings-layout{grid-template-columns:minmax(0,1fr)}.branding-jump-menu{grid-row:1;position:static;max-height:none}.branding-jump-menu div{display:flex;flex-wrap:wrap;gap:4px 18px}}
     .branding-image-setting{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:20px;align-items:start;margin-bottom:18px}
     .branding-image-setting .field{min-width:0;margin:0}
     .branding-image-preview{margin:0;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fff;text-align:center}
@@ -15,10 +27,14 @@
   {% if not email_media_ready %}<p class="muted">Email images require a permanent HTTPS media base URL in the server setting STORE_MEDIA_PUBLIC_BASE_URL. Until configured, emails include text and omit images.</p>{% endif %}
   <p class="muted">Email artwork is separate from website artwork. Replaced images remain in S3 for older emails.</p>
   <p class="muted">Policy fields accept plain text; blank fields use generic starting statements. Review shipping, returns, privacy, terms, and contact details before taking live orders. Store credit is discretionary; no credit balance or redemption system is included.</p>
+  <div class="branding-settings-layout">
   <form method="post" enctype="multipart/form-data" class="store-form store-editor">
     {% csrf_token %}
     {{ form.non_field_errors }}
-    {% for field in form %}
+    {% for section in settings_sections %}
+    <section id="settings-{{ section.id }}" class="branding-section" aria-labelledby="settings-{{ section.id }}-title">
+      <h2 id="settings-{{ section.id }}-title">{{ section.title }}</h2>
+    {% for field in section.fields %}
       {% if field.name == 'item_status_display' %}
       <fieldset><legend>Item status display</legend>{{ field }}<span class="helptext">{{ field.help_text }}</span>{{ field.errors }}</fieldset>
       {% elif field.is_image_setting %}
@@ -33,7 +49,29 @@
       </div>
       {% else %}<p>{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</p>{% endif %}
     {% endfor %}
+    </section>
+    {% endfor %}
+    <div id="settings-save">
     <button class="button primary" type="submit">Save store settings</button>
     <a class="button secondary" href="{% url 'demos:store:home' %}">Cancel</a>
+    </div>
   </form>
+  <nav class="branding-jump-menu" aria-label="Settings sections">
+    <button type="button" class="button secondary" data-branding-preview="store">Preview store</button>
+    <button type="button" class="button secondary" data-branding-preview="email">Preview email</button>
+    <p class="muted">Previews use unsaved changes.</p>
+    <p class="branding-preview-error" role="alert" data-preview-error></p>
+    <h2>Jump to section</h2>
+    <div>
+      {% for section in settings_sections %}<a href="#settings-{{ section.id }}">{{ section.title }}</a>{% endfor %}
+      <a href="#settings-save">Save settings</a>
+    </div>
+  </nav>
+  </div>
+  <dialog class="store-lightbox" data-branding-dialog aria-labelledby="branding-preview-title" data-preview-url="{% url 'demos:store:branding_preview' %}">
+    <header class="store-lightbox-header"><h2 id="branding-preview-title">Preview</h2><button type="button" class="store-lightbox-control" data-preview-close aria-label="Close preview" autofocus>×</button></header>
+    <iframe class="branding-preview-frame" title="Unsaved settings preview" sandbox=""></iframe>
+    <footer class="store-lightbox-footer"><small>Unsaved preview · Close this window to continue editing. No email is sent.</small></footer>
+  </dialog>
+  <script src="{% static 'dwiest-django-demos/store/branding-preview.v1.js' %}" defer></script>
 {% endblock %}
