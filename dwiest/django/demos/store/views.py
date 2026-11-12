@@ -303,7 +303,24 @@ def branding(request):
         field.is_image_setting = True
         # Settings previews can use signed URLs even before public email media is configured.
         field.current_image_url = instance.image_url(location)
-    return page(request, 'branding.html', form=form,
+    section_fields = [
+        ('storefront', 'Storefront', ('name', 'item_status_display', 'tagline', 'introduction')),
+        ('header', 'Website header', ('header_image', 'remove_header_image', 'header_image_alt')),
+        ('footer', 'Website footer', ('footer_heading', 'footer_text', 'footer_image',
+            'remove_footer_image', 'footer_image_alt', 'footer_link_label', 'footer_link_url', 'copyright_text')),
+        ('shipping', 'Shipping', ('shipping_rate', 'free_shipping_threshold', 'shipping_estimate')),
+        ('discounts', 'Discounts', ('coupon_code', 'coupon_percent')),
+        ('policies', 'Contact & policies', ('contact_email', 'contact_policy', 'shipping_policy',
+            'returns_policy', 'privacy_policy', 'terms_policy')),
+        ('email', 'Order emails', ('email_header', 'email_header_image', 'remove_email_header_image',
+            'email_header_image_alt', 'email_footer_heading', 'email_footer', 'email_footer_image',
+            'remove_email_footer_image', 'email_footer_image_alt', 'email_shop_url', 'email_help_url')),
+        ('thank-you', 'Thank-you page', ('thank_you_heading', 'thank_you_message', 'thank_you_button_label',
+            'thank_you_image', 'remove_thank_you_image', 'thank_you_image_alt')),
+    ]
+    sections = [{'id': key, 'title': title, 'fields': [form[name] for name in names]}
+                for key, title, names in section_fields]
+    return page(request, 'branding.html', form=form, settings_sections=sections,
                 email_media_ready=bool(getattr(settings, 'STORE_MEDIA_PUBLIC_BASE_URL', '')))
 
 

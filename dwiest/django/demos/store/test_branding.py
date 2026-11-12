@@ -197,6 +197,18 @@ class BrandingTests(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, '<figcaption>No image set</figcaption>', count=5)
 
+    def test_settings_sections_include_every_field_once_and_matching_jump_links(self):
+        response = self.client.get(self.url)
+        sections = response.context['settings_sections']
+        names = [field.name for section in sections for field in section['fields']]
+        self.assertCountEqual(names, list(response.context['form'].fields))
+        self.assertEqual(len(names), len(set(names)))
+        for section in sections:
+            self.assertContains(response, 'href="#settings-{}"'.format(section['id']))
+            self.assertContains(response, '<section id="settings-{}"'.format(section['id']))
+        self.assertContains(response, 'href="#settings-save"')
+        self.assertContains(response, 'id="settings-save"')
+
     def test_status_display_modes_save(self):
         for mode in ['all', 'unavailable', 'none']:
             response = self.client.post(self.url, {**self.data, 'item_status_display': mode})
