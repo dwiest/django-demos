@@ -43,6 +43,18 @@ class Product(models.Model):
         return any(variant.purchasable for variant in variants)
 
     @property
+    def availability(self):
+        variants = getattr(self, 'available_variants', None)
+        if variants is None:
+            variants = self.variants.filter(active=True)
+        variants = list(variants)
+        if any(v.purchasable for v in variants):
+            return 'Available to order'
+        if variants and all(v.coming_soon for v in variants):
+            return 'Coming soon'
+        return 'Sold out'
+
+    @property
     def cover_photo(self):
         return next(iter(self.photos.all()), None)
 
@@ -176,7 +188,9 @@ class ProductPhotoVersion(models.Model):
 class StoreBranding(models.Model):
     """One storefront configuration; image bytes remain in S3."""
     name = models.CharField(max_length=100, default='Oddment Supply')
-    show_item_status = models.BooleanField(default=True, help_text='Show availability badges and option status labels on catalog and product pages.')
+    item_status_display = models.CharField(max_length=12, default='unavailable', choices=[
+        ('all', 'All statuses'), ('unavailable', 'Unavailable items only'), ('none', 'Hide all statuses')],
+        help_text='Unavailable items only shows Sold out and Coming soon; purchase restrictions always apply.')
     tagline = models.CharField(max_length=180, default='Good finds. A little unexpected.')
     introduction = models.TextField(blank=True, default='Explore the collection and find your next favorite.')
     header_image_bucket = models.CharField(max_length=255, blank=True, editable=False)

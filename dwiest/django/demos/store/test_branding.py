@@ -21,7 +21,7 @@ class BrandingTests(TestCase):
         self.s3.generate_presigned_url.side_effect = lambda op, Params, **kw: 'https://s3.example/'+Params['Key']
         self.addCleanup(self.s3_patch.stop)
         self.url = reverse('demos:store:branding')
-        self.data = {'shipping_rate': '6.95', 'shipping_estimate': '', 'name': 'My store', 'tagline': 'Unexpected finds', 'introduction': 'Welcome here',
+        self.data = {'item_status_display': 'unavailable', 'shipping_rate': '6.95', 'shipping_estimate': '', 'name': 'My store', 'tagline': 'Unexpected finds', 'introduction': 'Welcome here',
                      'footer_heading': 'Stay curious', 'footer_text': 'Made for you',
                      'contact_email': 'hello@example.com', 'footer_link_label': 'About',
                      'footer_link_url': 'https://example.com/about', 'copyright_text': 'All ours', 'coupon_code': 'DISCOUNT', 'coupon_percent': '5'}
@@ -174,3 +174,9 @@ class BrandingTests(TestCase):
         self.assertEqual(branding.thank_you_heading, 'Thank you for your order!')
         self.assertEqual(branding.thank_you_button_label, 'Continue shopping')
         self.assertEqual(branding.thank_you_message, '')
+
+    def test_status_display_modes_save(self):
+        for mode in ['all', 'unavailable', 'none']:
+            response = self.client.post(self.url, {**self.data, 'item_status_display': mode})
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(StoreBranding.objects.get(pk=1).item_status_display, mode)
