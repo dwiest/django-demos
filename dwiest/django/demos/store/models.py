@@ -176,6 +176,7 @@ class ProductPhotoVersion(models.Model):
 class StoreBranding(models.Model):
     """One storefront configuration; image bytes remain in S3."""
     name = models.CharField(max_length=100, default='Oddment Supply')
+    show_item_status = models.BooleanField(default=True, help_text='Show availability badges and option status labels on catalog and product pages.')
     tagline = models.CharField(max_length=180, default='Good finds. A little unexpected.')
     introduction = models.TextField(blank=True, default='Explore the collection and find your next favorite.')
     header_image_bucket = models.CharField(max_length=255, blank=True, editable=False)
