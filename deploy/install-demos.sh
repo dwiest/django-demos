@@ -16,7 +16,16 @@ cd "$PROJECT_DIR"
 "$python" -c 'import sys, django; assert sys.version_info[:2] == (3, 7); assert django.VERSION[:2] == (3, 2)'
 # Validate the replacement application only after installation so broken URLs
 # in the installed release cannot block their own repair.
-sudo -n /usr/bin/systemctl is-active --quiet django.service
+if sudo -n /usr/bin/systemctl is-active --quiet django.service; then
+  echo 'Django service is active; preparing deployment.'
+else
+  service_status=$?
+  if [[ $service_status != 3 ]]; then
+    echo "Unable to check Django service (exit $service_status)." >&2
+    exit "$service_status"
+  fi
+  echo 'Django service is inactive or failed; continuing recovery deployment.'
+fi
 backup="$HOME/django-deploy-backups/$(date -u +%Y%m%dT%H%M%SZ)-$commit"
 mkdir -p "$backup"
 chmod 700 "$backup"
