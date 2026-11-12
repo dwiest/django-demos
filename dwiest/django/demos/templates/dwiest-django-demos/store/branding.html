@@ -1,6 +1,10 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
 {% block extra_head %}
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/lightbox.v1.css' %}">
   <style>
+    .branding-preview-frame{width:100%;height:70vh;border:0;background:white}
+    .branding-preview-error{color:#a12626;white-space:pre-line}
     .branding-settings-layout{display:grid;grid-template-columns:minmax(0,760px) 200px;gap:32px;align-items:start}
     .branding-settings-layout .store-editor{min-width:0;width:100%}
     .branding-section{scroll-margin-top:24px;border-top:1px solid var(--line);padding-top:8px;margin-bottom:32px}
@@ -53,6 +57,10 @@
     </div>
   </form>
   <nav class="branding-jump-menu" aria-label="Settings sections">
+    <button type="button" class="button secondary" data-branding-preview="store">Preview store</button>
+    <button type="button" class="button secondary" data-branding-preview="email">Preview email</button>
+    <p class="muted">Previews use unsaved changes.</p>
+    <p class="branding-preview-error" role="alert" data-preview-error></p>
     <h2>Jump to section</h2>
     <div>
       {% for section in settings_sections %}<a href="#settings-{{ section.id }}">{{ section.title }}</a>{% endfor %}
@@ -60,4 +68,10 @@
     </div>
   </nav>
   </div>
+  <dialog class="store-lightbox" data-branding-dialog aria-labelledby="branding-preview-title" data-preview-url="{% url 'demos:store:branding_preview' %}">
+    <header class="store-lightbox-header"><h2 id="branding-preview-title">Preview</h2><button type="button" class="store-lightbox-control" data-preview-close aria-label="Close preview" autofocus>×</button></header>
+    <iframe class="branding-preview-frame" title="Unsaved settings preview" sandbox=""></iframe>
+    <footer class="store-lightbox-footer"><small>Unsaved preview · Close this window to continue editing. No email is sent.</small></footer>
+  </dialog>
+  <script src="{% static 'dwiest-django-demos/store/branding-preview.v1.js' %}" defer></script>
 {% endblock %}

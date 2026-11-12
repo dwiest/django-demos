@@ -209,6 +209,50 @@ class BrandingTests(TestCase):
         self.assertContains(response, 'href="#settings-save"')
         self.assertContains(response, 'id="settings-save"')
 
+    def test_previews_render_unsaved_text_and_uploads_without_side_effects(self):
+        from django.core import mail
+        saved = StoreBranding.objects.create(name='Live store', header_image_bucket='rotten.world',
+            header_image_key='old-header.png', email_header_image_bucket='rotten.world',
+            email_header_image_key='old-email.png')
+        url = reverse('demos:store:branding_preview')
+        for kind, image_field in [('store', 'header_image'), ('email', 'email_header_image')]:
+            response = self.client.post(url, {**self.data, 'preview_kind': kind,
+                'name': 'Unsaved store', 'email_header': 'Unsaved masthead', image_field: image_upload()})
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'data:image/png;base64,')
+            self.assertContains(response, 'Unsaved store' if kind == 'store' else 'Unsaved masthead')
+            self.assertIn('no-store', response['Cache-Control'])
+            saved.refresh_from_db()
+            self.assertEqual(saved.name, 'Live store')
+            self.assertEqual(saved.header_image_key, 'old-header.png')
+            self.assertEqual(saved.email_header_image_key, 'old-email.png')
+        self.s3.put_object.assert_not_called()
+        self.s3.delete_object.assert_not_called()
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_preview_removes_images_and_escapes_text_without_saving(self):
+        StoreBranding.objects.create(header_image_bucket='rotten.world', header_image_key='old-header.png')
+        response = self.client.post(reverse('demos:store:branding_preview'), {**self.data,
+            'preview_kind': 'store', 'remove_header_image': 'on', 'tagline': '<script>bad()</script>'})
+        self.assertContains(response, '&lt;script&gt;bad()&lt;/script&gt;')
+        self.assertNotContains(response, 'old-header.png')
+        self.assertEqual(StoreBranding.objects.get().header_image_key, 'old-header.png')
+
+    def test_preview_validation_permissions_csrf_and_method(self):
+        url = reverse('demos:store:branding_preview')
+        self.assertEqual(self.client.get(url).status_code, 405)
+        response = self.client.post(url, {**self.data, 'preview_kind': 'store', 'name': ''})
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(response.json()['errors'])
+        self.assertEqual(self.client.post(url, {**self.data, 'preview_kind': 'other'}).status_code, 400)
+        strict = Client(enforce_csrf_checks=True)
+        strict.force_login(self.manager)
+        self.assertEqual(strict.post(url, {**self.data, 'preview_kind': 'store'}).status_code, 403)
+        customer = get_user_model().objects.create_user(username='preview-customer')
+        self.client.force_login(customer)
+        self.assertEqual(self.client.post(url, {**self.data, 'preview_kind': 'email'}).status_code, 403)
+        self.assertFalse(StoreBranding.objects.exists())
+
     def test_status_display_modes_save(self):
         for mode in ['all', 'unavailable', 'none']:
             response = self.client.post(self.url, {**self.data, 'item_status_display': mode})

@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 from .forms import GuestOrderLookupForm
 from .guest_orders import make_token, read_order
 from django.core.paginator import Paginator
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 
 from django.contrib.auth.decorators import permission_required
@@ -38,12 +38,12 @@ PREFIX = 'dwiest-django-demos/store/'
 
 
 def page(request, template, **context):
-    context['store_branding'] = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    context.setdefault('store_branding', StoreBranding.objects.filter(pk=1).first() or StoreBranding())
     context.update(cart_context(request))
     return render(request, PREFIX + template, context)
 
 
-def home(request, slug=None):
+def home(request, slug=None, preview_branding=None):
     catalogs = Catalog.objects.filter(published=True)
     selected_slug = request.GET.get('category', slug or '')
     catalog = get_object_or_404(catalogs, slug=selected_slug) if selected_slug else None
@@ -84,7 +84,8 @@ def home(request, slug=None):
         products.sort(key=lambda p: p.name.lower())
     return page(request, 'home.html', catalogs=catalogs, catalog=catalog, products=products,
                 search=search, availability=availability, sort=sort,
-                cart_notice=request.session.pop('store_cart_notice', ''))
+                store_branding=preview_branding or StoreBranding.objects.filter(pk=1).first() or StoreBranding(),
+                cart_notice='' if preview_branding else request.session.pop('store_cart_notice', ''))
 
 
 def product(request, slug):
@@ -263,6 +264,55 @@ def delete_photo(request, pk, photo_pk):
     photo = get_object_or_404(ProductPhoto, pk=photo_pk, product_id=pk)
     photo.delete()
     return redirect('demos:store:product_edit', pk=pk)
+
+
+@permission_required('demo_store.change_storebranding', raise_exception=True)
+@require_POST
+@never_cache
+def branding_preview(request):
+    import base64
+    from types import SimpleNamespace
+
+    kind = request.POST.get('preview_kind')
+    if kind not in ('store', 'email'):
+        return JsonResponse({'errors': ['Choose a store or email preview.']}, status=400)
+    instance = StoreBranding.objects.filter(pk=1).first() or StoreBranding()
+    form = StoreBrandingForm(request.POST, request.FILES, instance=instance)
+    if not form.is_valid():
+        errors = ['{}: {}'.format(form.fields[name].label or name.replace('_', ' ').capitalize(), error)
+                  if name in form.fields else str(error)
+                  for name, messages in form.errors.items() for error in messages]
+        return JsonResponse({'errors': errors}, status=400)
+    draft = form.save(commit=False)
+    for location in ('header', 'footer', 'email_header', 'email_footer', 'thank_you'):
+        image = form.cleaned_data.get(location + '_image')
+        if image:
+            url = 'data:{};base64,{}'.format(image['content_type'],
+                base64.b64encode(image['data']).decode('ascii'))
+        elif form.cleaned_data.get('remove_' + location + '_image'):
+            url = ''
+        else:
+            url = instance.image_url(location)
+        setattr(draft, location + '_image_url', url)
+    if kind == 'store':
+        response = home(request, preview_branding=draft)
+    else:
+        item = SimpleNamespace(product_name='Sample product', variant_name='Standard', quantity=1,
+                               subtotal=Decimal('20.00'))
+        shipping = draft.shipping_rate
+        order = SimpleNamespace(number='PREVIEW', items=SimpleNamespace(all=[item]),
+            subtotal=Decimal('20.00'), discount=0, shipping_cost=shipping, tax=0,
+            total=Decimal('20.00') + shipping, status='placed', get_status_display='Placed',
+            shipping_address=SimpleNamespace(name='Sample customer', line1='123 Example Street',
+                city='Raleigh', state='NC', postal_code='27601'), shipping_label=draft.shipping_estimate)
+        response = render(request, PREFIX + 'email/order_notification.html', {
+            'branding': draft, 'order': order, 'email_title': 'Order confirmation preview', 'initial_order': True})
+    # Keep preview links from navigating away from the draft. Forms and scripts
+    # are also disabled by the modal iframe's sandbox.
+    response.content = response.content.replace(b'</head>',
+        b'<style>a,button,input,select{pointer-events:none}</style></head>')
+    response['Cache-Control'] = 'no-store'
+    return response
 
 
 @permission_required('demo_store.change_storebranding', raise_exception=True)
