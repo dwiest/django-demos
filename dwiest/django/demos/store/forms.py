@@ -126,7 +126,7 @@ class StoreBrandingForm(forms.ModelForm):
 
     class Meta:
         model = StoreBranding
-        fields = ['shipping_rate', 'free_shipping_threshold', 'shipping_estimate', 'name', 'tagline', 'introduction', 'header_image_alt',
+        fields = ['shipping_rate', 'free_shipping_threshold', 'shipping_estimate', 'name', 'show_item_status', 'tagline', 'introduction', 'header_image_alt',
                   'footer_heading', 'footer_text', 'footer_image_alt', 'contact_email',
                   'shipping_policy', 'returns_policy', 'privacy_policy', 'terms_policy', 'contact_policy',
                   'footer_link_label', 'footer_link_url', 'copyright_text', 'coupon_code', 'coupon_percent', 'email_header', 'email_footer', 'email_header_image_alt', 'email_footer_image_alt', 'email_footer_heading', 'email_shop_url', 'email_help_url', 'thank_you_image_alt', 'thank_you_heading', 'thank_you_message', 'thank_you_button_label']

@@ -8,7 +8,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .cart import KEY
-from .models import Catalog, Product, ProductVariant
+from .models import Catalog, Product, ProductVariant, StoreBranding
 
 
 class StoreTests(TestCase):
@@ -191,3 +191,22 @@ class StoreTests(TestCase):
         response = self.client.get(self.url('catalog', 'hats'), {'category': ''})
         self.assertIsNone(response.context['catalog'])
         self.assertEqual(len(response.context['products']), 2)
+
+    def test_status_visibility_setting_preserves_purchase_rules(self):
+        branding = StoreBranding.objects.create(pk=1, show_item_status=False)
+        self.variant.fulfillment_method = 'stock'
+        self.variant.save()
+        for name, args in [('home', ()), ('catalog', ('hats',)), ('product', ('hat',))]:
+            response = self.client.get(self.url(name, *args))
+            self.assertNotContains(response, 'class="store-availability"')
+            self.assertNotContains(response, ' · Sold out')
+            self.assertNotContains(response, 'Demo checkout available')
+            self.assertContains(response, 'disabled')
+        response = self.add()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(str(self.variant.pk), self.client.session.get(KEY, {}))
+        branding.show_item_status = True
+        branding.save()
+        response = self.client.get(self.url('product', 'hat'))
+        self.assertContains(response, 'class="store-availability"')
+        self.assertContains(response, ' · Sold out')
