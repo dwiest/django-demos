@@ -2,7 +2,7 @@
   const dialog = document.querySelector('[data-branding-dialog]');
   if (!dialog) return;
   const form = document.querySelector('.branding-settings-layout form');
-  const frame = dialog.querySelector('iframe');
+  let frame = dialog.querySelector('iframe');
   const error = document.querySelector('[data-preview-error]');
   const buttons = [...document.querySelectorAll('[data-branding-preview]')];
   let opener;
@@ -23,7 +23,12 @@
       }
       const html = await response.text();
       // Sandboxing disables scripts, forms and navigation inside the draft.
-      frame.srcdoc = html;
+      // Use a new browsing context for every draft, including identical previews.
+      // Reusing a hidden srcdoc frame can leave it showing the blank close document.
+      const nextFrame = frame.cloneNode(false);
+      nextFrame.srcdoc = html;
+      frame.replaceWith(nextFrame);
+      frame = nextFrame;
       document.querySelector('#branding-preview-title').textContent = button.dataset.brandingPreview === 'store' ? 'Store preview' : 'Email preview';
       opener = button;
       dialog.showModal();
@@ -35,5 +40,5 @@
   }));
   dialog.querySelector('[data-preview-close]').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
-  dialog.addEventListener('close', () => { frame.srcdoc = ''; if (opener) opener.focus(); });
+  dialog.addEventListener('close', () => { frame.removeAttribute('srcdoc'); if (opener) opener.focus(); });
 })();
