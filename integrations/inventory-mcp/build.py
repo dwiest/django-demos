@@ -20,7 +20,8 @@ def main():
             '--python-version', '3.12', '--abi', 'cp312',
             '--target', str(stage), '-r', str(ROOT / 'requirements.txt'),
         ], check=True)
-        shutil.copy2(ROOT / 'lambda_function.py', stage / 'lambda_function.py')
+        for name in ('lambda_function.py', 'cognito_auth.py'):
+            shutil.copy2(ROOT / name, stage / name)
         with zipfile.ZipFile(OUTPUT, 'w', zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(stage.rglob('*')):
                 if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
@@ -30,3 +31,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

@@ -12,6 +12,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
+import cognito_auth
 import anyio
 from mangum import Mangum
 from mcp.server.fastmcp import FastMCP
@@ -266,14 +267,35 @@ def make_app(event, context):
 
 
 def lambda_handler(event, context):
-    token = os.environ.get("MCP_AUTH_TOKEN", "")
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
-    if not token:
-        return http_response(503, {"error": "mcp_auth_not_configured"})
-    if not hmac.compare_digest(headers.get("authorization", ""), "Bearer " + token):
-        return http_response(401, {"error": "unauthorized"}, {"WWW-Authenticate": "Bearer"})
     method = event.get("requestContext", {}).get("http", {}).get("method", "")
     path = event.get("rawPath", "")
+    mode = os.environ.get("AUTH_MODE", "static")
+    if mode == "cognito":
+        try:
+            metadata = cognito_auth.discovery()
+            auth_metadata = cognito_auth.authorization_metadata()
+            if path == '/.well-known/oauth-authorization-server':
+                if method != 'GET':
+                    return http_response(405, {'error': 'method_not_allowed'}, {'Allow': 'GET'})
+                return http_response(200, auth_metadata, {'Access-Control-Allow-Origin': '*'})
+            if path in (cognito_auth.metadata_path(metadata['resource']),
+                        '/.well-known/oauth-protected-resource'):
+                if method != 'GET':
+                    return http_response(405, {'error': 'method_not_allowed'}, {'Allow': 'GET'})
+                return http_response(200, metadata, {'Access-Control-Allow-Origin': '*'})
+            cognito_auth.verify(headers.get('authorization', ''))
+        except cognito_auth.AuthError as exc:
+            challenge = cognito_auth.challenge(exc.code) if exc.status in (401, 403) else {}
+            return http_response(exc.status, {'error': exc.code}, challenge)
+    elif mode == "static":
+        token = os.environ.get("MCP_AUTH_TOKEN", "")
+        if not token:
+            return http_response(503, {"error": "mcp_auth_not_configured"})
+        if not hmac.compare_digest(headers.get("authorization", ""), "Bearer " + token):
+            return http_response(401, {"error": "unauthorized"}, {"WWW-Authenticate": "Bearer"})
+    else:
+        return http_response(503, {'error': 'invalid_auth_mode'})
     if path.rstrip("/") != PATH.rstrip("/"):
         return http_response(404, {"error": "route_not_found", "mcpPath": PATH})
     if method in ("GET", "DELETE"):
@@ -305,3 +327,4 @@ def lambda_handler(event, context):
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
         asyncio.set_event_loop(None)
+
