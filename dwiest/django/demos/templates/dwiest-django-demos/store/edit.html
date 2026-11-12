@@ -1,11 +1,33 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/lightbox.v1.css' %}">
+  <style>
+    .item-preview-frame{width:100%;height:70vh;border:0;background:white}
+    .item-preview-error{color:#a12626;white-space:pre-line}
+    .item-editor-layout{display:grid;grid-template-columns:minmax(0,760px) 200px;gap:32px;align-items:start}
+    .item-editor-content{min-width:0}
+    .item-editor-content .store-editor{min-width:0;width:100%}
+    .item-editor-section{scroll-margin-top:80px}
+    .item-editor-menu{position:sticky;top:80px;padding:16px;border:1px solid var(--line);border-radius:8px;background:#fff;max-height:calc(100vh - 104px);overflow-y:auto}
+    .item-editor-menu h2{font-size:16px;margin:0 0 10px}
+    .item-editor-menu a{display:block;padding:6px 0}
+    @media(max-width:850px){.item-editor-layout{grid-template-columns:minmax(0,1fr)}.item-editor-menu{grid-row:1;position:static;max-height:none}.item-editor-menu div{display:flex;flex-wrap:wrap;gap:4px 18px}}
+  </style>
+{% endblock %}
 {% block content %}
   <div class="page-heading"><h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} {{ kind }}</h1></div>
+  <div class="item-editor-layout">
+  <div class="item-editor-content">
   <form method="post" class="store-form store-editor">
     {% csrf_token %}
-    {{ form.as_p }}
+    <section id="item-details" class="item-editor-section" aria-labelledby="item-details-heading">
+      <h2 id="item-details-heading">{{ kind|capfirst }} details</h2>
+      {{ form.as_p }}
+    </section>
     {% if variants %}
-      <h2>Variants and prices (USD)</h2>
+    <section id="item-variants" class="item-editor-section" aria-labelledby="item-variants-heading">
+      <h2 id="item-variants-heading">Variants and prices (USD)</h2>
       <p class="muted">Use one Standard variant for products without options. Save and reopen the product to add more variants.</p>
       {{ variants.management_form }}
       {{ variants.non_form_errors }}
@@ -15,14 +37,15 @@
           {{ variant_form.as_p }}
         </fieldset>
       {% endfor %}
+    </section>
     {% endif %}
-    <div class="store-catalogs">
+    <div id="item-save" class="store-catalogs item-editor-section">
       <button class="button primary" type="submit">Save {{ kind }}</button>
       <a class="button secondary" href="{% url 'demos:store:manage' %}">Cancel</a>
     </div>
   </form>
   {% if kind == 'product' %}
-    <section class="store-photo-editor" aria-labelledby="photos-heading">
+    <section id="item-photos" class="store-photo-editor item-editor-section" aria-labelledby="photos-heading">
       <h2 id="photos-heading">Product photos</h2>
       {% if form.instance.pk %}
         <p class="muted">Photos marked 0 appear as selectable featured images in the catalog. The first photo is the default cover. Photos save separately from product details.</p>
@@ -52,5 +75,29 @@
         </div>
       {% else %}<p>Save the product first, then reopen it to upload photos.</p>{% endif %}
     </section>
+  {% endif %}
+  </div>
+  <nav class="item-editor-menu" aria-label="{{ kind|capfirst }} editor sections">
+    {% if kind == 'product' %}
+      <button type="button" class="button secondary" data-item-preview>Preview item</button>
+      <p class="muted">Preview unsaved changes. Photos save separately.</p>
+      <p class="item-preview-error" role="alert" data-preview-error></p>
+    {% endif %}
+    <h2>Jump to section</h2>
+    <div>
+      <a href="#item-details">{{ kind|capfirst }} details</a>
+      {% if variants %}<a href="#item-variants">Variants &amp; prices</a>{% endif %}
+      {% if kind == 'product' %}<a href="#item-photos">Product photos</a>{% endif %}
+      <a href="#item-save">Save {{ kind }}</a>
+    </div>
+  </nav>
+  </div>
+  {% if kind == 'product' %}
+  <dialog class="store-lightbox" data-item-preview-dialog aria-labelledby="item-preview-title" data-preview-url="{{ request.path }}">
+    <header class="store-lightbox-header"><h2 id="item-preview-title">Item preview</h2><button type="button" class="store-lightbox-control" data-preview-close aria-label="Close preview" autofocus>×</button></header>
+    <iframe class="item-preview-frame" title="Unsaved item preview" sandbox=""></iframe>
+    <footer class="store-lightbox-footer"><small>Unsaved preview · Close this window to continue editing.</small></footer>
+  </dialog>
+  <script src="{% static 'dwiest-django-demos/store/item-preview.v1.js' %}" defer></script>
   {% endif %}
 {% endblock %}

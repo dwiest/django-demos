@@ -31,6 +31,37 @@ class StoreTests(TestCase):
         return self.client.post(self.url('add', self.product.slug), {
             'variant': (variant or self.variant).pk, 'quantity': quantity})
 
+    def test_item_preview_uses_draft_without_saving(self):
+        self.client.force_login(self.manager)
+        data = {'preview_kind': 'item', 'name': '<Draft hat>', 'slug': 'draft-hat',
+                'description': 'Unsaved description', 'published': '',
+                'variants-TOTAL_FORMS': '1', 'variants-INITIAL_FORMS': '1',
+                'variants-0-id': str(self.variant.pk), 'variants-0-product': str(self.product.pk),
+                'variants-0-name': 'Unsaved option', 'variants-0-sku': 'HAT',
+                'variants-0-price': '30.00', 'variants-0-sale_price': '22.00',
+                'variants-0-active': 'on', 'variants-0-fulfillment_method': 'pod'}
+        for _ in range(2):
+            response = self.client.post(self.url('product_edit', self.product.pk), data)
+            self.assertContains(response, '&lt;Draft hat&gt;')
+            self.assertContains(response, 'Unsaved option')
+            self.assertContains(response, '$22.00')
+            self.assertNotContains(response, '<script')
+            self.assertEqual(response['Cache-Control'], 'no-store')
+        self.product.refresh_from_db()
+        self.variant.refresh_from_db()
+        self.assertEqual(self.product.name, 'Hat')
+        self.assertEqual(self.variant.price, Decimal('25.10'))
+        data['variants-INITIAL_FORMS'] = '0'
+        data.pop('variants-0-id')
+        data.pop('variants-0-product')
+        data['variants-0-sku'] = 'NEW-DRAFT'
+        self.assertContains(self.client.post(self.url('product_create'), data), 'Unsaved option')
+        self.assertFalse(Product.objects.filter(slug='draft-hat').exists())
+        data['variants-0-price'] = '-1'
+        self.assertEqual(self.client.post(self.url('product_create'), data).status_code, 400)
+        self.client.force_login(self.customer)
+        self.assertEqual(self.client.post(self.url('product_create'), data).status_code, 403)
+
     def test_browsing_catalog_filter_and_draft_visibility(self):
         response = self.client.get(self.url('home'))
         self.assertContains(response, 'Hat')
