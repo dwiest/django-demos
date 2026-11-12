@@ -24,7 +24,7 @@
     </section>
     <section>
       <h1>{{ product.name }}</h1>
-      {% if store_branding.show_item_status %}<div class="store-availability">{% if product.has_purchasable_variants %}<span class="store-status store-status-stock">✓ Available to order</span>{% else %}<span class="store-status store-status-soon">✧ Check options below for availability</span>{% endif %}</div>{% endif %}
+      {% if store_branding.item_status_display == 'all' or store_branding.item_status_display == 'unavailable' and not product.has_purchasable_variants %}<div class="store-availability">{% if product.has_purchasable_variants %}<span class="store-status store-status-stock">✓ Available to order</span>{% else %}<span class="store-status {% if product.availability == 'Coming soon' %}store-status-soon{% else %}store-status-out{% endif %}">{{ product.availability }}</span>{% endif %}</div>{% endif %}
       <div class="store-description">{{ product.description|linebreaks }}</div>
       {% if form.fields.variant.queryset %}
         <form method="post" action="{% url 'demos:store:add' product.slug %}" class="store-form store-purchase-form" data-variant-selection="{{ product.pk }}" data-bound="{{ form.is_bound|yesno:'true,false' }}">
@@ -34,7 +34,7 @@
             <label for="{{ form.variant.id_for_label }}">Option and price (USD)</label>
             <select id="{{ form.variant.id_for_label }}" name="variant" required>
               {% for variant in form.fields.variant.queryset %}
-                <option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}{% if form.variant.value|stringformat:'s' == variant.pk|stringformat:'s' %} selected{% endif %}>{{ variant.name }} — ${{ variant.effective_price|floatformat:2 }}{% if store_branding.show_item_status %} · {{ variant.availability }}{% endif %}{% if variant.sale_price != None %} · Sale (was ${{ variant.price|floatformat:2 }}){% endif %}</option>
+                <option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}{% if form.variant.value|stringformat:'s' == variant.pk|stringformat:'s' %} selected{% endif %}>{{ variant.name }} — ${{ variant.effective_price|floatformat:2 }}{% if store_branding.item_status_display == 'all' or store_branding.item_status_display == 'unavailable' and not variant.purchasable %} · {{ variant.availability }}{% endif %}{% if variant.sale_price != None %} · Sale (was ${{ variant.price|floatformat:2 }}){% endif %}</option>
               {% endfor %}
             </select>
             {{ form.variant.errors }}
@@ -45,7 +45,7 @@
           <button class="button primary" type="submit"{% if not product.has_purchasable_variants %} disabled{% endif %}>Add to cart</button>
         </form>
       {% else %}<p>Currently unavailable.</p>{% endif %}
-      {% for variant in product.variants.all %}{% if variant.active %}<p><strong>{{ variant.name }}{% if store_branding.show_item_status %}: {{ variant.availability }}{% endif %}</strong>{% if variant.sale_price != None %}<br><del>${{ variant.price|floatformat:2 }}</del> <strong>${{ variant.effective_price|floatformat:2 }} USD · Sale</strong>{% endif %}{% if variant.purchasable %}<br>{{ variant.delivery_note }}{% endif %}</p>{% endif %}{% endfor %}
+      {% for variant in product.variants.all %}{% if variant.active %}<p><strong>{{ variant.name }}{% if store_branding.item_status_display == 'all' or store_branding.item_status_display == 'unavailable' and not variant.purchasable %}: {{ variant.availability }}{% endif %}</strong>{% if variant.sale_price != None %}<br><del>${{ variant.price|floatformat:2 }}</del> <strong>${{ variant.effective_price|floatformat:2 }} USD · Sale</strong>{% endif %}{% if variant.purchasable %}<br>{{ variant.delivery_note }}{% endif %}</p>{% endif %}{% endfor %}
     </section>
   </div>
   <dialog class="store-lightbox" data-photo-dialog aria-labelledby="store-photo-title" aria-describedby="store-photo-help">

@@ -193,7 +193,7 @@ class StoreTests(TestCase):
         self.assertEqual(len(response.context['products']), 2)
 
     def test_status_visibility_setting_preserves_purchase_rules(self):
-        branding = StoreBranding.objects.create(pk=1, show_item_status=False)
+        branding = StoreBranding.objects.create(pk=1, item_status_display='none')
         self.variant.fulfillment_method = 'stock'
         self.variant.save()
         for name, args in [('home', ()), ('catalog', ('hats',)), ('product', ('hat',))]:
@@ -205,8 +205,39 @@ class StoreTests(TestCase):
         response = self.add()
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(str(self.variant.pk), self.client.session.get(KEY, {}))
-        branding.show_item_status = True
+        branding.item_status_display = 'all'
         branding.save()
         response = self.client.get(self.url('product', 'hat'))
         self.assertContains(response, 'class="store-availability"')
         self.assertContains(response, ' · Sold out')
+
+    def test_unavailable_only_statuses_on_catalog_and_detail(self):
+        branding = StoreBranding.objects.create(pk=1)
+        self.assertEqual(branding.item_status_display, 'unavailable')
+        for name, args in [('home', ()), ('catalog', ('hats',)), ('product', ('hat',))]:
+            response = self.client.get(self.url(name, *args))
+            self.assertNotContains(response, 'class="store-availability"')
+            self.assertNotContains(response, ' · Print on demand')
+        for coming_soon, status in [(False, 'Sold out'), (True, 'Coming soon')]:
+            self.variant.fulfillment_method = 'stock'
+            self.variant.coming_soon = coming_soon
+            self.variant.save()
+            for name, args in [('home', ()), ('catalog', ('hats',)), ('product', ('hat',))]:
+                response = self.client.get(self.url(name, *args))
+                self.assertContains(response, 'class="store-availability"')
+                self.assertContains(response, status)
+                self.assertContains(response, 'disabled')
+        # A purchasable option suppresses the product badge, but disabled options
+        # still explain their own status in the selector.
+        ProductVariant.objects.create(product=self.product, name='White', sku='HAT-W', price='25')
+        response = self.client.get(self.url('product', 'hat'))
+        self.assertNotContains(response, 'class="store-availability"')
+        self.assertContains(response, ' · Coming soon')
+        self.assertNotContains(response, ' · Print on demand')
+
+    def test_status_display_radio_options(self):
+        self.client.force_login(self.manager)
+        response = self.client.get(self.url('branding'))
+        self.assertContains(response, 'type="radio"', count=3)
+        for label in ['All statuses', 'Unavailable items only', 'Hide all statuses']:
+            self.assertContains(response, label)

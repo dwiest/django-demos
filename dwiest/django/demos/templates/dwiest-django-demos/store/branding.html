@@ -9,7 +9,9 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-      <p>{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</p>
+      {% if field.name == 'item_status_display' %}
+      <fieldset><legend>Item status display</legend>{{ field }}<span class="helptext">{{ field.help_text }}</span>{{ field.errors }}</fieldset>
+      {% else %}<p>{{ field.label_tag }} {{ field }}{% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}{{ field.errors }}</p>{% endif %}
     {% endfor %}
     <button class="button primary" type="submit">Save store settings</button>
     <a class="button secondary" href="{% url 'demos:store:home' %}">Cancel</a>

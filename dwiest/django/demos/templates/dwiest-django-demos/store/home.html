@@ -31,7 +31,7 @@
   <section class="store-grid" aria-label="Products">
     {% for product in products %}
       <article class="store-card" data-product-card>
-        {% if store_branding.show_item_status %}<div class="store-availability">{% if product.discovery_stock %}<span class="store-status store-status-stock">✓ In stock</span>{% elif product.discovery_pod %}<span class="store-status store-status-pod">✦ Print on demand</span>{% elif product.discovery_soon %}<span class="store-status store-status-soon">✧ Coming soon</span>{% else %}<span class="store-status store-status-out">☾ Sold out</span>{% endif %}</div>{% endif %}
+        {% if store_branding.item_status_display == 'all' or store_branding.item_status_display == 'unavailable' and not product.has_purchasable_variants %}<div class="store-availability">{% if product.discovery_stock %}<span class="store-status store-status-stock">✓ In stock</span>{% elif product.discovery_pod %}<span class="store-status store-status-pod">✦ Print on demand</span>{% elif product.discovery_soon %}<span class="store-status store-status-soon">✧ Coming soon</span>{% else %}<span class="store-status store-status-out">☾ Sold out</span>{% endif %}</div>{% endif %}
         <a href="{% url 'demos:store:product' product.slug %}">
           {% include 'dwiest-django-demos/store/image.html' %}
           <h2>{{ product.name }}</h2>
@@ -55,7 +55,7 @@
           {% csrf_token %}<input type="hidden" name="quantity" value="1"><input type="hidden" name="quick_add" value="1"><input type="hidden" name="catalog" value="{{ catalog.slug }}">
           {% if variants|length == 1 %}<span class="store-card-price">{% if variants.0.sale_price != None %}<del>${{ variants.0.price|floatformat:2 }}</del> <span class="store-status">Sale</span> {% endif %}${{ variants.0.effective_price|floatformat:2 }} USD</span><input type="hidden" name="variant" value="{{ variants.0.pk }}">
           {% else %}<label class="sr-only" for="quick-variant-{{ product.pk }}">Choose an option for {{ product.name }}</label>
-          <select id="quick-variant-{{ product.pk }}" name="variant" required><option value="">Select an option</option>{% for variant in variants %}<option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}>{{ variant.name }} · ${{ variant.effective_price|floatformat:2 }}{% if store_branding.show_item_status %} · {{ variant.availability }}{% endif %}{% if variant.sale_price != None %} · Sale (was ${{ variant.price|floatformat:2 }}){% endif %}</option>{% endfor %}</select>{% endif %}
+          <select id="quick-variant-{{ product.pk }}" name="variant" required><option value="">Select an option</option>{% for variant in variants %}<option value="{{ variant.pk }}"{% if not variant.purchasable %} disabled{% endif %}>{{ variant.name }} · ${{ variant.effective_price|floatformat:2 }}{% if store_branding.item_status_display == 'all' or store_branding.item_status_display == 'unavailable' and not variant.purchasable %} · {{ variant.availability }}{% endif %}{% if variant.sale_price != None %} · Sale (was ${{ variant.price|floatformat:2 }}){% endif %}</option>{% endfor %}</select>{% endif %}
           <button class="button store-cart-outline" type="submit"{% if not product.has_purchasable_variants %} disabled{% endif %}>Add to cart<span class="sr-only">: {{ product.name }}</span></button>
         </form>
         {% endif %}{% endwith %}
