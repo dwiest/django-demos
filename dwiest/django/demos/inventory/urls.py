@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 app_name = 'inventory'
 
 urlpatterns = [
-  path('api/', include('.api_urls', package=__package__)),
+  path('api/', include('dwiest.django.demos.inventory.api_urls')),
   path('',
     InventoryListHomeView.as_view(), name='home'),
   path('list_edit',

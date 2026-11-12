@@ -2,7 +2,8 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import resolve, reverse
 from rest_framework.test import APIClient
 from .models import InventoryItem, InventoryList, InventoryEntry, InventoryTransaction
 from .services import create_entry, adjust_quantity
@@ -100,3 +101,11 @@ class InventoryTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
         form.save()
         self.assertEqual(self.entry.transactions.first().after, 9)
+
+
+@override_settings(ROOT_URLCONF='dwiest.django.demos.inventory.urls')
+class InventoryURLTests(TestCase):
+    def test_inventory_mount_loads_ui_and_api_routes(self):
+        self.assertEqual(reverse('home'), '/')
+        self.assertEqual(reverse('api_items'), '/api/items/')
+        self.assertEqual(resolve('/api/entries/1/adjust/').url_name, 'api_adjust')
