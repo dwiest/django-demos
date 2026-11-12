@@ -6,7 +6,8 @@ from urllib.parse import urlsplit
 
 import jwt
 
-SCOPES = ('inventory/read', 'inventory/write')
+def required_scopes(resource):
+    return (resource + '/read', resource + '/write')
 
 
 class AuthError(Exception):
@@ -38,14 +39,14 @@ def discovery():
     parsed = urlsplit(resource)
     origin = f'{parsed.scheme}://{parsed.netloc}'
     return {'resource': resource, 'authorization_servers': [origin],
-            'scopes_supported': list(SCOPES), 'bearer_methods_supported': ['header']}
+            'scopes_supported': list(required_scopes(resource)), 'bearer_methods_supported': ['header']}
 
 
 def challenge(code=None):
     _, resource, _, _ = configuration()
     parsed = urlsplit(resource)
     metadata_url = f'{parsed.scheme}://{parsed.netloc}' + metadata_path(resource)
-    value = f'Bearer resource_metadata="{metadata_url}", scope="{" ".join(SCOPES)}"'
+    value = f'Bearer resource_metadata="{metadata_url}", scope="{" ".join(required_scopes(resource))}"'
     if code:
         value += f', error="{code}"'
     return {'WWW-Authenticate': value}
@@ -74,7 +75,7 @@ def verify(authorization):
     if claims.get('sub') not in subjects:
         raise AuthError(403, 'user_not_authorized')
     scope = claims.get('scope')
-    if not isinstance(scope, str) or not set(SCOPES).issubset(scope.split()):
+    if not isinstance(scope, str) or not set(required_scopes(resource)).issubset(scope.split()):
         raise AuthError(403, 'insufficient_scope')
     return claims
 
@@ -95,4 +96,5 @@ def authorization_metadata():
             'grant_types_supported': ['authorization_code', 'refresh_token'],
             'code_challenge_methods_supported': ['S256'],
             'token_endpoint_auth_methods_supported': ['client_secret_basic', 'client_secret_post'],
-            'scopes_supported': ['openid', 'email', 'profile', *SCOPES]}
+            'scopes_supported': ['openid', 'email', 'profile', *required_scopes(resource)]}
+

@@ -39,13 +39,22 @@ class CognitoTests(unittest.TestCase):
         now = int(time.time())
         claims = dict(iss=auth.configuration()[0], aud=os.environ['PUBLIC_MCP_URL'],
                       client_id='inventory-client', token_use='access', sub='owner-sub',
-                      exp=now+300, iat=now, scope='openid inventory/read inventory/write')
+                      exp=now+300, iat=now, scope='openid ' + ' '.join(auth.required_scopes(os.environ['PUBLIC_MCP_URL'])))
         claims.update(changes)
         return jwt.encode(claims, self.key, algorithm='RS256', headers={'kid': 'test-key'})
 
     def event(self, path='/api/inventory-mcp', method='POST', token=''):
         return dict(rawPath=path, headers={'authorization': 'Bearer '+token},
                     requestContext={'http': {'method': method}}, body='{}')
+
+    def test_resource_bound_scopes_match_discovery_and_challenge(self):
+        resource = os.environ['PUBLIC_MCP_URL']
+        expected = [resource+'/read', resource+'/write']
+        self.assertEqual(auth.discovery()['scopes_supported'], expected)
+        self.assertEqual(auth.authorization_metadata()['scopes_supported'][-2:], expected)
+        self.assertIn(' '.join(expected), auth.challenge()['WWW-Authenticate'])
+        with self.assertRaises(auth.AuthError):
+            auth.verify('Bearer '+self.token(scope='inventory/read inventory/write'))
 
     def test_valid_access_token(self):
         self.assertEqual(auth.verify('Bearer '+self.token())['sub'], 'owner-sub')
@@ -59,7 +68,7 @@ class CognitoTests(unittest.TestCase):
             self.assertEqual(error.exception.status, 401)
 
     def test_reject_other_users_and_missing_scopes(self):
-        for changes in [dict(sub='another-user'), dict(scope='inventory/read')]:
+        for changes in [dict(sub='another-user'), dict(scope=os.environ['PUBLIC_MCP_URL']+'/read')]:
             with self.assertRaises(auth.AuthError) as error:
                 auth.verify('Bearer '+self.token(**changes))
             self.assertEqual(error.exception.status, 403)
@@ -97,3 +106,4 @@ class CognitoTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
