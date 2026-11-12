@@ -156,6 +156,44 @@ def edit_product(request, pk=None):
     item = get_object_or_404(Product, pk=pk) if pk else Product()
     form = ProductForm(request.POST if request.method == 'POST' else None, instance=item)
     variants = VariantFormSet(request.POST if request.method == 'POST' else None, instance=item)
+    if request.method == 'POST' and request.POST.get('preview_kind') == 'item':
+        from types import SimpleNamespace
+        import re
+
+        valid_product = form.is_valid()
+        valid_variants = variants.is_valid()
+        if not (valid_product and valid_variants):
+            errors = [str(error) for messages in form.errors.values() for error in messages]
+            errors.extend(str(error) for error in variants.non_form_errors())
+            errors.extend('Variant {}: {}'.format(index + 1, error)
+                          for index, variant_errors in enumerate(variants.errors)
+                          for messages in variant_errors.values() for error in messages)
+            return JsonResponse({'errors': errors}, status=400)
+        draft_variants = [entry.instance for entry in variants.forms
+                          if entry.cleaned_data and not entry.cleaned_data.get('DELETE')]
+        active = [variant for variant in draft_variants if variant.active]
+        photos = list(item.photos.all()) if item.pk else []
+        draft = SimpleNamespace(
+            pk=item.pk or 0, name=item.name, slug=item.slug, description=item.description,
+            image_url=item.image_url, image_alt=item.image_alt,
+            cover_photo=photos[0] if photos else None, photos=SimpleNamespace(all=photos),
+            variants=SimpleNamespace(all=draft_variants),
+            has_purchasable_variants=any(variant.purchasable for variant in active),
+            availability=('Coming soon' if active and all(v.coming_soon for v in active) else 'Sold out'))
+        purchase_form = SimpleNamespace(
+            fields=SimpleNamespace(variant=SimpleNamespace(queryset=active)),
+            variant=SimpleNamespace(id_for_label='preview-variant', value=None),
+            quantity=QuantityForm(initial={'quantity': 1})['quantity'], is_bound=False)
+        response = render(request, PREFIX + 'product.html', {
+            'product': draft, 'form': purchase_form,
+            'store_branding': StoreBranding.objects.filter(pk=1).first() or StoreBranding()})
+        # The preview is a read-only document; omit scripts rather than executing them.
+        response.content = re.sub(rb'<script\b[^>]*>.*?</script\s*>', b'', response.content,
+                                  flags=re.DOTALL | re.IGNORECASE)
+        response.content = response.content.replace(b'</head>',
+            b'<style>a,button,input,select{pointer-events:none}</style></head>')
+        response['Cache-Control'] = 'no-store'
+        return response
     if request.method == 'POST' and form.is_valid() and variants.is_valid():
         with transaction.atomic():
             form.save()

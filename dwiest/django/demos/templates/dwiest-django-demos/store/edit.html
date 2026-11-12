@@ -1,6 +1,10 @@
 {% extends 'dwiest-django-demos/store/base.html' %}
+{% load static %}
 {% block extra_head %}
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/store/lightbox.v1.css' %}">
   <style>
+    .item-preview-frame{width:100%;height:70vh;border:0;background:white}
+    .item-preview-error{color:#a12626;white-space:pre-line}
     .item-editor-layout{display:grid;grid-template-columns:minmax(0,760px) 200px;gap:32px;align-items:start}
     .item-editor-content{min-width:0}
     .item-editor-content .store-editor{min-width:0;width:100%}
@@ -74,6 +78,11 @@
   {% endif %}
   </div>
   <nav class="item-editor-menu" aria-label="{{ kind|capfirst }} editor sections">
+    {% if kind == 'product' %}
+      <button type="button" class="button secondary" data-item-preview>Preview item</button>
+      <p class="muted">Preview unsaved changes. Photos save separately.</p>
+      <p class="item-preview-error" role="alert" data-preview-error></p>
+    {% endif %}
     <h2>Jump to section</h2>
     <div>
       <a href="#item-details">{{ kind|capfirst }} details</a>
@@ -83,4 +92,12 @@
     </div>
   </nav>
   </div>
+  {% if kind == 'product' %}
+  <dialog class="store-lightbox" data-item-preview-dialog aria-labelledby="item-preview-title" data-preview-url="{{ request.path }}">
+    <header class="store-lightbox-header"><h2 id="item-preview-title">Item preview</h2><button type="button" class="store-lightbox-control" data-preview-close aria-label="Close preview" autofocus>×</button></header>
+    <iframe class="item-preview-frame" title="Unsaved item preview" sandbox=""></iframe>
+    <footer class="store-lightbox-footer"><small>Unsaved preview · Close this window to continue editing.</small></footer>
+  </dialog>
+  <script src="{% static 'dwiest-django-demos/store/item-preview.v1.js' %}" defer></script>
+  {% endif %}
 {% endblock %}
