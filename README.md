@@ -14,6 +14,76 @@ other site areas, without copying or replacing the demo application menu.
 Keep project template directories ahead of app templates in Django's loader
 order. The hook does not change authentication or application routes.
 
+## Demo applications
+
+The repository includes a collection of small Django applications that demonstrate
+common web application patterns and provide practical examples that can be explored
+from the shared demo homepage.
+
+### Bookmarks
+
+A searchable bookmark manager for saving useful links, organizing them with tags,
+adding notes, and filtering or exporting a collection. It also includes progressive
+web app support for capturing links and APIs for bulk bookmark operations.
+
+### Invoicer
+
+A lightweight invoicing application for managing clients, invoices, and line items.
+It demonstrates typical business CRUD workflows along with invoice preview and
+print-friendly output.
+
+### Journal
+
+A simple journal for organizing notes into separate journals and creating dated
+entries. It provides a straightforward example of list, detail, create, and edit
+workflows around related Django models.
+
+### QR Code Generator
+
+Generates scannable QR codes from URLs or short text. The demo provides a compact
+example of accepting user input, generating an image response, and presenting the
+result in a browser-friendly interface.
+
+### Time-Based OTP
+
+Demonstrates time-based one-time passwords used by authenticator applications.
+Users can create a demo secret, scan its QR code, and compare generated OTP values
+with the codes produced by an authenticator app.
+
+### Expenses
+
+A small expense organizer for creating expense lists, defining categories, and
+recording spending. It demonstrates related data models and common forms for
+maintaining categorized records.
+
+### Inventory
+
+Tracks reusable items, inventory lists, and quantities. The demo shows how a shared
+item catalog can be used across multiple inventories while quantities are managed
+independently for each list.
+
+### File Manager
+
+A basic file-management application for uploading, describing, opening,
+downloading, renaming, and deleting files. It also reports storage usage and
+demonstrates Django's file handling features.
+
+### WebSockets
+
+A live news-feed demo using a persistent WebSocket connection. Users can connect
+or pause the feed, adjust its update interval, and manage the news items being
+published, making it a useful starting point for live feeds and notifications.
+
+### Selenium
+
+Uses browser automation to capture screenshots of web pages. Users provide a URL
+and browser dimensions, then preview or download the resulting PNG image.
+
+### Google reCAPTCHA
+
+A smaller legacy demo showing Google reCAPTCHA integration with a Django form. It
+is available under **Other demos** on the shared demo homepage.
+
 ## Store demo
 
 `/django/demos/store/` provides a simple independent merchandise storefront,
