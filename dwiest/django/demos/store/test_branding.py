@@ -175,6 +175,28 @@ class BrandingTests(TestCase):
         self.assertEqual(branding.thank_you_button_label, 'Continue shopping')
         self.assertEqual(branding.thank_you_message, '')
 
+    def test_settings_preview_all_saved_images_without_public_email_media(self):
+        locations = ('header', 'footer', 'email_header', 'email_footer', 'thank_you')
+        artwork = {}
+        for location in locations:
+            artwork[location + '_image_bucket'] = 'rotten.world'
+            artwork[location + '_image_key'] = 'store/products/branding/' + location + '.png'
+        StoreBranding.objects.create(**artwork)
+        with self.settings(STORE_MEDIA_PUBLIC_BASE_URL=''):
+            for response in (self.client.get(self.url),
+                             self.client.post(self.url, {**self.data, 'name': ''})):
+                self.assertEqual(response.status_code, 200)
+                for location in locations:
+                    field = response.context['form'][location + '_image']
+                    self.assertContains(response, '<img src="https://s3.example/' +
+                                        artwork[location + '_image_key'] + '"')
+                    self.assertTrue(field.is_image_setting)
+                self.assertContains(response, '<figcaption>Current image</figcaption>', count=5)
+
+    def test_settings_empty_image_slots(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<figcaption>No image set</figcaption>', count=5)
+
     def test_status_display_modes_save(self):
         for mode in ['all', 'unavailable', 'none']:
             response = self.client.post(self.url, {**self.data, 'item_status_display': mode})
