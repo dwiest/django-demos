@@ -26,6 +26,10 @@ A searchable bookmark manager for saving useful links, organizing them with tags
 adding notes, and filtering or exporting a collection. It also includes progressive
 web app support for capturing links and APIs for bulk bookmark operations.
 
+Optional [AI enrichment](docs/bookmarks-ai.md) retrieves articles through OpenAI,
+proposes metadata and tags, and saves approved changes through the Bookmarks MCP
+server. It supports session-only or encrypted saved API keys and custom instructions.
+
 ### Invoicer
 
 A lightweight invoicing application for managing clients, invoices, and line items.

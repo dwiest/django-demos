@@ -1,0 +1,13 @@
+.ai-panel { padding: 1.25rem; margin: 1.25rem 0; border: 1px solid var(--border, #d8e0ea); border-radius: 12px; background: var(--surface, #fff); }
+.ai-panel h2 { margin-top: 0; font-size: 1.1rem; }
+.ai-panel p { line-height: 1.6; }
+.ai-panel textarea { width: 100%; box-sizing: border-box; }
+.ai-panel input[type=checkbox] { margin-right: .5rem; }
+.ai-settings { max-width: 850px; }
+.ai-prompt, .ai-before { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.ai-prompt { font: inherit; }
+.ai-comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; }
+.ai-comparison h3 { font-size: .95rem; margin-top: 0; }
+.ai-comparison .field { margin-top: 0; }
+.ai-comparison .control { width: 100%; box-sizing: border-box; }
+@media (max-width: 700px) { .ai-comparison { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }

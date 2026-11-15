@@ -1,0 +1,23 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}Review AI bookmark proposal{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:bookmarks:home' %}">← Bookmarks</a>
+<div class="page-heading"><h1>Review AI proposal</h1></div>
+{% if ai_error %}<div class="notice error" role="alert">{{ ai_error }}</div>{% endif %}
+{% if review.status == 'pending' %}
+<p>Choose the fields to use, and edit their proposed values. Unchecked fields keep the values from your bookmark form. Nothing has been saved yet. This proposal expires at {{ review.expires_at|date:'g:i A T' }}.</p>
+<p>Article evidence: {% for source in review.sources %}<a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p>Read status stays <strong>{% if preserved.unread %}Unread{% else %}Read{% endif %}</strong>; visibility stays <strong>{% if preserved.status == 1 %}Hidden{% elif preserved.status == -1 %}Deleted{% else %}Active{% endif %}</strong>, as selected in your form.</p>
+<form method="post" data-ai-review>{% csrf_token %}{{ form.non_field_errors }}{{ form.selected.errors }}
+{% for row in rows %}<section class="ai-panel"><h2><label><input type="checkbox" name="selected" value="{{ row.name }}" {% if row.name in selected_fields %}checked{% endif %}> Use {{ row.label|lower }}</label></h2>
+<div class="ai-comparison"><div><h3>Current form</h3><div class="ai-before">{% if row.name == 'tags' %}{{ row.before|join:', '|default:'No tags' }}{% else %}{{ row.before|default:'—' }}{% endif %}</div></div><div>{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=row.field %}{% if row.name == 'tags' %}<p>Removing a name removes that tag assignment. Adding a new name authorizes creating that tag.</p>{% endif %}</div></div>
+</section>{% endfor %}
+<div class="save-actions"><button class="button primary" name="action" value="apply" type="submit" data-ai-apply>{% if review.bookmark_id %}Approve and apply changes{% else %}Approve and create bookmark{% endif %}</button><button class="button secondary" name="action" value="cancel" type="submit" formnovalidate>Cancel proposal</button><span role="status" data-ai-status></span></div>
+</form>
+{% else %}
+<div class="notice" role="status">Proposal status: {{ review.status }}.</div>
+{% if review.status == 'uncertain' or review.status == 'applying' %}<p>Some operations may have completed. Check your bookmarks and tags before starting another analysis. This proposal cannot be submitted again.</p>{% endif %}
+{% if review.results %}<ul>{% for result in review.results %}<li>Confirmed {{ result.tool }}{% if result.id %}: {{ result.id }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+<a class="button secondary" href="{% url 'demos:bookmarks:home' %}">View bookmarks</a>
+{% endif %}
+{% endblock %}
