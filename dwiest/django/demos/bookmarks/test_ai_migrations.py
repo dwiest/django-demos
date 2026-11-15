@@ -26,7 +26,7 @@ executor.migrate([('demos', '0009_bookmark_ai')])
 after = set(connection.introspection.table_names())
 assert after - before == {'demos_bookmarkaisettings', 'demos_bookmarkaianalysis'}
 assert Bookmark.objects.get(pk=bookmark.pk).title == 'Preserved'
-from dwiest.django.demos.bookmarks.ai_models import BookmarkAISettings, BookmarkAIAnalysis
+from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.state import ProjectState
 executor = MigrationExecutor(connection)

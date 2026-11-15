@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from .ai_credentials import AIError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
 from .ai_forms import AIProposalForm
-from .ai_models import BookmarkAISettings, BookmarkAIAnalysis
+from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from .ai_service import APPLICATION_INSTRUCTIONS, analyze, execute_call, openai_request
 from .ai_views import snapshot
 from .models import Bookmark, Tag, BookmarkTag

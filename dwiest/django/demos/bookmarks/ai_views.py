@@ -11,7 +11,7 @@ from django.views.decorators.debug import sensitive_post_parameters, sensitive_v
 from .ai_credentials import (AIError, SESSION_KEY, api_key_for, encrypt,
                              require_demo_owner, server_session_required)
 from .ai_forms import AISettingsForm, AIProposalForm, AnalyzeForm, FIELDS, LABELS, DEFAULT_INSTRUCTIONS
-from .ai_models import BookmarkAISettings, BookmarkAIAnalysis
+from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from . import ai_service
 from .models import Bookmark, BookmarkTag, Tag
 from .ui_views import ROOT, return_url

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from ...bookmarks.ai_models import BookmarkAIAnalysis
+from ...bookmark_ai_models import BookmarkAIAnalysis
 
 
 class Command(BaseCommand):

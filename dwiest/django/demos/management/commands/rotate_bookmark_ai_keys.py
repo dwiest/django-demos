@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.views.decorators.debug import sensitive_variables
 from ...bookmarks.ai_credentials import AIError, cipher
-from ...bookmarks.ai_models import BookmarkAISettings
+from ...bookmark_ai_models import BookmarkAISettings
 
 
 class Command(BaseCommand):

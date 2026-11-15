@@ -4,7 +4,7 @@ import os
 from functools import lru_cache
 from django.conf import settings
 from django.views.decorators.debug import sensitive_variables
-from .ai_models import BookmarkAISettings
+from ..bookmark_ai_models import BookmarkAISettings
 
 SESSION_KEY = 'bookmarks_ai_encrypted_key'
 

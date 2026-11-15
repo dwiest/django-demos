@@ -168,6 +168,9 @@ These tests use mocked OpenAI/MCP network responses and exercise the real Django
 views, ownership, CSRF, encrypted settings/session storage, review/edit/cancel,
 stale/expired/repeated requests, native argument-checked approval, partial writes,
 and the actual additive migration. CI covers Python 3.7 and 3.12 with Django 3.2.
+CI also runs the 11 existing Inventory/umbrella migration regression tests. AI
+models live in `bookmark_ai_models.py` at the umbrella-app level so registering
+them does not eagerly load the legacy Bookmarks forms/views or their models.
 A live test requires your deployment values and personal API key; no live writes
 or API charges are part of the automated suite.
 
