@@ -13,6 +13,10 @@ class AIError(Exception):
     """Safe, user-facing error. Never include provider bodies or credentials."""
 
 
+class AIArticleAccessError(AIError):
+    """Article retrieval or its required evidence failed; a site block may help."""
+
+
 def configured(name, default=''):
     return getattr(settings, name, os.environ.get(name, default))
 

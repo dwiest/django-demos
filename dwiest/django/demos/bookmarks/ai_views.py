@@ -11,7 +11,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from .ai_credentials import (AIError, SESSION_KEY, api_key_for, encrypt,
                              require_demo_owner, server_session_required)
-from .ai_forms import AISettingsForm, AIProposalForm, AnalyzeForm, FIELDS, LABELS, DEFAULT_INSTRUCTIONS
+from .ai_forms import AISettingsForm, AIProposalForm, AISiteBlacklistForm, AnalyzeForm, FIELDS, LABELS, DEFAULT_INSTRUCTIONS
+from .ai_sites import blacklisted_site
 from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from . import ai_service
 from .models import Bookmark, BookmarkTag, Tag
@@ -43,11 +44,12 @@ class AIProtectedView(View):
 
 @method_decorator(sensitive_post_parameters('api_key'), name='dispatch')
 class AISettingsView(AIProtectedView):
-    def page(self, request, form, prefs, error=''):
+    def page(self, request, form, prefs, error='', blacklist_form=None):
         return render(request, ROOT + 'ai_settings.html', {
             'form': form, 'ai_error': error, 'nav_section': 'ai',
             'session_key_set': bool(request.session.get(SESSION_KEY)),
             'saved_key_set': bool(prefs.encrypted_api_key),
+            'blacklist_form': blacklist_form if blacklist_form is not None else AISiteBlacklistForm(initial={'blocked_domains': '\n'.join(prefs.blocked_domains)}),
             'application_instructions': ai_service.APPLICATION_INSTRUCTIONS})
 
     def get(self, request):
@@ -59,6 +61,15 @@ class AISettingsView(AIProtectedView):
     def post(self, request):
         prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
         action = request.POST.get('action', 'save')
+        if action == 'save_blacklist':
+            blacklist_form = AISiteBlacklistForm(request.POST)
+            if not blacklist_form.is_valid():
+                form = AISettingsForm(initial={'instructions': prefs.instructions or DEFAULT_INSTRUCTIONS, 'model': prefs.model})
+                return self.page(request, form, prefs, blacklist_form=blacklist_form)
+            prefs.blocked_domains = blacklist_form.cleaned_data['blocked_domains']
+            prefs.save(update_fields=['blocked_domains'])
+            messages.success(request, 'AI site blacklist saved.')
+            return HttpResponseRedirect(reverse('demos:bookmarks:ai_settings') + '#site-blacklist')
         if action == 'remove':
             request.session.pop(SESSION_KEY, None)
             prefs.encrypted_api_key = ''
@@ -91,7 +102,7 @@ class AISettingsView(AIProtectedView):
                     request.session.pop(SESSION_KEY, None)
             prefs.instructions = form.cleaned_data['instructions']
             prefs.model = form.cleaned_data['model']
-            prefs.save()
+            prefs.save(update_fields=['encrypted_api_key', 'instructions', 'model'])
         except AIError as exc:
             return self.page(request, form, prefs, str(exc))
         messages.success(request, 'AI settings saved.')
@@ -105,6 +116,10 @@ def start_analysis(request, bookmark):
     form = AnalyzeForm({'url': request.POST.get('url'), 'instructions': request.POST.get('ai_instructions', '')})
     if not form.is_valid():
         raise AIError('Enter a valid HTTP or HTTPS URL and instructions of at most 4,000 characters.')
+    prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
+    listed = blacklisted_site(form.cleaned_data['url'], prefs.blocked_domains)
+    if listed:
+        messages.warning(request, '{} is on your AI site blacklist. Analysis is being attempted at your request.'.format(listed))
     original = snapshot(bookmark)
     draft = dict(original)
     for field in ('url', 'title', 'description', 'article_date'):
@@ -122,7 +137,6 @@ def start_analysis(request, bookmark):
     if len(tags) != len(set(tag_ids)):
         raise AIError('One or more selected tags are unavailable.')
     draft.update(tags=[t.title for t in tags], status=status, unread='unread' in request.POST)
-    prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
     proposal, sources = ai_service.analyze(request.user, api_key_for(request), prefs,
         form.cleaned_data['url'], bookmark.pk, form.cleaned_data['instructions'])
     review = BookmarkAIAnalysis.objects.create(owner=request.user, bookmark_id=bookmark.pk,

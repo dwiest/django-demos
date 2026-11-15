@@ -4,6 +4,8 @@ on:
     paths:
       - 'dwiest/django/demos/bookmarks/**'
       - 'dwiest/django/demos/migrations/0009_bookmark_ai.py'
+      - 'dwiest/django/demos/migrations/0010_bookmark_ai_blocked_domains.py'
+      - 'dwiest/django/demos/migrations/0011_bookmark_ai_attempt.py'
       - 'dwiest/django/demos/models.py'
       - 'dwiest/django/demos/bookmark_ai_models.py'
       - 'dwiest/django/demos/management/**'

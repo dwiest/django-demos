@@ -1,5 +1,6 @@
 from django import forms
 from .ai_credentials import configured
+from .ai_sites import normalize_site
 
 FIELDS = ('url', 'title', 'description', 'article_date', 'tags')
 LABELS = {'url': 'URL', 'title': 'Title', 'description': 'Description', 'article_date': 'Publication date', 'tags': 'Tags'}
@@ -28,6 +29,28 @@ class AISettingsForm(StyledForm):
             models = [m.strip() for m in models.split(',') if m.strip()]
         default = configured('BOOKMARKS_AI_MODEL')
         self.fields['model'].choices = [('', 'Application default' + (' (' + default + ')' if default else ' — not configured'))] + [(m, m) for m in models]
+
+
+class AISiteBlacklistForm(StyledForm):
+    blocked_domains = forms.CharField(
+        required=False, max_length=26000, label='Blacklisted sites',
+        widget=forms.Textarea(attrs={'rows': 6, 'placeholder': 'politico.eu\nhollywoodreporter.com\nmsn.com'}),
+        help_text='One domain per line, or paste a full article URL. Each entry includes its subdomains. Remove a line to stop warnings for that site. Maximum 100 sites.')
+
+    def clean_blocked_domains(self):
+        domains = []
+        for line_number, line in enumerate(self.cleaned_data['blocked_domains'].splitlines(), 1):
+            if not line.strip():
+                continue
+            try:
+                domain = normalize_site(line)
+            except ValueError as exc:
+                raise forms.ValidationError('Line {}: {}'.format(line_number, exc))
+            if domain not in domains:
+                domains.append(domain)
+        if len(domains) > 100:
+            raise forms.ValidationError('Choose at most 100 sites.')
+        return domains
 
 
 class AnalyzeForm(StyledForm):

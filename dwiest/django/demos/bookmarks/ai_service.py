@@ -4,8 +4,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, urlunsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from django.views.decorators.debug import sensitive_variables
-from .ai_credentials import AIError, configured, mcp_connection_for
+from .ai_credentials import AIError, AIArticleAccessError, configured, mcp_connection_for
 from .ai_forms import AIProposalForm, DEFAULT_INSTRUCTIONS
+from ..bookmark_ai_models import BookmarkAIAttempt
 
 APPLICATION_INSTRUCTIONS = '''You are the assistant inside a bookmarks application.
 Retrieve the supplied article URL using web_search open_page and read its actual contents.
@@ -120,13 +121,17 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
     prompt = {'article_url': url, 'bookmark_id': bookmark_id,
               'personal_instructions': prefs.instructions or DEFAULT_INSTRUCTIONS,
               'task_instructions': task_instructions}
-    result = openai_request(api_key, {
+    payload = {
         'model': model_for(prefs), 'store': False,
         'instructions': APPLICATION_INSTRUCTIONS,
         'input': json.dumps(prompt), 'tools': [{'type': 'web_search'}, tool],
         'max_output_tokens': 6000, 'max_tool_calls': 10,
         'text': {'format': {'type': 'json_schema', 'name': 'bookmark_proposal', 'strict': True, 'schema': SCHEMA}},
-    })
+    }
+    # Persist before the provider call so timeouts/retrieval failures are visible.
+    # This does not create or modify a bookmark or an approved proposal.
+    BookmarkAIAttempt.objects.update_or_create(owner=user, url=url)
+    result = openai_request(api_key, payload)
     output = result.get('output', [])
     reads = set()
     sources = []
@@ -156,8 +161,10 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
         proposal = json.loads(''.join(texts))
     except (ValueError, TypeError):
         raise AIError('AI did not return a valid bookmark proposal. No changes were made.') from None
-    if not isinstance(proposal, dict) or not opened or proposal.get('retrieved') is not True:
-        raise AIError('OpenAI could not verify access to the article contents. Try another URL; no metadata was saved.')
+    if not isinstance(proposal, dict):
+        raise AIError('AI did not return a valid bookmark proposal. No changes were made.')
+    if not opened or proposal.get('retrieved') is not True:
+        raise AIArticleAccessError('OpenAI could not verify access to the article contents. Try another URL; no metadata was saved.')
     required_read = 'get_bookmark' if bookmark_id else 'lookup_bookmark'
     if not {'list_tags', required_read}.issubset(reads):
         raise AIError('AI did not complete the required bookmark and tag checks. No changes were made.')

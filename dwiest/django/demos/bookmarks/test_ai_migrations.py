@@ -26,15 +26,41 @@ executor.migrate([('demos', '0009_bookmark_ai')])
 after = set(connection.introspection.table_names())
 assert after - before == {'demos_bookmarkaisettings', 'demos_bookmarkaianalysis'}
 assert Bookmark.objects.get(pk=bookmark.pk).title == 'Preserved'
-from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
+state = executor.loader.project_state([('demos', '0009_bookmark_ai')]).apps
+User = state.get_model('auth', 'User')
+owner = User.objects.create(username='existing-owner')
+Preferences = state.get_model('demos', 'BookmarkAISettings')
+prefs = Preferences.objects.create(owner=owner, encrypted_api_key='existing-ciphertext', instructions='Keep these', model='existing-model')
+executor = MigrationExecutor(connection)
+executor.migrate([('demos', '0010_bookmark_ai_blocked_domains')])
+assert set(connection.introspection.table_names()) == after
+executor = MigrationExecutor(connection)
+executor.migrate([('demos', '0011_bookmark_ai_attempt')])
+assert set(connection.introspection.table_names()) == after | {'demos_bookmarkaiattempt'}
+from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.state import ProjectState
 executor = MigrationExecutor(connection)
-actual = executor.loader.project_state([('demos', '0009_bookmark_ai')])
+actual = executor.loader.project_state([('demos', '0011_bookmark_ai_attempt')])
 expected = ProjectState.from_apps(django.apps.apps)
-for model in (BookmarkAISettings, BookmarkAIAnalysis):
+for model in (BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt):
     key = ('demos', model._meta.model_name)
     assert {n: f.deconstruct()[1:] for n, f in actual.models[key].fields.items()} == {n: f.deconstruct()[1:] for n, f in expected.models[key].fields.items()}
+upgraded = BookmarkAISettings.objects.get(pk=prefs.pk)
+assert upgraded.blocked_domains == []
+assert (upgraded.encrypted_api_key, upgraded.instructions, upgraded.model) == ('existing-ciphertext', 'Keep these', 'existing-model')
+upgraded.blocked_domains = ['example.com']
+upgraded.save(update_fields=['blocked_domains'])
+attempt = BookmarkAIAttempt.objects.create(owner_id=owner.pk, url='https://example.com/new')
+assert attempt.last_attempted_at is not None
+executor = MigrationExecutor(connection)
+executor.migrate([('demos', '0010_bookmark_ai_blocked_domains')])
+assert set(connection.introspection.table_names()) == after
+executor = MigrationExecutor(connection)
+executor.migrate([('demos', '0009_bookmark_ai')])
+restored = Preferences.objects.get(pk=prefs.pk)
+assert (restored.encrypted_api_key, restored.instructions, restored.model) == ('existing-ciphertext', 'Keep these', 'existing-model')
+executor = MigrationExecutor(connection)
 executor.migrate([('demos', '0008_inventorytransaction')])
 assert Bookmark.objects.get(pk=bookmark.pk).title == 'Preserved'
 assert set(connection.introspection.table_names()) == before

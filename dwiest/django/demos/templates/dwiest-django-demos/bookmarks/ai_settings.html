@@ -22,4 +22,11 @@
 </section>
 <div class="save-actions"><button class="button primary" name="action" value="save" type="submit">Save AI settings</button><a class="button secondary" href="{% url 'demos:bookmarks:home' %}">Back to bookmarks</a></div>
 </form>
+<section class="ai-panel ai-settings" id="site-blacklist"><h2>AI site blacklist</h2>
+<p>Show a warning for sites where AI analysis has been unreliable. You can still use Analyze to retry. This list belongs to your account.</p>
+<form method="post">{% csrf_token %}{{ blacklist_form.non_field_errors }}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=blacklist_form.blocked_domains %}
+<p>A leading <code>www.</code> is removed. Listing <code>example.com</code> also warns for <code>news.example.com</code>; listing <code>news.example.com</code> does not warn for the parent site. Leave the list empty to show no site warnings.</p>
+<div class="save-actions"><button class="button primary" name="action" value="save_blacklist" type="submit">Save site blacklist</button></div>
+</form></section>
 {% endblock %}
