@@ -44,6 +44,8 @@ only the AI migrations. Do not generate unrelated schema changes for this featur
 `0010_bookmark_ai_blocked_domains` adds an empty per-user site blacklist to the
 existing AI preferences. Run `python manage.py migrate demos` before restarting
 with the updated package; existing API credentials and instructions are retained.
+`0011_bookmark_ai_attempt` adds a separate latest-attempt table keyed by account
+and URL, without modifying legacy Bookmark/Tag tables.
 
 ## Configure after resources exist
 
@@ -118,7 +120,7 @@ Changing a Secrets Manager value alone does not rotate ciphertext in Django.
    encrypted. Test connection checks OpenAI credentials without generating text;
    tool/model access is checked by the live analysis. Set personal instructions.
 3. Open Add or Edit bookmark, enter an HTTP(S) URL, optionally enter task-specific
-   instructions, and click **Analyze**. Page/task/tool content cannot authorize
+   instructions by opening **Custom analysis instructions (optional)**, and click **Analyze**. Page/task/tool content cannot authorize
    writes. Failed article access, MCP errors, or invalid metadata produce a clear
    error and leave the original form/data intact.
 4. Review the current form and proposed fields side by side. Check which values
@@ -133,27 +135,54 @@ Changing a Secrets Manager value alone does not rotate ciphertext in Django.
 Open **Bookmarks -> AI settings -> AI site blacklist** to add, edit, or remove
 domains. Enter one domain per line, or paste full article URLs. Saving this list
 does not require AI credentials and does not change API keys, instructions, or
-the selected model. Leave the list empty to allow all sites. New installations
+the selected model. Leave the list empty to show no site warnings. New installations
 and existing accounts start with an empty list; retrieval failures never add
 sites automatically.
+
+When article retrieval or its required verification fails, the editor offers
+**Add this site to blacklist**, naming the domain and its subdomains. Clicking
+it updates your list locally, without another analysis call or saving the
+bookmark. All editor fields, tag choices, and analysis instructions remain on
+the page. The action is bound to your account and the failed URL for 30 minutes;
+changing the URL or using an expired action requires another failure page or
+editing the list in AI settings. Repeated clicks do not duplicate the rule.
+Credential, model, and configuration errors do not offer this convenience action.
 
 Entries are normalized to lowercase ASCII/IDNA domains, deduplicated, and stripped
 of a leading `www.` and trailing DNS dot. Paths, query strings, fragments, and
 valid ports in pasted URLs do not affect matching. Wildcards and URLs containing
 login credentials are rejected. Up to 100 domains may be saved.
 
-Each entry blocks that exact domain and its subdomains: `example.com` blocks
+Each entry matches that exact domain and its subdomains: `example.com` warns for
 `www.example.com` and `news.example.com`, but not `notexample.com` or
-`example.com.other.test`. An entry for `news.example.com` leaves `example.com`
-available. Rules belong to the logged-in account and use the existing AI
+`example.com.other.test`. An entry for `news.example.com` does not warn for
+`example.com`. Rules belong to the logged-in account and use the existing AI
 demo-owner access restriction.
 
-Analyze checks the submitted article host before loading the API key or remote
-secrets and before invoking OpenAI/MCP. A blocked site shows an explanation in
-the bookmark editor and creates no proposal. Removing the domain permits new
-analysis attempts. Manual bookmark saves and approval of existing proposals
-continue to work. This controls which submitted article URLs are analyzed; it
-is not an outbound network filter for redirects or the model's research sources.
+The blacklist is advisory: the editor shows a warning for a listed host and
+still permits an explicit Analyze request. The warning updates as the URL is
+edited and is also shown server-side when an attempt is submitted. A successful
+attempt still produces a normal review. Manual bookmark saves and approval of
+existing proposals continue to work. The list does not filter redirects or
+other sources used during research.
+
+## Last attempted analysis
+
+The bookmark editor shows the last attempted analysis for its current URL as a
+local date/time and elapsed time. Each actual model-request attempt updates one
+`BookmarkAIAttempt` row for the account/URL immediately before the provider call,
+so retrieval failures, provider errors, and timeouts retain the timestamp. A
+missing key, invalid URL, or incomplete model/MCP configuration does not record
+an attempt because no model request was made. Saving a bookmark, approving a
+proposal, and adding a site to the blacklist do not update the attempt time.
+
+Attempts are tracked by URL, including new unsaved bookmark drafts, without
+creating or changing a Bookmark row. Changing a bookmark URL shows the history
+for the new URL; another user's timestamps are never shown. The displayed time
+is hidden while the editor contains a different URL. Attempt records retain only
+the owner, URL, and latest timestamp; they contain no credentials, article text,
+or provider responses. They persist independently of expiring review records
+and are deleted with the account. Existing attempts cannot be backfilled.
 
 Review records retain snapshots, proposals, sources, and approved values; older
 records can also contain an MCP operation journal. They contain no API keys or
@@ -200,7 +229,7 @@ These tests use mocked OpenAI/MCP network responses and exercise the real Django
 views, ownership, CSRF, encrypted settings/session storage, review/edit/cancel,
 stale/expired/repeated requests, local approval without AI credentials/network,
 transaction rollback and retry, tag ownership/reuse, user-managed blacklist
-normalization/matching/ownership, zero-call rejection of blocked sites, and the
+normalization/matching/ownership, advisory warnings with permitted retries, persisted attempt times, and the
 actual additive migrations. CI covers Python 3.7 and 3.12 with Django 3.2.
 CI also runs the 11 existing Inventory/umbrella migration regression tests. AI
 models live in `bookmark_ai_models.py` at the umbrella-app level so registering

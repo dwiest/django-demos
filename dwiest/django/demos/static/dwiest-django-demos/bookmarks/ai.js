@@ -17,3 +17,34 @@ window.addEventListener('pageshow', () => {
     if (status) status.textContent = '';
   });
 });
+
+// Warn as the URL changes, without blocking an explicit analysis attempt.
+const editor = document.querySelector('[data-editor]');
+const siteRules = document.getElementById('ai-site-blacklist');
+if (editor && siteRules) {
+  const domains = JSON.parse(siteRules.textContent);
+  const warning = editor.querySelector('[data-ai-site-warning]');
+  const attempted = editor.querySelector('[data-ai-last-attempt]');
+  const urlInput = editor.elements.url;
+  const refresh = () => {
+    let domain;
+    try {
+      const value = urlInput.value.trim();
+      const parsed = new URL(value.includes('://') ? value : 'https://' + value);
+      const host = parsed.hostname.toLowerCase().replace(/\.$/, '').replace(/^www\./, '');
+      if (['http:', 'https:'].includes(parsed.protocol)) {
+        domain = domains.find(entry => host === entry || host.endsWith('.' + entry));
+      }
+    } catch (_) { /* An incomplete URL has no site warning. */ }
+    if (warning) {
+      warning.hidden = !domain;
+      warning.textContent = domain ? domain + ' is on your AI site blacklist. You can still use Analyze to retry.' : '';
+    }
+    if (attempted) attempted.hidden = !attempted.textContent.trim() || urlInput.value.trim() !== attempted.dataset.attemptUrl;
+  };
+  urlInput.addEventListener('input', refresh);
+  urlInput.addEventListener('change', refresh);
+  editor.addEventListener('input', refresh);
+  window.addEventListener('pageshow', refresh);
+  refresh();
+}

@@ -12,7 +12,7 @@ from django.views.decorators.debug import sensitive_post_parameters, sensitive_v
 from .ai_credentials import (AIError, SESSION_KEY, api_key_for, encrypt,
                              require_demo_owner, server_session_required)
 from .ai_forms import AISettingsForm, AIProposalForm, AISiteBlacklistForm, AnalyzeForm, FIELDS, LABELS, DEFAULT_INSTRUCTIONS
-from .ai_sites import check_site_allowed
+from .ai_sites import blacklisted_site
 from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from . import ai_service
 from .models import Bookmark, BookmarkTag, Tag
@@ -117,8 +117,9 @@ def start_analysis(request, bookmark):
     if not form.is_valid():
         raise AIError('Enter a valid HTTP or HTTPS URL and instructions of at most 4,000 characters.')
     prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
-    # Check before loading API keys or remote secrets, not just before inference.
-    check_site_allowed(form.cleaned_data['url'], prefs.blocked_domains)
+    listed = blacklisted_site(form.cleaned_data['url'], prefs.blocked_domains)
+    if listed:
+        messages.warning(request, '{} is on your AI site blacklist. Analysis is being attempted at your request.'.format(listed))
     original = snapshot(bookmark)
     draft = dict(original)
     for field in ('url', 'title', 'description', 'article_date'):

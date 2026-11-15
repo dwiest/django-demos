@@ -33,9 +33,9 @@ class AISettingsForm(StyledForm):
 
 class AISiteBlacklistForm(StyledForm):
     blocked_domains = forms.CharField(
-        required=False, max_length=26000, label='Blocked sites',
+        required=False, max_length=26000, label='Blacklisted sites',
         widget=forms.Textarea(attrs={'rows': 6, 'placeholder': 'politico.eu\nhollywoodreporter.com\nmsn.com'}),
-        help_text='One domain per line, or paste a full article URL. Each entry includes its subdomains. Remove a line to allow that site again. Maximum 100 sites.')
+        help_text='One domain per line, or paste a full article URL. Each entry includes its subdomains. Remove a line to stop warnings for that site. Maximum 100 sites.')
 
     def clean_blocked_domains(self):
         domains = []

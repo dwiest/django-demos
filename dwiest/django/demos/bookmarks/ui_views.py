@@ -132,7 +132,19 @@ class BookmarkEditorUI(View):
         baseline['status'] = str(original.instance.status)
         baseline['unread'] = bool(original.instance.unread)
         baseline['tag_ids'] = [str(i) for i in original.initial.get('tag_ids', [])]
-        return {'form': form, 'next_url': return_url(request), 'baseline': baseline, 'bookmark_url': display_url(form['url'].value() or '')}
+        context = {'form': form, 'next_url': return_url(request), 'baseline': baseline, 'bookmark_url': display_url(form['url'].value() or ''), 'ai_blocked_domains': []}
+        if request.user.is_authenticated:
+            from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAttempt
+            from .ai_forms import AnalyzeForm
+            from .ai_sites import blacklisted_site
+            prefs = BookmarkAISettings.objects.filter(owner=request.user).first()
+            domains = prefs.blocked_domains if prefs else []
+            value = (form['url'].value() or '').strip()
+            url_form = AnalyzeForm({'url': value})
+            attempt_url = url_form.cleaned_data['url'] if url_form.is_valid() else ''
+            context.update(ai_blocked_domains=domains, ai_blacklisted_site=blacklisted_site(value, domains),
+                           ai_attempt_url=value, ai_last_attempt=BookmarkAIAttempt.objects.filter(owner=request.user, url=attempt_url).first() if attempt_url else None)
+        return context
 
     def get(self, request):
         form = BookmarkEditorForm(instance=self.bookmark(request), owner=owner_for(request))
@@ -140,8 +152,24 @@ class BookmarkEditorUI(View):
 
     def post(self, request):
         instance = self.bookmark(request)
-        if request.POST.get('action') == 'ai_analyze':
+        if request.POST.get('action') == 'ai_blacklist_site':
             from .ai_credentials import AIError
+            from .ai_sites import block_failed_site
+            from django.utils.cache import patch_cache_control
+            form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))
+            form.is_valid()
+            try:
+                domain = block_failed_site(request.user, request.POST.get('url', ''), request.POST.get('ai_blacklist_offer', ''))
+            except AIError as exc:
+                form.add_error(None, str(exc))
+            else:
+                messages.success(request, '{} and its subdomains are on your AI site blacklist. You can still retry Analyze. Your bookmark draft has not been saved.'.format(domain))
+            response = render(request, ROOT + 'bookmark.html', self.context(request, form))
+            patch_cache_control(response, private=True, no_store=True)
+            return response
+        if request.POST.get('action') == 'ai_analyze':
+            from .ai_credentials import AIError, AIArticleAccessError
+            from .ai_sites import failed_site_offer
             from .ai_views import start_analysis
             from django.utils.cache import patch_cache_control
             try:
@@ -150,7 +178,10 @@ class BookmarkEditorUI(View):
                 form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))
                 form.is_valid()
                 form.add_error(None, str(exc))
-                response = render(request, ROOT + 'bookmark.html', self.context(request, form))
+                context = self.context(request, form)
+                if isinstance(exc, AIArticleAccessError) and not context.get('ai_blacklisted_site'):
+                    context['ai_blacklist_offer'] = failed_site_offer(request.user, request.POST.get('url', ''))
+                response = render(request, ROOT + 'bookmark.html', context)
             patch_cache_control(response, private=True, no_store=True)
             return response
         form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))

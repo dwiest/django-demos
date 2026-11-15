@@ -1,5 +1,6 @@
 import json
 import io
+import time
 from datetime import timedelta
 from unittest import mock
 from urllib.error import HTTPError, URLError
@@ -11,8 +12,8 @@ from django.urls import reverse
 from django.utils import timezone
 from .ai_credentials import AIError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
 from .ai_forms import AIProposalForm, AISiteBlacklistForm
-from .ai_sites import check_site_allowed, normalize_site
-from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
+from .ai_sites import blacklisted_site, failed_site_offer, normalize_site
+from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt
 from .ai_service import APPLICATION_INSTRUCTIONS, analyze, openai_request
 from .ai_views import apply_proposal, snapshot
 from .models import Bookmark, Tag, BookmarkTag
@@ -81,6 +82,141 @@ class BookmarkAITests(TestCase):
         data.update(values)
         return data
 
+    def test_failed_article_offers_one_click_blacklist_without_saving_existing_draft(self):
+        before = snapshot(self.bookmark)
+        data = {'id': self.bookmark.pk, 'url': URL, 'title': 'Unsaved title',
+                'description': 'Unsaved description', 'article_date': '2026-11-15',
+                'status': '1', 'unread': 'on', 'tag_ids': [str(self.tag.pk)],
+                'ai_instructions': 'Keep these instructions', 'next': '/bookmarks/?tag=1', 'action': 'ai_analyze'}
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=analysis_response(opened=False)) as api:
+            failure = self.client.post(self.editor_url, data)
+        api.assert_called_once()
+        self.assertContains(failure, 'Add this site to blacklist')
+        self.assertEqual(failure.context['ai_blacklist_offer']['domain'], 'example.com')
+        token = failure.context['ai_blacklist_offer']['token']
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, [])
+        original_key = self.prefs.encrypted_api_key
+        data.update(action='ai_blacklist_site', ai_blacklist_offer=token)
+        with mock.patch('dwiest.django.demos.bookmarks.ai_views.api_key_for') as key, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.mcp_connection_for') as mcp, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request') as api:
+            for unused in range(2):
+                result = self.client.post(self.editor_url, data)
+                self.assertContains(result, 'are on your AI site blacklist')
+                self.assertNotContains(result, 'Add this site to blacklist')
+                form = result.context['form']
+                for name in ['url', 'title', 'description', 'article_date', 'status']:
+                    self.assertEqual(form[name].value(), data[name])
+                self.assertEqual(form['tag_ids'].value(), data['tag_ids'])
+                self.assertTrue(form['unread'].value())
+                self.assertContains(result, 'Keep these instructions')
+                self.assertEqual(result.context['next_url'], data['next'])
+                self.assertIn('no-store', result['Cache-Control'])
+            key.assert_not_called()
+            mcp.assert_not_called()
+            api.assert_not_called()
+        self.prefs.refresh_from_db()
+        self.bookmark.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, ['example.com'])
+        self.assertEqual(self.prefs.encrypted_api_key, original_key)
+        self.assertEqual(snapshot(self.bookmark), before)
+        self.assertFalse(BookmarkAIAnalysis.objects.exists())
+
+    def test_quick_blacklist_preserves_new_draft_without_credentials_or_valid_bookmark_fields(self):
+        data = {'url': 'https://www.new.example/article', 'title': '', 'description': 'My draft',
+                'article_date': 'not-a-date', 'status': '-1', 'ai_instructions': 'Keep this',
+                'action': 'ai_blacklist_site', 'ai_blacklist_offer': failed_site_offer(self.user, 'https://www.new.example/article')['token']}
+        self.prefs.encrypted_api_key = ''
+        self.prefs.save()
+        count = Bookmark.objects.count()
+        with override_settings(BOOKMARKS_AI_ENCRYPTION_KEYS=[], BOOKMARKS_AI_MCP_URL='', BOOKMARKS_AI_MODEL=''):
+            result = self.client.post(self.editor_url, data)
+        self.assertContains(result, 'new.example and its subdomains are on your AI site blacklist')
+        self.assertEqual(result.context['form']['article_date'].value(), 'not-a-date')
+        self.assertEqual(result.context['form']['description'].value(), 'My draft')
+        self.assertEqual(Bookmark.objects.count(), count)
+        self.no_network.assert_not_called()
+
+    def test_custom_analysis_instructions_are_collapsed_and_preserved_after_failure(self):
+        from html.parser import HTMLParser
+        class Details(HTMLParser):
+            instructions = None
+            def handle_starttag(self, tag, attrs):
+                values = dict(attrs)
+                if tag == 'details' and 'data-ai-instructions' in values:
+                    self.instructions = values
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.analyze', side_effect=AIError('Article analysis failed')):
+            failed = self.client.post(self.editor_url, {'url': URL, 'ai_instructions': 'Keep my custom instructions', 'action': 'ai_analyze'})
+        for page in [self.client.get(self.editor_url), failed]:
+            parser = Details()
+            parser.feed(page.content.decode())
+            self.assertIsNotNone(parser.instructions)
+            self.assertNotIn('open', parser.instructions)
+            self.assertContains(page, 'Custom analysis instructions (optional)')
+        self.assertContains(page, 'Keep my custom instructions')
+
+    def test_configuration_failures_do_not_offer_site_blacklisting(self):
+        self.prefs.encrypted_api_key = ''
+        self.prefs.save()
+        result = self.client.post(self.editor_url, {'url': URL, 'action': 'ai_analyze'})
+        self.assertContains(result, 'Enter an OpenAI API key')
+        self.assertNotContains(result, 'Add this site to blacklist')
+        self.assertNotIn('ai_blacklist_offer', result.context)
+
+    def test_quick_blacklist_rejects_changed_url_forged_missing_and_expired_offers(self):
+        token = failed_site_offer(self.user, URL)['token']
+        data = {'id': self.bookmark.pk, 'url': URL, 'title': 'Never save this', 'status': '0', 'action': 'ai_blacklist_site'}
+        before = snapshot(self.bookmark)
+        for posted in [dict(data, ai_blacklist_offer=token, url='https://other.example/article'),
+                       dict(data, ai_blacklist_offer=token + 'bad'), data]:
+            result = self.client.post(self.editor_url, posted)
+            self.assertContains(result, 'blacklist action expired or the article URL changed')
+        with mock.patch('django.core.signing.time.time', return_value=time.time() + 1900):
+            result = self.client.post(self.editor_url, dict(data, ai_blacklist_offer=token))
+        self.assertContains(result, 'blacklist action expired or the article URL changed')
+        self.prefs.refresh_from_db()
+        self.bookmark.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, [])
+        self.assertEqual(snapshot(self.bookmark), before)
+        self.no_network.assert_not_called()
+
+    def test_quick_blacklist_requires_same_user_owner_permission_and_csrf(self):
+        token = failed_site_offer(self.user, URL)['token']
+        data = {'url': URL, 'title': 'Never save this', 'status': '0', 'action': 'ai_blacklist_site', 'ai_blacklist_offer': token}
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(self.editor_url, data).status_code, 403)
+        self.client.force_login(self.other)
+        result = self.client.post(self.editor_url, data)
+        self.assertContains(result, 'configured demo account')
+        with override_settings(BOOKMARKS_API_OWNER_ID=self.other.pk):
+            result = self.client.post(self.editor_url, data)
+        self.assertContains(result, 'blacklist action expired or the article URL changed')
+        self.client.logout()
+        self.client.post(self.editor_url, data)
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, [])
+        self.assertFalse(BookmarkAISettings.objects.filter(owner=self.other).exists())
+        self.assertEqual(Bookmark.objects.count(), 1)
+
+    def test_quick_blacklist_preserves_other_rules_and_honors_limit(self):
+        token = failed_site_offer(self.user, URL)['token']
+        data = {'url': URL, 'action': 'ai_blacklist_site', 'ai_blacklist_offer': token}
+        self.prefs.blocked_domains = ['site{}.example'.format(i) for i in range(100)]
+        self.prefs.save()
+        result = self.client.post(self.editor_url, data)
+        self.assertContains(result, 'already contains 100 sites')
+        self.prefs.refresh_from_db()
+        self.assertEqual(len(self.prefs.blocked_domains), 100)
+        self.prefs.blocked_domains = ['other.example']
+        self.prefs.save()
+        result = self.client.post(self.editor_url, data)
+        self.assertContains(result, 'are on your AI site blacklist')
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, ['other.example', 'example.com'])
+        self.assertEqual(blacklisted_site('https://news.example.com/new', self.prefs.blocked_domains), 'example.com')
+
     def test_blacklist_can_be_managed_without_ai_credentials_and_is_user_scoped(self):
         original_key = self.prefs.encrypted_api_key
         other_prefs = BookmarkAISettings.objects.create(owner=self.other, blocked_domains=['other.example'])
@@ -124,40 +260,64 @@ class BookmarkAITests(TestCase):
         self.assertEqual(normalize_site('bücher.example'), 'xn--bcher-kva.example')
         for url in ['https://example.com/a', 'https://www.example.com/new', 'https://news.example.com/a',
                     'https://deep.news.example.com/a', 'http://EXAMPLE.COM.:8080/story']:
-            with self.assertRaisesRegex(AIError, 'blocked by your site blacklist'):
-                check_site_allowed(url, ['example.com'])
+            self.assertEqual(blacklisted_site(url, ['example.com']), 'example.com')
         for url in ['https://notexample.com', 'https://example.com.evil.test', 'https://example.net',
                     'https://other.test/?next=example.com', 'https://other.test/example.com']:
-            check_site_allowed(url, ['example.com'])
-        check_site_allowed('https://example.com', ['news.example.com'])
-        check_site_allowed('https://[2001:db8::1]/', ['example.com'])
-        with self.assertRaises(AIError):
-            check_site_allowed('https://www.bücher.example/story', ['xn--bcher-kva.example'])
+            self.assertIsNone(blacklisted_site(url, ['example.com']))
+        self.assertIsNone(blacklisted_site('https://example.com', ['news.example.com']))
+        self.assertIsNone(blacklisted_site('https://[2001:db8::1]/', ['example.com']))
+        self.assertEqual(blacklisted_site('https://www.bücher.example/story', ['xn--bcher-kva.example']), 'xn--bcher-kva.example')
 
-    def test_blocked_analysis_stops_before_credentials_secrets_or_model_calls(self):
+    def test_blacklisted_site_warns_but_allows_explicit_analysis(self):
         self.prefs.blocked_domains = ['example.com']
+        self.prefs.save()
+        page = self.client.get(self.editor_url, {'id': self.bookmark.pk})
+        self.assertContains(page, 'is on your AI site blacklist')
+        self.assertContains(page, 'You can still use Analyze to retry.')
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=analysis_response(self.bookmark.pk)) as api:
+            result = self.client.post(self.editor_url, {'id': self.bookmark.pk, 'url': URL, 'status': '0', 'action': 'ai_analyze'})
+        self.assertEqual(result.status_code, 302)
+        api.assert_called_once()
+        self.assertTrue(BookmarkAIAttempt.objects.filter(owner=self.user, url=URL).exists())
+        review_page = self.client.get(result.url)
+        self.assertContains(review_page, 'Analysis is being attempted at your request')
+
+    def test_attempt_time_persists_on_failure_and_updates_on_retry(self):
+        original = snapshot(self.bookmark)
+        data = {'id': self.bookmark.pk, 'url': URL, 'title': 'Draft', 'status': '0', 'action': 'ai_analyze'}
+        before = timezone.now()
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=analysis_response(opened=False)):
+            result = self.client.post(self.editor_url, data)
+        attempt = BookmarkAIAttempt.objects.get(owner=self.user, url=URL)
+        self.assertGreaterEqual(attempt.last_attempted_at, before)
+        self.assertContains(result, 'Last analysis attempted for this URL:')
+        self.assertContains(result, 'ago)')
+        self.assertEqual(result.context['ai_last_attempt'].pk, attempt.pk)
+        old_time = timezone.now() - timedelta(days=2)
+        BookmarkAIAttempt.objects.filter(pk=attempt.pk).update(last_attempted_at=old_time)
+        page = self.client.get(self.editor_url, {'id': self.bookmark.pk})
+        self.assertEqual(page.context['ai_last_attempt'].last_attempted_at, old_time)
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', side_effect=AIError('Timed out')):
+            result = self.client.post(self.editor_url, data)
+        attempt.refresh_from_db()
+        self.assertGreater(attempt.last_attempted_at, old_time)
+        self.assertEqual(BookmarkAIAttempt.objects.filter(owner=self.user, url=URL).count(), 1)
+        self.bookmark.refresh_from_db()
+        self.assertEqual(snapshot(self.bookmark), original)
+        self.assertFalse(BookmarkAIAnalysis.objects.exists())
+
+    def test_attempt_times_are_user_and_url_scoped_and_not_written_by_other_actions(self):
+        BookmarkAIAttempt.objects.create(owner=self.other, url=URL)
+        self.assertNotContains(self.client.get(self.editor_url, {'id': self.bookmark.pk}), 'Last analysis attempted for this URL:')
         self.prefs.encrypted_api_key = ''
         self.prefs.save()
-        before = snapshot(self.bookmark)
-        with mock.patch('dwiest.django.demos.bookmarks.ai_views.api_key_for') as key, \
-                mock.patch('dwiest.django.demos.bookmarks.ai_service.mcp_connection_for') as mcp, \
-                mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request') as api:
-            for identifier in [None, self.bookmark.pk]:
-                data = {'url': URL, 'title': 'Draft title', 'status': '0', 'action': 'ai_analyze'}
-                if identifier:
-                    data['id'] = identifier
-                result = self.client.post(self.editor_url, data)
-                self.assertContains(result, 'blocked by your site blacklist')
-                self.assertContains(result, 'Draft title')
-            # The service also enforces the list for callers outside the editor.
-            with self.assertRaises(AIError):
-                analyze(self.user, API_KEY, self.prefs, URL)
-            key.assert_not_called()
-            mcp.assert_not_called()
-            api.assert_not_called()
-        self.bookmark.refresh_from_db()
-        self.assertEqual(snapshot(self.bookmark), before)
-        self.assertFalse(BookmarkAIAnalysis.objects.exists())
+        result = self.client.post(self.editor_url, {'url': URL, 'action': 'ai_analyze'})
+        self.assertContains(result, 'Enter an OpenAI API key')
+        self.assertFalse(BookmarkAIAttempt.objects.filter(owner=self.user).exists())
+        self.client.post(self.editor_url, {'url': 'https://example.com/manual', 'title': 'Manual', 'status': '0'})
+        self.assertFalse(BookmarkAIAttempt.objects.filter(owner=self.user).exists())
+        self.client.post(self.editor_url, {'url': URL, 'action': 'ai_blacklist_site', 'ai_blacklist_offer': failed_site_offer(self.user, URL)['token']})
+        self.assertFalse(BookmarkAIAttempt.objects.filter(owner=self.user).exists())
 
     def test_unblocked_analysis_runs_again_after_removing_domain(self):
         self.prefs.blocked_domains = ['example.com']

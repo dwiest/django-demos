@@ -12,6 +12,16 @@ class BookmarkAISettings(models.Model):
     blocked_domains = models.JSONField(default=list, blank=True)
 
 
+class BookmarkAIAttempt(models.Model):
+    """Latest attempted analysis per account/URL, including unsuccessful requests."""
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    url = models.CharField(max_length=255)
+    last_attempted_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (('owner', 'url'),)
+
+
 class BookmarkAIAnalysis(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
