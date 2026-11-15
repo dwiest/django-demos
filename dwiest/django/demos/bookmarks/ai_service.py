@@ -6,6 +6,7 @@ from urllib.request import Request, build_opener, HTTPRedirectHandler
 from django.views.decorators.debug import sensitive_variables
 from .ai_credentials import AIError, configured, mcp_connection_for
 from .ai_forms import AIProposalForm, DEFAULT_INSTRUCTIONS
+from .ai_sites import check_site_allowed
 
 APPLICATION_INSTRUCTIONS = '''You are the assistant inside a bookmarks application.
 Retrieve the supplied article URL using web_search open_page and read its actual contents.
@@ -115,6 +116,7 @@ def decode_tool_output(item):
 
 @sensitive_variables()
 def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
+    check_site_allowed(url, prefs.blocked_domains)
     tool = mcp_connection_for(user)
     tool.update(allowed_tools=READ_TOOLS, require_approval='never')
     prompt = {'article_url': url, 'bookmark_id': bookmark_id,

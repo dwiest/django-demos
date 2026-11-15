@@ -10,7 +10,8 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from .ai_credentials import AIError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
-from .ai_forms import AIProposalForm
+from .ai_forms import AIProposalForm, AISiteBlacklistForm
+from .ai_sites import check_site_allowed, normalize_site
 from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from .ai_service import APPLICATION_INSTRUCTIONS, analyze, openai_request
 from .ai_views import apply_proposal, snapshot
@@ -79,6 +80,125 @@ class BookmarkAITests(TestCase):
         data['article_date'] = ''
         data.update(values)
         return data
+
+    def test_blacklist_can_be_managed_without_ai_credentials_and_is_user_scoped(self):
+        original_key = self.prefs.encrypted_api_key
+        other_prefs = BookmarkAISettings.objects.create(owner=self.other, blocked_domains=['other.example'])
+        with override_settings(BOOKMARKS_AI_ENCRYPTION_KEYS=[], BOOKMARKS_AI_MCP_URL=''):
+            result = self.client.post(self.settings_url, {'action': 'save_blacklist',
+                'blocked_domains': ' https://WWW.POLITICO.EU/article/test/ \npolitico.eu\nMSN.com.\n'})
+        self.assertEqual(result.status_code, 302)
+        self.prefs.refresh_from_db()
+        other_prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, ['politico.eu', 'msn.com'])
+        self.assertEqual(other_prefs.blocked_domains, ['other.example'])
+        self.assertEqual(self.prefs.encrypted_api_key, original_key)
+        self.assertEqual((self.prefs.instructions, self.prefs.model), ('', ''))
+        page = self.client.get(self.settings_url)
+        self.assertContains(page, 'politico.eu')
+        self.assertContains(page, 'msn.com')
+        result = self.client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': 'msn.com'})
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, ['msn.com'])
+        self.client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': ''})
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, [])
+        self.no_network.assert_not_called()
+
+    def test_blacklist_invalid_entries_do_not_replace_saved_list(self):
+        self.prefs.blocked_domains = ['example.com']
+        self.prefs.save()
+        for invalid in ['*.example.com', 'not a domain', 'https://user:password@example.com/path',
+                        'ftp://example.com', 'example.com:invalid', 'example..com', '-bad.example', 'com', 'https://']:
+            result = self.client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': invalid})
+            self.assertEqual(result.status_code, 200)
+            self.assertContains(result, 'Line 1:')
+            self.prefs.refresh_from_db()
+            self.assertEqual(self.prefs.blocked_domains, ['example.com'])
+        form = AISiteBlacklistForm({'blocked_domains': '\n'.join('site{}.example'.format(i) for i in range(101))})
+        self.assertFalse(form.is_valid())
+        self.assertIn('Choose at most 100 sites.', form.errors['blocked_domains'])
+
+    def test_blacklist_matching_normalization_and_domain_boundaries(self):
+        self.assertEqual(normalize_site('https://WWW.Example.COM.:443/story?x=1#intro'), 'example.com')
+        self.assertEqual(normalize_site('bücher.example'), 'xn--bcher-kva.example')
+        for url in ['https://example.com/a', 'https://www.example.com/new', 'https://news.example.com/a',
+                    'https://deep.news.example.com/a', 'http://EXAMPLE.COM.:8080/story']:
+            with self.assertRaisesRegex(AIError, 'blocked by your site blacklist'):
+                check_site_allowed(url, ['example.com'])
+        for url in ['https://notexample.com', 'https://example.com.evil.test', 'https://example.net',
+                    'https://other.test/?next=example.com', 'https://other.test/example.com']:
+            check_site_allowed(url, ['example.com'])
+        check_site_allowed('https://example.com', ['news.example.com'])
+        check_site_allowed('https://[2001:db8::1]/', ['example.com'])
+        with self.assertRaises(AIError):
+            check_site_allowed('https://www.bücher.example/story', ['xn--bcher-kva.example'])
+
+    def test_blocked_analysis_stops_before_credentials_secrets_or_model_calls(self):
+        self.prefs.blocked_domains = ['example.com']
+        self.prefs.encrypted_api_key = ''
+        self.prefs.save()
+        before = snapshot(self.bookmark)
+        with mock.patch('dwiest.django.demos.bookmarks.ai_views.api_key_for') as key, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.mcp_connection_for') as mcp, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request') as api:
+            for identifier in [None, self.bookmark.pk]:
+                data = {'url': URL, 'title': 'Draft title', 'status': '0', 'action': 'ai_analyze'}
+                if identifier:
+                    data['id'] = identifier
+                result = self.client.post(self.editor_url, data)
+                self.assertContains(result, 'blocked by your site blacklist')
+                self.assertContains(result, 'Draft title')
+            # The service also enforces the list for callers outside the editor.
+            with self.assertRaises(AIError):
+                analyze(self.user, API_KEY, self.prefs, URL)
+            key.assert_not_called()
+            mcp.assert_not_called()
+            api.assert_not_called()
+        self.bookmark.refresh_from_db()
+        self.assertEqual(snapshot(self.bookmark), before)
+        self.assertFalse(BookmarkAIAnalysis.objects.exists())
+
+    def test_unblocked_analysis_runs_again_after_removing_domain(self):
+        self.prefs.blocked_domains = ['example.com']
+        self.prefs.save()
+        self.client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': ''})
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.analyze', return_value=(proposal(), [])) as api:
+            result = self.client.post(self.editor_url, {'url': 'https://example.com/new', 'title': 'Draft', 'status': '0', 'action': 'ai_analyze'})
+        self.assertEqual(result.status_code, 302)
+        api.assert_called_once()
+        self.assertEqual(api.call_args[0][2].blocked_domains, [])
+
+    def test_blacklist_does_not_block_manual_save_or_approved_proposal(self):
+        self.prefs.blocked_domains = ['example.com']
+        self.prefs.save()
+        result = self.client.post(self.editor_url, {'id': self.bookmark.pk, 'url': URL, 'title': 'Manual title', 'status': '0'})
+        self.assertEqual(result.status_code, 302)
+        self.bookmark.refresh_from_db()
+        review = self.review()
+        result = self.client.post(self.review_url(review), self.posted(selected=['title'], title='Approved title'))
+        self.assertEqual(result.status_code, 302)
+        self.bookmark.refresh_from_db()
+        self.assertEqual(self.bookmark.title, 'Approved title')
+        self.no_network.assert_not_called()
+
+    def test_blacklist_management_requires_owner_and_csrf(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': 'example.com'}).status_code, 403)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.post(self.settings_url, {'action': 'save_blacklist', 'blocked_domains': 'example.com'}).status_code, 403)
+        self.prefs.refresh_from_db()
+        self.assertEqual(self.prefs.blocked_domains, [])
+
+    def test_other_ai_settings_actions_preserve_blacklist(self):
+        self.prefs.blocked_domains = ['example.com']
+        self.prefs.save()
+        for data in [{'action': 'save', 'storage': 'session', 'instructions': 'Test'},
+                     {'action': 'reset'}, {'action': 'remove'}]:
+            self.client.post(self.settings_url, data)
+            self.prefs.refresh_from_db()
+            self.assertEqual(self.prefs.blocked_domains, ['example.com'])
 
     def test_settings_saved_key_encrypted_never_rendered_and_password_independent(self):
         result = self.client.get(self.settings_url)

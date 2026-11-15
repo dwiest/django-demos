@@ -9,6 +9,7 @@ class BookmarkAISettings(models.Model):
     encrypted_api_key = models.TextField(blank=True, default='')
     instructions = models.TextField(blank=True, default='')
     model = models.CharField(max_length=100, blank=True, default='')
+    blocked_domains = models.JSONField(default=list, blank=True)
 
 
 class BookmarkAIAnalysis(models.Model):

@@ -39,7 +39,11 @@ python manage.py collectstatic --noinput
 not rewrite Bookmark/Tag data or repair historical migration/schema differences.
 The workflow tests use the current legacy schema; the migration test separately
 executes the real migration chain, checks existing bookmark data, and reverses
-only the new migration. Do not generate unrelated schema changes for this feature.
+only the AI migrations. Do not generate unrelated schema changes for this feature.
+
+`0010_bookmark_ai_blocked_domains` adds an empty per-user site blacklist to the
+existing AI preferences. Run `python manage.py migrate demos` before restarting
+with the updated package; existing API credentials and instructions are retained.
 
 ## Configure after resources exist
 
@@ -124,6 +128,33 @@ Changing a Secrets Manager value alone does not rotate ciphertext in Django.
 5. Approve to save in Django, or cancel without changes. Proposals expire in
    30 minutes and belong only to the initiating account.
 
+## User-managed site blacklist
+
+Open **Bookmarks -> AI settings -> AI site blacklist** to add, edit, or remove
+domains. Enter one domain per line, or paste full article URLs. Saving this list
+does not require AI credentials and does not change API keys, instructions, or
+the selected model. Leave the list empty to allow all sites. New installations
+and existing accounts start with an empty list; retrieval failures never add
+sites automatically.
+
+Entries are normalized to lowercase ASCII/IDNA domains, deduplicated, and stripped
+of a leading `www.` and trailing DNS dot. Paths, query strings, fragments, and
+valid ports in pasted URLs do not affect matching. Wildcards and URLs containing
+login credentials are rejected. Up to 100 domains may be saved.
+
+Each entry blocks that exact domain and its subdomains: `example.com` blocks
+`www.example.com` and `news.example.com`, but not `notexample.com` or
+`example.com.other.test`. An entry for `news.example.com` leaves `example.com`
+available. Rules belong to the logged-in account and use the existing AI
+demo-owner access restriction.
+
+Analyze checks the submitted article host before loading the API key or remote
+secrets and before invoking OpenAI/MCP. A blocked site shows an explanation in
+the bookmark editor and creates no proposal. Removing the domain permits new
+analysis attempts. Manual bookmark saves and approval of existing proposals
+continue to work. This controls which submitted article URLs are analyzed; it
+is not an outbound network filter for redirects or the model's research sources.
+
 Review records retain snapshots, proposals, sources, and approved values; older
 records can also contain an MCP operation journal. They contain no API keys or
 MCP tokens. Schedule
@@ -168,8 +199,9 @@ python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.
 These tests use mocked OpenAI/MCP network responses and exercise the real Django
 views, ownership, CSRF, encrypted settings/session storage, review/edit/cancel,
 stale/expired/repeated requests, local approval without AI credentials/network,
-transaction rollback and retry, tag ownership/reuse, and the actual additive
-migration. CI covers Python 3.7 and 3.12 with Django 3.2.
+transaction rollback and retry, tag ownership/reuse, user-managed blacklist
+normalization/matching/ownership, zero-call rejection of blocked sites, and the
+actual additive migrations. CI covers Python 3.7 and 3.12 with Django 3.2.
 CI also runs the 11 existing Inventory/umbrella migration regression tests. AI
 models live in `bookmark_ai_models.py` at the umbrella-app level so registering
 them does not eagerly load the legacy Bookmarks forms/views or their models.
