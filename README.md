@@ -27,7 +27,8 @@ adding notes, and filtering or exporting a collection. It also includes progress
 web app support for capturing links and APIs for bulk bookmark operations.
 
 Optional [AI enrichment](docs/bookmarks-ai.md) retrieves articles through OpenAI,
-proposes metadata and tags, and saves approved changes through the Bookmarks MCP
+proposes metadata and tags, and saves approved changes directly in Django without
+another AI call. Analysis reads existing bookmarks/tags through the Bookmarks MCP
 server. It supports session-only or encrypted saved API keys and custom instructions.
 
 ### Invoicer

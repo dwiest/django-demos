@@ -1,11 +1,13 @@
 # AI-assisted bookmarks
 
-The bookmark editor now supports **Analyze -> review/edit -> approve -> MCP**.
+The bookmark editor supports **Analyze -> review/edit -> approve -> save in Django**.
 The OpenAI agent retrieves the article using Responses API web search, reads the
 existing bookmark/tags through remote MCP, and returns a structured proposal.
 Analysis exposes only four explicit read tools. No bookmark or tag is written
-until the user submits the review page. Normal manual bookmark saves still work
-when AI is unconfigured; the application never falls back to a shared OpenAI key.
+until the user submits the review page. Approved values and tags are saved locally
+in one database transaction, with no further OpenAI, MCP, or REST calls. Normal
+manual bookmark saves still work when AI is unconfigured; the application never
+falls back to a shared OpenAI key.
 
 ## Deploy the companion MCP change first
 
@@ -56,11 +58,12 @@ credentials or deployment URLs are committed. Required for live operation:
 Optional `BOOKMARKS_AI_MODELS` is a Django list or comma-separated environment
 variable of selectable model IDs. An empty list means users use the configured
 default. No model ID is assumed; choose one available to the user's API account.
-`BOOKMARKS_AI_TIMEOUT` defaults to 120 seconds **per OpenAI request**. Analyze and
-Apply are synchronous server requests; set Gunicorn/uWSGI, HAProxy, and any CDN
-timeouts accordingly. Applying several new tags can involve multiple requests;
-worker termination leaves a proposal non-replayable rather than retrying writes.
-For larger workloads, move orchestration to a job queue with polling.
+`BOOKMARKS_AI_TIMEOUT` defaults to 120 seconds **per OpenAI request**. Analyze is
+a synchronous server request; set application-server, HAProxy, and any CDN
+timeouts accordingly. For larger analysis workloads, move orchestration to a job
+queue with polling. Approval is a local database save and does not need a usable
+OpenAI key, encryption secret, selected model, or MCP connection. It retains the
+configured demo-owner restriction.
 
 The EC2 role needs `secretsmanager:GetSecretValue` for the two exact secret ARNs,
 plus KMS decrypt permission if customer-managed KMS keys protect them. No AWS
@@ -118,44 +121,42 @@ Changing a Secrets Manager value alone does not rotate ciphertext in Django.
    to use, edit any proposed values, and review the final tag names. A removed
    name removes that assignment; a new name authorizes creating that tag. Read
    status and visibility preserve the editor's selections, displayed on review.
-5. Approve to save through MCP, or cancel without changes. Proposals expire in
+5. Approve to save in Django, or cancel without changes. Proposals expire in
    30 minutes and belong only to the initiating account.
 
-Review records retain snapshots, proposals, sources, approved values, and a short
-operation journal; they contain no API keys or MCP tokens. Schedule
+Review records retain snapshots, proposals, sources, and approved values; older
+records can also contain an MCP operation journal. They contain no API keys or
+MCP tokens. Schedule
 `python manage.py cleanup_bookmark_ai` to remove records seven days after expiry,
 or use `--days N` to select retention. Use normal production `DEBUG=False` and do
 not enable request-body/Authorization logging for credential-entry endpoints.
 
 ## Approval and failure behavior
 
-Apply builds a fixed operation from the final user-approved fields. The agent
-prepares one MCP call at a time with native approval required. Django checks the
-server, tool, and **complete arguments** against the approved operation before
-sending an `mcp_approval_response`. Execution disables further tool selection;
-unexpected calls or additional approvals are never automatically accepted.
-Personal/task instructions are not included in this execution phase.
+The review POST merges only the selected fields with the original editor draft,
+validates the final values, and uses the same bookmark ModelForm as manual saves.
+It reuses the owner's existing tags case-insensitively, creates approved missing
+tags, and saves the bookmark and owned tag assignments directly. Read status and
+visibility retain the draft selections. Unchanged fields, including legacy
+publication timestamps, are preserved on existing bookmarks.
 
-New bookmarks use `create_bookmark` with approved tag names (including creation
-of missing tags inside the backend create operation). Existing bookmarks reuse
-owned tag IDs, create approved new tags through MCP if needed, then call
-`update_bookmark` with only changed fields. Django verifies the resulting saved
-record against the approved values. It never performs a direct ORM bookmark/tag
-write on the AI path.
+An atomic pending-to-applying transition, bookmark/tag writes, and applied status
+all share one database transaction. Repeated submissions cannot apply a committed
+review twice. Edits lock the existing bookmark where the database supports row
+locking and check its persisted field/version/tag snapshot; stale proposals and
+duplicate URLs are rejected. Any failure rolls back tag creation, assignments,
+bookmark changes, and review consumption together. A failed save remains pending
+and can be retried while unexpired; an applied review cannot be replayed. Existing
+applying/uncertain records from the previous MCP save flow remain non-replayable
+because their remote writes may have completed. No schema migration is required
+to deploy this save-path change.
 
-An atomic pending-to-applying transition prevents resubmitting the **same** review.
-Edits check persisted bookmark/version/tag snapshots before execution. MCP/REST
-operations are separate transactions: other clients can still race an update,
-and a tag can be created before a subsequent bookmark call fails. Timeouts or
-ambiguous results mark the proposal uncertain and prevent replay. The UI shows
-confirmed operations and asks the user to check saved data before starting over.
-After a worker crash, an applying record also cannot be resubmitted. This first
-version does not offer distributed transactions or unattended retries.
-
-Write preparation/approval uses stored Responses IDs (`store=true`); analysis
-uses `store=false`. Bookmark content, instructions, tags, and tool arguments are
-sent to the user's OpenAI API account. The app sends the configured MCP bearer
-header on each remote-MCP request, independently of the user's OpenAI key.
+Only Analyze invokes OpenAI (with `store=false`) and remote MCP read tools.
+Bookmark content, instructions, tags, and tool arguments used during analysis
+are sent to the user's OpenAI API account. The app supplies the configured MCP
+bearer header independently of the user's OpenAI key. Saving an approved proposal
+has no OpenAI or MCP usage charges; it does not send edited review values back
+to the model. Analysis latency and API usage are unaffected by this save change.
 
 ## Verification
 
@@ -166,8 +167,9 @@ python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.
 
 These tests use mocked OpenAI/MCP network responses and exercise the real Django
 views, ownership, CSRF, encrypted settings/session storage, review/edit/cancel,
-stale/expired/repeated requests, native argument-checked approval, partial writes,
-and the actual additive migration. CI covers Python 3.7 and 3.12 with Django 3.2.
+stale/expired/repeated requests, local approval without AI credentials/network,
+transaction rollback and retry, tag ownership/reuse, and the actual additive
+migration. CI covers Python 3.7 and 3.12 with Django 3.2.
 CI also runs the 11 existing Inventory/umbrella migration regression tests. AI
 models live in `bookmark_ai_models.py` at the umbrella-app level so registering
 them does not eagerly load the legacy Bookmarks forms/views or their models.

@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
+from django.db import IntegrityError, transaction
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, reverse
 from django.utils import timezone
@@ -15,6 +16,7 @@ from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
 from . import ai_service
 from .models import Bookmark, BookmarkTag, Tag
 from .ui_views import ROOT, return_url
+from .ui_forms import BookmarkEditorForm
 
 
 def snapshot(bookmark):
@@ -152,84 +154,56 @@ def effective_proposal(review, form):
 
 def assert_current(review):
     if review.bookmark_id:
-        bookmark = Bookmark.objects.filter(pk=review.bookmark_id, owner=review.owner).first()
+        bookmark = Bookmark.objects.select_for_update().filter(pk=review.bookmark_id, owner=review.owner).first()
         if not bookmark or snapshot(bookmark) != review.original['persisted']:
             raise AIError('This bookmark changed after analysis. Open it again and analyze the current version.')
+        return bookmark
+    return Bookmark(owner=review.owner)
 
 
-def add_result(review, name, result):
-    review.results.append({'tool': name, 'id': result.get('id')})
-    review.save(update_fields=['results'])
-
-
-def assert_available(review, final):
-    assert_current(review)
+@transaction.atomic
+def apply_proposal(request, review, final):
+    """Save approved values locally, including review consumption, in one transaction."""
+    user = request.user
+    require_demo_owner(user)
+    # Claim before reading/writing bookmark state. A failed save rolls this back
+    # with its tags/assignments; a committed review cannot execute twice.
+    if not BookmarkAIAnalysis.objects.filter(pk=review.pk, owner=user, status='pending', expires_at__gt=timezone.now()).update(status='applying'):
+        raise AIError('This proposal has expired or has already been handled.')
+    bookmark = assert_current(review)
     if Bookmark.objects.filter(url=final['url']).exclude(pk=review.bookmark_id).exists():
         raise AIError('That URL already exists. Open the existing bookmark instead.')
 
+    tag_ids = []
+    for title in final['tags']:
+        tag = Tag.objects.filter(owner=user, title__iexact=title).order_by('id').first()
+        if not tag:
+            tag = Tag.objects.create(owner=user, title=title, description=None, style='')
+        tag_ids.append(tag.pk)
 
-@sensitive_variables()
-def apply_proposal(request, review, final):
-    """All bookmark/tag writes go through agent-issued, argument-checked MCP calls."""
-    user = request.user
-    key = api_key_for(request)
-    prefs, _ = BookmarkAISettings.objects.get_or_create(owner=user)
-    ai_service.mcp_connection_for(user)
-    ai_service.model_for(prefs)
-    assert_available(review, final)
-    # Atomic compare-and-swap, including expiry: double-clicks cannot execute twice.
-    if not BookmarkAIAnalysis.objects.filter(pk=review.pk, owner=user, status='pending', expires_at__gt=timezone.now()).update(status='applying', approved=final):
-        raise AIError('This proposal has expired or has already been handled.')
-    review.status = 'applying'
+    # Use the same ModelForm as manual saves for model validation, dates, and
+    # owner-scoped tag choices. All values come from the merged review form.
+    form = BookmarkEditorForm(dict(final, tag_ids=tag_ids), instance=bookmark, owner=user)
+    if not form.is_valid():
+        raise AIError('The approved bookmark could not be validated. Check its values and URL; no changes were saved.')
+    new = not bookmark.pk
+    saved = form.save(commit=False)
+    saved.owner = user
+    if new:
+        saved.save()
+    else:
+        changed = [name for name in ('url', 'title', 'description', 'article_date', 'status', 'unread')
+                   if final[name] != review.original['persisted'][name]]
+        if final['tags'] != review.original['persisted']['tags'] or changed:
+            # Preserve unchanged fields, including legacy publication timestamps.
+            saved.save(update_fields=changed + ['last_modified'])
+    BookmarkTag.objects.filter(owner=user, bookmark=saved).exclude(tag_id__in=tag_ids).delete()
+    for tag_id in tag_ids:
+        BookmarkTag.objects.get_or_create(owner=user, bookmark=saved, tag_id=tag_id)
+    review.status = 'applied'
     review.approved = final
-    try:
-        assert_current(review)
-        if review.bookmark_id:
-            changes = {name: final[name] for name in ('url', 'title', 'description', 'article_date', 'status', 'unread')
-                       if final[name] != review.original['persisted'][name]}
-            if final['tags'] != review.original['persisted']['tags']:
-                ids = []
-                for title in final['tags']:
-                    tag = Tag.objects.filter(owner=user, title__iexact=title).order_by('id').first()
-                    if not tag:
-                        result = ai_service.execute_call(user, key, prefs, 'create_tag', {'title': title, 'description': None, 'style': ''}, before_approve=lambda: assert_available(review, final))
-                        add_result(review, 'create_tag', result)
-                        tag = Tag.objects.filter(pk=result.get('id'), owner=user, title=title).first()
-                        if not tag:
-                            raise AIError('The created tag could not be verified in this application.')
-                    ids.append(tag.pk)
-                changes['tag_ids'] = ids
-            if changes:
-                assert_current(review)
-                result = ai_service.execute_call(user, key, prefs, 'update_bookmark', {'bookmark_id': review.bookmark_id, 'changes': changes}, before_approve=lambda: assert_available(review, final))
-                add_result(review, 'update_bookmark', result)
-            bookmark_id = review.bookmark_id
-        else:
-            arguments = {name: final[name] for name in ('url', 'title', 'description', 'article_date', 'tags')}
-            arguments['compact'] = False
-            result = ai_service.execute_call(user, key, prefs, 'create_bookmark', arguments, before_approve=lambda: assert_available(review, final))
-            add_result(review, 'create_bookmark', result)
-            bookmark_id = result.get('id')
-            if type(bookmark_id) is not int:
-                raise AIError('The created bookmark could not be confirmed.')
-            if final['status'] != 0 or final['unread']:
-                result = ai_service.execute_call(user, key, prefs, 'update_bookmark', {
-                    'bookmark_id': bookmark_id, 'changes': {'status': final['status'], 'unread': final['unread']}})
-                add_result(review, 'update_bookmark', result)
-        saved = Bookmark.objects.filter(pk=bookmark_id, owner=user).first()
-        actual = snapshot(saved) if saved else {}
-        expected_tags = {v.casefold() for v in final['tags']}
-        actual_tags = {v.casefold() for v in actual.get('tags', [])}
-        if any(actual.get(n) != final[n] for n in ('url', 'title', 'description', 'article_date', 'status', 'unread')) or expected_tags != actual_tags:
-            raise AIError('The MCP result could not be verified against your approved bookmark. Check the saved data.')
-        review.status = 'applied'
-        review.bookmark_id = bookmark_id
-        review.save(update_fields=['status', 'bookmark_id'])
-    except Exception:
-        # Never replay an operation after a timeout or partial tag/bookmark write.
-        review.status = 'uncertain'
-        review.save(update_fields=['status'])
-        raise
+    review.bookmark_id = saved.pk
+    review.save(update_fields=['status', 'approved', 'bookmark_id'])
 
 
 class AIReviewView(AIProtectedView):
@@ -266,9 +240,12 @@ class AIReviewView(AIProtectedView):
             except AIError as exc:
                 review.refresh_from_db()
                 return self.page(request, review, form, str(exc))
+            except IntegrityError:
+                review.refresh_from_db()
+                return self.page(request, review, form, 'Could not save this bookmark. Its URL may already exist. No changes were saved.')
             except Exception:
                 review.refresh_from_db()
-                return self.page(request, review, form, 'The operation stopped unexpectedly. Check your bookmarks before starting another analysis.')
-            messages.success(request, 'Approved bookmark saved through MCP.')
+                return self.page(request, review, form, 'The bookmark could not be saved. No changes were saved; you can try again.')
+            messages.success(request, 'Approved bookmark saved.')
             return HttpResponseRedirect(reverse('demos:bookmarks:bookmark') + '?id=' + str(review.bookmark_id))
         return self.page(request, review, form)
