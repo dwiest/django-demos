@@ -1,0 +1,25 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}Bookmarks AI settings{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:bookmarks:home' %}">← Bookmarks</a>
+<div class="page-heading"><h1>AI settings</h1></div>
+<p>Use your OpenAI API account to analyze articles. API usage is billed to that account. Every bookmark or tag change requires your approval.</p>
+{% if ai_error %}<div class="notice error" role="alert">{{ ai_error }}</div>{% endif %}
+{{ form.non_field_errors }}
+<form method="post" class="ai-settings">{% csrf_token %}
+<section class="ai-panel"><h2>OpenAI connection</h2>
+<p role="status">{% if session_key_set %}A session API key is configured.{% elif saved_key_set %}An encrypted API key is saved.{% else %}No API key configured.{% endif %}</p>
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.api_key %}
+<p>Leave blank to keep the configured key. Saved keys are never displayed. Session keys are encrypted server-side and expire with your session; signing out removes access to them.</p>
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.storage %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.model %}
+<div class="save-actions"><button class="button secondary" name="action" value="test" type="submit">Test connection</button><button class="button secondary" name="action" value="remove" type="submit" formnovalidate>Remove API keys</button></div>
+</section>
+<section class="ai-panel"><h2>Your instructions</h2><p>Applied to every analysis. You can also give instructions for a single bookmark.</p>
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.instructions %}
+<details><summary>Application instructions</summary><pre class="ai-prompt">{{ application_instructions }}</pre></details>
+<div class="save-actions"><button class="button secondary" name="action" value="reset" type="submit" formnovalidate>Reset instructions to defaults</button></div>
+</section>
+<div class="save-actions"><button class="button primary" name="action" value="save" type="submit">Save AI settings</button><a class="button secondary" href="{% url 'demos:bookmarks:home' %}">Back to bookmarks</a></div>
+</form>
+{% endblock %}

@@ -140,6 +140,19 @@ class BookmarkEditorUI(View):
 
     def post(self, request):
         instance = self.bookmark(request)
+        if request.POST.get('action') == 'ai_analyze':
+            from .ai_credentials import AIError
+            from .ai_views import start_analysis
+            from django.utils.cache import patch_cache_control
+            try:
+                response = start_analysis(request, instance)
+            except AIError as exc:
+                form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))
+                form.is_valid()
+                form.add_error(None, str(exc))
+                response = render(request, ROOT + 'bookmark.html', self.context(request, form))
+            patch_cache_control(response, private=True, no_store=True)
+            return response
         form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))
         if form.is_valid():
             try:
