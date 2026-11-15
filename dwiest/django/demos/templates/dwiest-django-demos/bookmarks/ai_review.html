@@ -6,6 +6,7 @@
 {% if ai_error %}<div class="notice error" role="alert">{{ ai_error }}</div>{% endif %}
 {% if review.status == 'pending' %}
 <p>Choose the fields to use, and edit their proposed values. Unchecked fields keep the values from your bookmark form. Nothing has been saved yet. This proposal expires at {{ review.expires_at|date:'g:i A T' }}.</p>
+<p>Approval saves your selected values without another AI request.</p>
 <p>Article evidence: {% for source in review.sources %}<a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
 <p>Read status stays <strong>{% if preserved.unread %}Unread{% else %}Read{% endif %}</strong>; visibility stays <strong>{% if preserved.status == 1 %}Hidden{% elif preserved.status == -1 %}Deleted{% else %}Active{% endif %}</strong>, as selected in your form.</p>
 <form method="post" data-ai-review>{% csrf_token %}{{ form.non_field_errors }}{{ form.selected.errors }}

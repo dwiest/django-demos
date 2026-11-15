@@ -1,4 +1,4 @@
-"""Responses API orchestration. Analysis cannot write; execution approves exact calls."""
+"""Read-only Responses API analysis; approved saves are handled locally by Django."""
 import json
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, urlunsplit
@@ -169,45 +169,3 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
     if not form.is_valid():
         raise AIError('AI returned invalid bookmark fields. No changes were made.')
     return form.proposal(), list({source['url']: source for source in sources}.values())
-
-
-@sensitive_variables()
-def execute_call(user, api_key, prefs, name, arguments, before_approve=None):
-    """User has approved these exact values. Never approve a model-modified call."""
-    if name not in ('create_tag', 'create_bookmark', 'update_bookmark'):
-        raise AIError('This MCP operation is not allowed.')
-    tool = mcp_connection_for(user)
-    tool.update(allowed_tools=[name], require_approval='always')
-    model = model_for(prefs)
-    prepared = openai_request(api_key, {
-        'model': model, 'store': True,
-        'instructions': 'Prepare exactly the MCP call specified in the input. Preserve every argument exactly, including nulls and empty values. Do not add other operations.',
-        'input': json.dumps({'tool': name, 'arguments': arguments}),
-        'tools': [tool], 'parallel_tool_calls': False, 'max_tool_calls': 1,
-        'max_output_tokens': 12000,
-    })
-    requests = [i for i in prepared.get('output', []) if i.get('type') == 'mcp_approval_request']
-    if any(i.get('type') == 'mcp_call' for i in prepared.get('output', [])) or len(requests) != 1:
-        raise AIError('AI did not prepare exactly one pending MCP call. Nothing was approved.')
-    pending = requests[0]
-    try:
-        supplied = json.loads(pending.get('arguments', ''))
-    except (ValueError, TypeError):
-        supplied = None
-    if (pending.get('server_label') != 'bookmarks' or pending.get('name') != name
-            or json.dumps(supplied, sort_keys=True) != json.dumps(arguments, sort_keys=True)
-            or not pending.get('id') or not prepared.get('id')):
-        raise AIError('The proposed MCP call differed from your approved values. Nothing was approved.')
-    if before_approve:
-        before_approve()
-    result = openai_request(api_key, {
-        'model': model, 'store': True, 'previous_response_id': prepared['id'],
-        'tools': [tool], 'tool_choice': 'none', 'parallel_tool_calls': False,
-        'max_tool_calls': 1, 'max_output_tokens': 1000,
-        'input': [{'type': 'mcp_approval_response', 'approval_request_id': pending['id'], 'approve': True}],
-    })
-    calls = [i for i in result.get('output', []) if i.get('type') == 'mcp_call']
-    if (len(calls) != 1 or any(i.get('type') == 'mcp_approval_request' for i in result.get('output', []))
-            or calls[0].get('name') != name or calls[0].get('server_label') != 'bookmarks'):
-        raise AIError('MCP execution could not be confirmed. Check the saved data before retrying.')
-    return decode_tool_output(calls[0])

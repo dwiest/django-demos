@@ -12,8 +12,8 @@ from django.utils import timezone
 from .ai_credentials import AIError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
 from .ai_forms import AIProposalForm
 from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis
-from .ai_service import APPLICATION_INSTRUCTIONS, analyze, execute_call, openai_request
-from .ai_views import snapshot
+from .ai_service import APPLICATION_INSTRUCTIONS, analyze, openai_request
+from .ai_views import apply_proposal, snapshot
 from .models import Bookmark, Tag, BookmarkTag
 
 KEY = Fernet.generate_key().decode()
@@ -60,6 +60,10 @@ class BookmarkAITests(TestCase):
         BookmarkTag.objects.create(owner=self.user, bookmark=self.bookmark, tag=self.tag)
         self.settings_url = reverse('demos:bookmarks:ai_settings')
         self.editor_url = reverse('demos:bookmarks:bookmark')
+        network_patch = mock.patch('dwiest.django.demos.bookmarks.ai_service.build_opener',
+                                   side_effect=AssertionError('Unexpected network call'))
+        self.no_network = network_patch.start()
+        self.addCleanup(network_patch.stop)
 
     def review(self, bookmark=True, **values):
         original = snapshot(self.bookmark if bookmark else Bookmark(owner=self.user))
@@ -75,33 +79,6 @@ class BookmarkAITests(TestCase):
         data['article_date'] = ''
         data.update(values)
         return data
-
-    def fake_write(self, user, key, prefs, name, arguments, before_approve=None):
-        self.assertEqual(user, self.user)
-        self.assertEqual(key, API_KEY)
-        if before_approve:
-            before_approve()
-        if name == 'create_tag':
-            tag = Tag.objects.create(owner=user, **arguments)
-            return {'id': tag.pk}
-        if name == 'create_bookmark':
-            values = {k: v for k, v in arguments.items() if k not in ('tags', 'compact')}
-            saved = Bookmark.objects.create(owner=user, **values)
-            for title in arguments['tags']:
-                tag, _ = Tag.objects.get_or_create(owner=user, title=title, defaults={'style': ''})
-                BookmarkTag.objects.create(owner=user, bookmark=saved, tag=tag)
-        else:
-            saved = Bookmark.objects.get(owner=user, pk=arguments['bookmark_id'])
-            changes = dict(arguments['changes'])
-            tag_ids = changes.pop('tag_ids', None)
-            for name, value in changes.items():
-                setattr(saved, name, value)
-            saved.save()
-            if tag_ids is not None:
-                BookmarkTag.objects.filter(owner=user, bookmark=saved).delete()
-                for tag_id in tag_ids:
-                    BookmarkTag.objects.create(owner=user, bookmark=saved, tag_id=tag_id)
-        return {'id': saved.pk}
 
     def test_settings_saved_key_encrypted_never_rendered_and_password_independent(self):
         result = self.client.get(self.settings_url)
@@ -205,40 +182,55 @@ class BookmarkAITests(TestCase):
 
     def test_edited_approval_and_unselected_field_are_exact(self):
         review = self.review()
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call', side_effect=self.fake_write) as write:
-            result = self.client.post(self.review_url(review), self.posted(title='My reviewed title', description='Do not apply this', selected=['title']))
+        result = self.client.post(self.review_url(review), self.posted(title='My reviewed title', description='Do not apply this', selected=['title']))
         self.assertEqual(result.status_code, 302)
-        write.assert_called_once()
-        self.assertEqual(write.call_args[0][4], {'bookmark_id': self.bookmark.pk, 'changes': {'title': 'My reviewed title'}})
         self.bookmark.refresh_from_db()
+        self.assertEqual(self.bookmark.title, 'My reviewed title')
         self.assertEqual(self.bookmark.description, 'Original text')
+        self.assertEqual(list(self.bookmark.tags()), [self.tag])
         review.refresh_from_db()
         self.assertEqual(review.status, 'applied')
+        self.assertEqual(review.approved['title'], 'My reviewed title')
+        self.assertEqual(review.approved['description'], 'Original text')
+        self.no_network.assert_not_called()
 
     def test_new_bookmark_and_tags_created_only_after_approval(self):
+        other_tag = Tag.objects.create(owner=self.other, title='Django', style='')
         review = self.review(bookmark=False, url='https://example.com/new')
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call', side_effect=self.fake_write) as write:
-            result = self.client.post(self.review_url(review), self.posted(url='https://example.com/new', tags='AWS\nDjango'))
+        review.original['draft'].update(status=1, unread=True)
+        review.save()
+        before = Bookmark.objects.count()
+        self.client.get(self.review_url(review))
+        self.assertEqual(Bookmark.objects.count(), before)
+        result = self.client.post(self.review_url(review), self.posted(url='https://example.com/new', tags='aws\nDjango', article_date='2026-11-15'))
         self.assertEqual(result.status_code, 302)
-        write.assert_called_once()
-        self.assertEqual(write.call_args[0][3], 'create_bookmark')
-        self.assertEqual(write.call_args[0][4]['tags'], ['AWS', 'Django'])
         review.refresh_from_db()
+        saved = Bookmark.objects.get(pk=review.bookmark_id, owner=self.user)
+        self.assertEqual(saved.article_date.strftime('%Y-%m-%d'), '2026-11-15')
+        self.assertEqual((saved.status, saved.unread), (1, True))
+        tags = list(BookmarkTag.objects.filter(bookmark=saved))
+        self.assertEqual(len(tags), 2)
+        self.assertIn(self.tag.pk, [link.tag_id for link in tags])
+        self.assertNotIn(other_tag.pk, [link.tag_id for link in tags])
+        self.assertTrue(all(link.owner_id == self.user.pk and link.tag.owner_id == self.user.pk for link in tags))
         self.assertEqual(review.status, 'applied')
+        self.assertEqual(review.results, [])
+        self.no_network.assert_not_called()
 
-    def test_new_tag_for_existing_bookmark_uses_mcp_and_clearing_tags_works(self):
+    def test_existing_bookmark_new_tags_and_clearing_tags(self):
         review = self.review()
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call', side_effect=self.fake_write) as write:
-            result = self.client.post(self.review_url(review), self.posted(tags='AWS\nDjango'))
+        result = self.client.post(self.review_url(review), self.posted(tags='AWS\nDjango'))
         self.assertEqual(result.status_code, 302)
-        self.assertEqual([c[0][3] for c in write.call_args_list], ['create_tag', 'update_bookmark'])
+        self.assertEqual({t.title for t in self.bookmark.tags()}, {'AWS', 'Django'})
         self.bookmark.refresh_from_db()
         review = self.review()
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call', side_effect=self.fake_write):
-            self.client.post(self.review_url(review), self.posted(tags=''))
+        result = self.client.post(self.review_url(review), self.posted(tags=''))
+        self.assertEqual(result.status_code, 302)
         self.assertFalse(BookmarkTag.objects.filter(bookmark=self.bookmark).exists())
+        self.assertTrue(Tag.objects.filter(owner=self.user, title='Django').exists())
+        self.no_network.assert_not_called()
 
-    def test_cancellation_expiry_stale_data_and_duplicates_never_write(self):
+    def test_cancellation_expiry_stale_data_and_handled_review_never_write(self):
         for state in ['cancel', 'expired', 'stale', 'duplicate']:
             review = self.review()
             if state == 'expired':
@@ -247,51 +239,103 @@ class BookmarkAITests(TestCase):
             if state == 'stale':
                 self.bookmark.title = 'Changed elsewhere'
                 self.bookmark.save()
-            with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call') as write:
-                if state == 'duplicate':
-                    review.status = 'applying'
-                    review.save()
-                self.client.post(self.review_url(review), self.posted(action='cancel' if state == 'cancel' else 'apply'))
-                write.assert_not_called()
+            if state == 'duplicate':
+                review.status = 'applying'
+                review.save()
+            before = snapshot(self.bookmark)
+            self.client.post(self.review_url(review), self.posted(action='cancel' if state == 'cancel' else 'apply', tags='Should not exist'))
+            self.bookmark.refresh_from_db()
+            self.assertEqual(snapshot(self.bookmark), before)
+            self.assertFalse(Tag.objects.filter(title='Should not exist').exists())
+        self.no_network.assert_not_called()
 
-    def test_partial_failure_does_not_replay_writes(self):
+    def test_database_failure_rolls_back_tags_bookmark_and_review_then_allows_retry(self):
         review = self.review()
-        def partial(*args, **kwargs):
-            if args[3] == 'create_tag':
-                return self.fake_write(*args, **kwargs)
-            raise AIError('Connection timed out.')
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.execute_call', side_effect=partial) as write:
+        before = snapshot(self.bookmark)
+        real_create = BookmarkTag.objects.get_or_create
+        def fail_after_assignment(*args, **kwargs):
+            real_create(*args, **kwargs)
+            raise RuntimeError('Injected failure after assignment')
+        with mock.patch.object(BookmarkTag.objects, 'get_or_create', side_effect=fail_after_assignment):
             result = self.client.post(self.review_url(review), self.posted(tags='NewTag'))
-            count = write.call_count
-            again = self.client.post(self.review_url(review), self.posted(tags='NewTag'))
-        self.assertEqual(write.call_count, count)
+        self.assertContains(result, 'No changes were saved')
         review.refresh_from_db()
-        self.assertEqual(review.status, 'uncertain')
-        self.assertTrue(Tag.objects.filter(owner=self.user, title='NewTag').exists())
-        self.assertContains(result, 'Some operations may have completed')
+        self.bookmark.refresh_from_db()
+        self.assertEqual(review.status, 'pending')
+        self.assertEqual(review.approved, {})
+        self.assertEqual(snapshot(self.bookmark), before)
+        self.assertFalse(Tag.objects.filter(owner=self.user, title='NewTag').exists())
+        again = self.client.post(self.review_url(review), self.posted(tags='NewTag'))
+        self.assertEqual(again.status_code, 302)
+        self.assertEqual({t.title for t in self.bookmark.tags()}, {'NewTag'})
+
+    def test_review_completion_failure_rolls_back_new_bookmark(self):
+        review = self.review(bookmark=False, url='https://example.com/new')
+        with mock.patch.object(BookmarkAIAnalysis, 'save', side_effect=RuntimeError('Injected completion failure')):
+            result = self.client.post(self.review_url(review), self.posted(url='https://example.com/new', tags='NewTag'))
+        self.assertContains(result, 'No changes were saved')
+        self.assertFalse(Bookmark.objects.filter(url='https://example.com/new').exists())
+        self.assertFalse(Tag.objects.filter(title='NewTag').exists())
+        review.refresh_from_db()
+        self.assertEqual(review.status, 'pending')
+        self.assertIsNone(review.bookmark_id)
+
+    def test_global_url_duplicate_is_rejected_without_writes(self):
+        Bookmark.objects.create(owner=self.other, url='https://example.com/taken', title='Other')
+        review = self.review()
+        result = self.client.post(self.review_url(review), self.posted(url='https://example.com/taken', tags='NewTag'))
+        self.assertContains(result, 'That URL already exists')
+        self.bookmark.refresh_from_db()
+        review.refresh_from_db()
+        self.assertEqual(self.bookmark.url, URL)
+        self.assertEqual(review.status, 'pending')
+        self.assertFalse(Tag.objects.filter(title='NewTag').exists())
+
+    def test_repeated_approval_and_stale_in_memory_review_cannot_execute_twice(self):
+        review = self.review(bookmark=False, url='https://example.com/new')
+        stale = BookmarkAIAnalysis.objects.get(pk=review.pk)
+        result = self.client.post(self.review_url(review), self.posted(url='https://example.com/new', tags='NewTag'))
+        self.assertEqual(result.status_code, 302)
+        again = self.client.post(self.review_url(review), self.posted(url='https://example.com/new', tags='NewTag'))
         self.assertContains(again, 'already been handled')
+        request = mock.Mock(user=self.user)
+        with self.assertRaisesRegex(AIError, 'already been handled'):
+            apply_proposal(request, stale, dict(proposal(url='https://example.com/new'), status=0, unread=False))
+        self.assertEqual(Bookmark.objects.filter(url='https://example.com/new').count(), 1)
+        self.assertEqual(Tag.objects.filter(owner=self.user, title='NewTag').count(), 1)
 
-    def test_native_mcp_approval_validates_exact_arguments(self):
-        args = {'bookmark_id': self.bookmark.pk, 'changes': {'title': 'Approved'}}
-        pending = {'type': 'mcp_approval_request', 'id': 'approval_1', 'server_label': 'bookmarks', 'name': 'update_bookmark', 'arguments': json.dumps(args)}
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', side_effect=[response(pending), response(call('update_bookmark', {'id': self.bookmark.pk}))]) as api:
-            execute_call(self.user, API_KEY, self.prefs, 'update_bookmark', args)
-        approved = api.call_args_list[1][0][1]
-        self.assertEqual(approved['input'], [{'type': 'mcp_approval_response', 'approval_request_id': 'approval_1', 'approve': True}])
-        self.assertEqual(approved['tool_choice'], 'none')
-        pending['arguments'] = json.dumps(dict(args, changes={'title': 'Changed by model'}))
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=response(pending)) as api:
-            with self.assertRaisesRegex(AIError, 'differed from your approved values'):
-                execute_call(self.user, API_KEY, self.prefs, 'update_bookmark', args)
-            self.assertEqual(api.call_count, 1)
+    def test_changed_tag_assignment_invalidates_review(self):
+        review = self.review()
+        BookmarkTag.objects.filter(bookmark=self.bookmark).delete()
+        result = self.client.post(self.review_url(review), self.posted(tags='NewTag'))
+        self.assertContains(result, 'changed after analysis')
+        self.assertFalse(Tag.objects.filter(title='NewTag').exists())
+        self.assertFalse(BookmarkTag.objects.filter(bookmark=self.bookmark).exists())
 
-    def test_multiple_or_followup_calls_never_approved(self):
-        pending = {'type': 'mcp_approval_request', 'id': 'approval', 'name': 'delete_bookmark', 'server_label': 'bookmarks', 'arguments': '{}'}
-        for result in [response(pending), response(pending, dict(pending, id='second'))]:
-            with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=result) as api:
-                with self.assertRaises(AIError):
-                    execute_call(self.user, API_KEY, self.prefs, 'create_tag', {'title': 'A'})
-                self.assertEqual(api.call_count, 1)
+    def test_unchanged_publication_timestamp_is_preserved(self):
+        self.bookmark.article_date = timezone.now()
+        self.bookmark.save()
+        timestamp = self.bookmark.article_date
+        review = self.review()
+        result = self.client.post(self.review_url(review), self.posted(selected=['title'], title='Reviewed'))
+        self.assertEqual(result.status_code, 302)
+        self.bookmark.refresh_from_db()
+        self.assertEqual(self.bookmark.article_date, timestamp)
+
+    def test_approval_needs_no_ai_key_encryption_secret_model_or_mcp(self):
+        review = self.review()
+        self.prefs.encrypted_api_key = ''
+        self.prefs.save()
+        with override_settings(BOOKMARKS_AI_ENCRYPTION_KEYS=[], BOOKMARKS_AI_MCP_URL='', BOOKMARKS_AI_MCP_TOKEN='',
+                               BOOKMARKS_AI_MCP_SECRET_ID='', BOOKMARKS_AI_ENCRYPTION_SECRET_ID='', BOOKMARKS_AI_MODEL=''):
+            result = self.client.post(self.review_url(review), self.posted(selected=['title'], title='Reviewed title'))
+        self.assertEqual(result.status_code, 302)
+        self.bookmark.refresh_from_db()
+        self.assertEqual(self.bookmark.title, 'Reviewed title')
+        page = self.client.get(result.url)
+        self.assertContains(page, 'Approved bookmark saved.')
+        self.assertNotContains(page, 'saved through MCP')
+        self.no_network.assert_not_called()
 
     def test_rotation_retains_old_decryption_then_retires_old_key(self):
         old = self.prefs.encrypted_api_key
@@ -334,34 +378,3 @@ class BookmarkAITests(TestCase):
             self.assertNotIn(API_KEY, str(raised.exception))
             self.assertNotIn('private-provider-detail', str(raised.exception))
 
-    def test_stale_check_runs_after_preparation_before_native_approval(self):
-        args = {'bookmark_id': self.bookmark.pk, 'changes': {'title': 'Approved'}}
-        pending = {'type': 'mcp_approval_request', 'id': 'approval', 'server_label': 'bookmarks',
-                   'name': 'update_bookmark', 'arguments': json.dumps(args)}
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=response(pending)) as api:
-            with self.assertRaisesRegex(AIError, 'stale'):
-                execute_call(self.user, API_KEY, self.prefs, 'update_bookmark', args,
-                             before_approve=mock.Mock(side_effect=AIError('stale')))
-        self.assertEqual(api.call_count, 1)
-
-    def test_full_review_to_native_approval_to_mcp_result(self):
-        review = self.review()
-        calls = []
-        def provider(key, payload):
-            self.assertEqual(key, API_KEY)
-            calls.append(payload)
-            if 'previous_response_id' not in payload:
-                spec = json.loads(payload['input'])
-                return response({'type': 'mcp_approval_request', 'id': 'approval', 'server_label': 'bookmarks',
-                                 'name': spec['tool'], 'arguments': json.dumps(spec['arguments'])})
-            spec = json.loads(calls[0]['input'])
-            result = self.fake_write(self.user, key, self.prefs, spec['tool'], spec['arguments'])
-            return response(call(spec['tool'], {'content': [{'type': 'text', 'text': json.dumps(result)}]}))
-        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', side_effect=provider):
-            result = self.client.post(self.review_url(review), self.posted(selected=['title'], title='Reviewed title'))
-        self.assertEqual(result.status_code, 302)
-        self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[0]['tools'][0]['allowed_tools'], ['update_bookmark'])
-        self.assertTrue(calls[1]['input'][0]['approve'])
-        self.bookmark.refresh_from_db()
-        self.assertEqual(self.bookmark.title, 'Reviewed title')
