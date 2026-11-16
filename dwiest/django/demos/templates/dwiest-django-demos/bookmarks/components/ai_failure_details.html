@@ -1,0 +1,12 @@
+{% if ai_failure_details %}
+<div aria-label="Analysis failure details">
+{% if ai_failure_details.article_failure %}
+<p><strong>OpenAI-reported reason:</strong> {{ ai_failure_details.reported_reason|default:'OpenAI did not provide a specific reason.' }}</p>
+<p><strong>Verification:</strong> {{ ai_failure_details.verification }}</p>
+<p>Publisher HTTP status and response headers were not provided. Site policy and payment requirements are unverified; any status code in the explanation above is model-reported.</p>
+{% endif %}
+{% if ai_failure_details.request_timed %}<p><strong>OpenAI request:</strong> {{ ai_failure_details.request_seconds|floatformat:1 }} seconds, including model processing and any web/MCP tool setup and calls.</p>{% endif %}
+{% if ai_failure_details.tool_counts_available %}<p>Web actions returned: {{ ai_failure_details.web_calls }}. Bookmark tool calls (MCP) returned: {{ ai_failure_details.mcp_calls }}.</p>{% endif %}
+{% if ai_failure_details.openai_http_status %}<p><strong>OpenAI API HTTP status:</strong> {{ ai_failure_details.openai_http_status }}. This is separate from the article publisher's response.</p>{% endif %}
+</div>
+{% endif %}

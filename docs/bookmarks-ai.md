@@ -193,6 +193,45 @@ not enable request-body/Authorization logging for credential-entry endpoints.
 
 ## Approval and failure behavior
 
+### Article retrieval diagnostics and latency
+
+Retrieval errors show the model's `failure_reason` as **OpenAI-reported**, along
+with a separate description of the page-open evidence. A model reporting that
+it could not read an article is distinct from a model claiming success whose
+response contains no matching completed `open_page`. Diagnostics distinguish
+missing actions, failed/incomplete actions, omitted URLs, and URL mismatches.
+The existing verification requirement remains in place; diagnostics do not
+accept unverified metadata or automatically add sites to the blacklist.
+
+Hosted web search does not supply publisher HTTP response headers/status in its
+documented output. A model mentioning robots rules, access policy, or HTTP 402
+is a reported explanation, not an independently verified HTTP result. The UI
+states when those details are unavailable; it does not infer x402 support from
+a model-reported 402. OpenAI API HTTP errors (for example, 429) are labeled
+separately from publisher responses, without exposing the provider error body.
+
+Failure pages include the measured OpenAI request duration and returned web/MCP
+tool-call counts when available. The duration includes network transit, model
+processing, hosted tool discovery, and tool calls; it is not a measurement of
+the article server's response time. Counts are not individual tool timings.
+The app waits for the full, non-streamed response before displaying failure,
+so an immediate website rejection can still take several seconds to surface.
+No artificial 15-second delay or application-level analysis retry is configured.
+
+Application instructions now ask for one article retrieval attempt first and
+an immediate structured failure when the article cannot be read, before any
+bookmark/tag MCP reads, alternate-page research, or retries. This is guidance to
+the model, not a guaranteed early-exit deadline: hosted tool setup/model
+processing can still take time. Successful analysis still requires the existing
+read checks and article evidence. No additional API request or direct publisher
+fetch is added by diagnostics.
+
+Reported explanations are bounded to 600 characters, credential-redacted, and
+HTML-escaped. Raw provider bodies, tool output, request headers, and secrets are
+not shown or logged. Diagnostics are shown on the failure response and do not
+create new database fields or retain provider responses. Deploy the updated
+package and restart Django; no new migration or Lambda rebuild is required.
+
 The review POST merges only the selected fields with the original editor draft,
 validates the final values, and uses the same bookmark ModelForm as manual saves.
 It reuses the owner's existing tags case-insensitively, creates approved missing

@@ -179,6 +179,7 @@ class BookmarkEditorUI(View):
                 form.is_valid()
                 form.add_error(None, str(exc))
                 context = self.context(request, form)
+                context['ai_failure_details'] = exc.details
                 if isinstance(exc, AIArticleAccessError) and not context.get('ai_blacklisted_site'):
                     context['ai_blacklist_offer'] = failed_site_offer(request.user, request.POST.get('url', ''))
                 response = render(request, ROOT + 'bookmark.html', context)

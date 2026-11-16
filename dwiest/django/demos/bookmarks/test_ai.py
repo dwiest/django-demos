@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from .ai_credentials import AIError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
+from .ai_credentials import AIError, AIArticleAccessError, SESSION_KEY, api_key_for, cipher, decrypt, encrypt
 from .ai_forms import AIProposalForm, AISiteBlacklistForm
 from .ai_sites import blacklisted_site, failed_site_offer, normalize_site
 from ..bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt
@@ -81,6 +81,80 @@ class BookmarkAITests(TestCase):
         data['article_date'] = ''
         data.update(values)
         return data
+
+    def test_article_failure_shows_reported_reason_timing_and_no_unnecessary_reads(self):
+        fields = proposal(retrieved=False, failure_reason='The browsing tool reported HTTP 402 Payment Required.')
+        failure = response({'type': 'web_search_call', 'status': 'completed', 'action': {'type': 'open_page', 'url': URL}},
+                           {'type': 'message', 'content': [{'type': 'output_text', 'text': json.dumps(fields)}]})
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=failure) as api, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.time.monotonic', side_effect=[100.0, 115.0]):
+            result = self.client.post(self.editor_url, {'url': URL, 'title': 'My draft', 'action': 'ai_analyze'})
+        self.assertContains(result, 'OpenAI-reported reason:')
+        self.assertContains(result, 'HTTP 402 Payment Required')
+        self.assertContains(result, '15.0 seconds')
+        self.assertContains(result, 'Publisher HTTP status and response headers were not provided')
+        self.assertContains(result, 'Add this site to blacklist')
+        self.assertEqual(result.context['ai_failure_details']['web_calls'], 1)
+        self.assertEqual(result.context['ai_failure_details']['mcp_calls'], 0)
+        self.assertEqual(result.context['form']['title'].value(), 'My draft')
+        self.assertFalse(BookmarkAIAnalysis.objects.exists())
+        api.assert_called_once()
+
+    def test_verification_failures_are_distinct_from_reported_retrieval_failure(self):
+        fields = proposal(retrieved=True, failure_reason='')
+        cases = [
+            ([], 'No page-open action was returned.'),
+            ([{'type': 'web_search_call', 'status': 'completed', 'action': None}], 'No page-open action was returned.'),
+            ([{'type': 'web_search_call', 'status': 'failed', 'action': {'type': 'open_page', 'url': URL}}], 'No page-open action completed.'),
+            ([{'type': 'web_search_call', 'status': 'completed', 'action': {'type': 'open_page'}}], 'omitted its URL'),
+            ([{'type': 'web_search_call', 'status': 'completed', 'action': {'type': 'open_page', 'url': URL + '/'}}], 'did not match the submitted article'),
+        ]
+        for web, evidence in cases:
+            failure = response(*(web + [{'type': 'message', 'content': [{'type': 'output_text', 'text': json.dumps(fields)}]}]))
+            with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=failure):
+                with self.assertRaises(AIArticleAccessError) as caught:
+                    analyze(self.user, API_KEY, self.prefs, URL)
+            self.assertIn('reported reading the article', str(caught.exception))
+            self.assertIn(evidence, caught.exception.details['verification'])
+            self.assertEqual(caught.exception.details['reported_reason'], '')
+
+    def test_reported_reason_is_bounded_redacted_and_html_escaped(self):
+        from django.conf import settings
+        token = settings.BOOKMARKS_AI_MCP_TOKEN
+        reason = '<script>alert(1)</script> API ' + API_KEY + ' token ' + token + ' Bearer foreign-token-12345 '
+        reason += 'detail ' * 300
+        failure = response({'type': 'message', 'content': [{'type': 'output_text', 'text': json.dumps(proposal(retrieved=False, failure_reason=reason))}]})
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=failure):
+            result = self.client.post(self.editor_url, {'url': URL, 'action': 'ai_analyze'})
+        self.assertNotContains(result, API_KEY)
+        self.assertNotContains(result, token)
+        self.assertNotContains(result, 'foreign-token-12345')
+        self.assertNotContains(result, '<script>alert(1)</script>')
+        self.assertContains(result, '&lt;script&gt;alert(1)&lt;/script&gt;')
+        self.assertLessEqual(len(result.context['ai_failure_details']['reported_reason']), 600)
+
+    def test_failure_without_reason_does_not_invent_a_site_policy(self):
+        failure = response({'type': 'message', 'content': [{'type': 'output_text', 'text': json.dumps(proposal(retrieved=False, failure_reason=''))}]})
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.openai_request', return_value=failure):
+            result = self.client.post(self.editor_url, {'url': URL, 'action': 'ai_analyze'})
+        self.assertContains(result, 'OpenAI did not provide a specific reason.')
+        self.assertContains(result, 'Site policy and payment requirements are unverified')
+        self.assertNotIn('openai_http_status', result.context['ai_failure_details'])
+
+    def test_provider_http_status_is_distinguished_from_publisher_status(self):
+        error = HTTPError('https://api.openai.com/v1/responses', 429, 'provider-private-detail', {}, io.BytesIO(API_KEY.encode()))
+        with mock.patch('dwiest.django.demos.bookmarks.ai_service.build_opener') as opener, \
+                mock.patch('dwiest.django.demos.bookmarks.ai_service.time.monotonic', side_effect=[5.0, 8.0]):
+            opener.return_value.open.side_effect = error
+            result = self.client.post(self.editor_url, {'url': URL, 'action': 'ai_analyze'})
+        self.assertContains(result, 'OpenAI API HTTP status:')
+        self.assertContains(result, '3.0 seconds')
+        self.assertEqual(result.context['ai_failure_details']['openai_http_status'], 429)
+        self.assertNotContains(result, API_KEY)
+        self.assertNotContains(result, 'provider-private-detail')
+        self.assertNotContains(result, 'Add this site to blacklist')
+        self.assertNotIn('article_failure', result.context['ai_failure_details'])
+        opener.return_value.open.assert_called_once()
 
     def test_failed_article_offers_one_click_blacklist_without_saving_existing_draft(self):
         before = snapshot(self.bookmark)

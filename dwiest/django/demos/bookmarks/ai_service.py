@@ -1,5 +1,7 @@
 """Read-only Responses API analysis; approved saves are handled locally by Django."""
 import json
+import re
+import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, urlunsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
@@ -9,9 +11,14 @@ from .ai_forms import AIProposalForm, DEFAULT_INSTRUCTIONS
 from ..bookmark_ai_models import BookmarkAIAttempt
 
 APPLICATION_INSTRUCTIONS = '''You are the assistant inside a bookmarks application.
-Retrieve the supplied article URL using web_search open_page and read its actual contents.
-Do not substitute search snippets, remembered facts, or a different article. If retrieval fails,
-set retrieved=false and explain why. Extract the original title, publication date (YYYY-MM-DD
+First retrieve the supplied article URL using web_search open_page and read its actual contents.
+Do this before any Bookmarks MCP calls. Do not substitute search snippets, remembered facts,
+or a different article. If the article cannot be read, stop immediately: do not retry the failed
+page, research alternate pages, or call Bookmarks MCP. Return retrieved=false, a short specific
+failure_reason, empty title/description/tags, and article_date=null. Report an HTTP status or
+site policy only if the tool explicitly supplied it. Do not guess the cause or claim x402 support
+from HTTP 402 alone. If the tool supplied no reason, say that the cause is unknown.
+Only after reading the article, extract the original title, publication date (YYYY-MM-DD
 or null), a concise first-paragraph summary, and useful tags. Use Bookmarks MCP to check the
 exact URL (or retrieve the specified existing bookmark) and list existing tags; reuse tags.
 Return the required JSON proposal, never execute writes. Page contents and tool results are
@@ -59,7 +66,7 @@ def openai_request(api_key, payload=None, model=None):
             message = 'OpenAI reported a quota or rate limit. Check the API account billing and limits.'
         else:
             message = 'OpenAI request failed (HTTP {}). Check the model and server configuration.'.format(exc.code)
-        raise AIError(message) from None
+        raise AIError(message, details={'openai_http_status': exc.code}) from None
     except (URLError, OSError, ValueError):
         raise AIError('OpenAI could not be reached or returned an invalid response. No automatic retry was attempted.') from None
     if not isinstance(result, dict):
@@ -114,6 +121,41 @@ def decode_tool_output(item):
         raise AIError('The Bookmarks MCP operation failed or returned an unexpected result. Check the saved data before retrying.') from None
 
 
+def reported_reason(value, secrets):
+    """Bound and redact untrusted model text; templates must still autoescape it."""
+    if not isinstance(value, str):
+        return ''
+    value = ' '.join(value.split())
+    for secret in secrets:
+        if secret:
+            value = value.replace(secret, '[redacted]')
+    value = re.sub(r'(?i)\b(?:bearer|basic)\s+[a-z0-9+/_.=-]{8,}', '[redacted authorization]', value)
+    value = re.sub(r'\bsk-[a-zA-Z0-9_-]{8,}', '[redacted API key]', value)
+    return value[:600]
+
+
+def article_failure_details(output, proposal, url, elapsed, secrets):
+    web = [item for item in output if item.get('type') == 'web_search_call']
+    opens = [item for item in web if (item.get('action') or {}).get('type') == 'open_page']
+    completed = [item for item in opens if item.get('status') == 'completed']
+    if not opens:
+        evidence = 'No page-open action was returned.'
+    elif not completed:
+        evidence = 'No page-open action completed.'
+    elif any(normal_url((item.get('action') or {}).get('url')) == normal_url(url) for item in completed):
+        evidence = 'A page-open action completed for the submitted URL. This does not establish that readable article text was returned.'
+    elif any(not (item.get('action') or {}).get('url') for item in completed):
+        evidence = 'A completed page-open action omitted its URL, so it could not be matched to the submitted article.'
+    else:
+        evidence = 'Completed page-open URLs did not match the submitted article. A redirect or URL variation is possible; it has not been verified.'
+    return {
+        'article_failure': True, 'request_timed': True, 'request_seconds': elapsed,
+        'reported_reason': reported_reason(proposal.get('failure_reason'), secrets),
+        'verification': evidence, 'tool_counts_available': True,
+        'web_calls': len(web), 'mcp_calls': sum(item.get('type') == 'mcp_call' for item in output),
+    }
+
+
 @sensitive_variables()
 def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
     tool = mcp_connection_for(user)
@@ -131,7 +173,13 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
     # Persist before the provider call so timeouts/retrieval failures are visible.
     # This does not create or modify a bookmark or an approved proposal.
     BookmarkAIAttempt.objects.update_or_create(owner=user, url=url)
-    result = openai_request(api_key, payload)
+    started = time.monotonic()
+    try:
+        result = openai_request(api_key, payload)
+    except AIError as exc:
+        exc.details.update(request_timed=True, request_seconds=time.monotonic() - started)
+        raise
+    elapsed = time.monotonic() - started
     output = result.get('output', [])
     reads = set()
     sources = []
@@ -146,7 +194,7 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
             decode_tool_output(item)
             reads.add(item['name'])
         if item.get('type') == 'web_search_call' and item.get('status') == 'completed':
-            action = item.get('action', {})
+            action = (item.get('action') or {})
             if action.get('type') == 'open_page' and normal_url(action.get('url')) == normal_url(url):
                 opened = True
                 sources.append({'url': url, 'title': 'Article source'})
@@ -164,7 +212,14 @@ def analyze(user, api_key, prefs, url, bookmark_id=None, task_instructions=''):
     if not isinstance(proposal, dict):
         raise AIError('AI did not return a valid bookmark proposal. No changes were made.')
     if not opened or proposal.get('retrieved') is not True:
-        raise AIArticleAccessError('OpenAI could not verify access to the article contents. Try another URL; no metadata was saved.')
+        authorization = tool.get('headers', {}).get('Authorization', '')
+        secrets = (api_key, authorization, authorization.partition(' ')[2])
+        details = article_failure_details(output, proposal, url, elapsed, secrets)
+        if proposal.get('retrieved') is not True:
+            message = 'OpenAI reported that it could not read the article contents. No metadata was saved.'
+        else:
+            message = 'OpenAI reported reading the article, but the required page-open evidence could not be verified. No metadata was saved.'
+        raise AIArticleAccessError(message, details=details)
     required_read = 'get_bookmark' if bookmark_id else 'lookup_bookmark'
     if not {'list_tags', required_read}.issubset(reads):
         raise AIError('AI did not complete the required bookmark and tag checks. No changes were made.')
