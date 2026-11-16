@@ -1,0 +1,22 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}Bookmark retrieval and analysis{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:bookmarks:bookmark' %}?id={{ attempt.bookmark_id }}">← Bookmark editor</a>
+<div class="page-heading"><h1>Retrieval and analysis</h1></div>
+<p class="url">{{ attempt.url }}</p>
+<section class="ai-panel"><h2>Status: <span data-enrichment-status>{{ attempt.status }}</span></h2>
+<p data-enrichment-message role="status">{{ attempt.error.message }}</p>
+{% if active %}<p>Processing continues while you are away when the server reconciliation task is configured. This page checks progress automatically.</p>{% endif %}
+<dl><dt>Attempt</dt><dd>{{ attempt.pk }}</dd><dt>Retrieval job</dt><dd>{{ attempt.retrieval_job_id|default:'Not submitted yet' }}</dd><dt>Analysis job</dt><dd>{{ attempt.analysis_job_id|default:'Not submitted yet' }}</dd><dt>Started</dt><dd>{{ attempt.created_at }}</dd></dl>
+<form method="post" data-enrichment {% if active %}data-active="true"{% endif %}>{% csrf_token %}
+<div class="save-actions">
+{% if active %}<button class="button secondary" name="action" value="advance">Check progress</button>{% endif %}
+{% if attempt.status == 'ready' %}<button class="button primary" name="action" value="review">Review saved proposal</button>{% endif %}
+{% if attempt.status == 'downloaded' %}<button class="button primary" name="action" value="analyze">Analyze saved content</button>{% endif %}
+{% if not active %}<button class="button secondary" name="action" value="retry_download">Retry download</button>{% if attempt.analysis_job_id %}<button class="button secondary" name="action" value="retry_analysis">Retry analysis</button>{% endif %}{% endif %}
+</div></form>
+<p>Retry download creates a fresh capture. Retry analysis explicitly requests another AI call and may incur API charges. Bookmark fields change only after approval.</p>
+</section>
+{% if attempt.retrieval %}<section class="ai-panel"><h2>Retrieval diagnostics</h2><dl>{% for key, value in attempt.retrieval.items %}<dt>{{ key }}</dt><dd>{{ value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}
+{% if analysis_provenance %}<section class="ai-panel"><h2>Analysis provenance</h2><dl>{% for key, value in analysis_provenance.items %}<dt>{{ key }}</dt><dd>{{ value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}
+{% endblock %}

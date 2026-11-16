@@ -278,3 +278,113 @@ or API charges are part of the automated suite.
 
 Official API references: [remote MCP and approvals](https://developers.openai.com/api/docs/guides/tools-connectors-mcp),
 [web search and page access](https://developers.openai.com/api/docs/guides/tools-web-search).
+
+## PR 3: stored retrieval and job-service analysis
+
+The optional job-service mode supports **saved bookmarks**. Open AI settings,
+enable **Use job service**, and save retrieval settings. It defaults off so the
+existing direct OpenAI/MCP path keeps working. The service uses its deployed
+OpenAI key/model and `bookmark.enrichment.v1` instructions; direct AI keys, model
+selection and personal/custom instructions do not override that contract.
+Automatic enrichment/approval for newly created bookmarks is a later change.
+
+### Deployment order and IAM
+
+1. Deploy the companion URL-reuse change in `dwiest/wiest-aws-serverless` first.
+   Keep existing dispatcher-stream recovery configuration if present. Configure
+   `JOB_SERVICE_APPLICATION_ROLE_ARN` with the **Django execution role's IAM ARN**,
+   not the GitHub deployment role, and keep the application ID stable.
+   Set `JOB_SERVICE_AI_MODEL` and `JOB_SERVICE_AI_SECRET_ARN` for analysis.
+2. Attach an identity policy to that Django role allowing `execute-api:Invoke`
+   on the stack output `ServiceInvokeResource`. The service also checks the
+   configured role. No AWS keys are placed in Django settings or the browser.
+3. Install the updated Django package, run `python manage.py migrate demos`
+   and `python manage.py collectstatic --noinput`, and restart web workers.
+   Migration `0012_bookmark_enrichment` adds one workflow table and three settings
+   fields only. It does not alter/remove legacy Bookmark or Tag tables.
+4. Configure the server settings/environment below, then enable the account's
+   retrieval setting. Saving enabled settings synchronizes its retention preference
+   before saving local preferences; an inaccessible service produces an error.
+5. Schedule the reconciliation command below to advance jobs while browsers close.
+
+| Django setting/environment | Value |
+| --- | --- |
+| `BOOKMARKS_JOB_SERVICE_URL` | Stack `ServiceApiUrl`, HTTPS and ending in `/service` |
+| `BOOKMARKS_JOB_SERVICE_REGION` | Stack region; falls back to `AWS_REGION`, then `us-east-1` |
+| `BOOKMARKS_API_OWNER_ID` | Existing demo owner's numeric Django user ID |
+
+The client signs requests with the server's standard boto3 AWS credential chain,
+including EC2 instance-role credentials. `X-User-Reference` is derived from the
+logged-in user's numeric primary key, never a browser-supplied owner. Preserve
+these IDs, the service application ID and endpoint to retain access to saved jobs.
+Django service jobs are separate from the Cognito browser history, even when both
+accounts use the same email. The existing demo-owner restriction remains in force.
+Requests reject redirects, and attempts pin their original endpoint so changing
+configuration cannot submit an existing workflow to another service accidentally.
+
+### Workflow and duplicate handling
+
+On an existing bookmark, **Download page** saves/reuses a retrieval capture without
+an AI call. Open its saved attempt and choose **Analyze saved content** when ready; it pins
+that exact capture rather than retrieving the URL again. Retry analysis also
+keeps the selected capture.
+**Analyze** chains retrieval and analysis automatically and opens a saved proposal
+for review. The user still selects, edits and explicitly approves fields/tags;
+no remote job can write a bookmark. A manually changed bookmark fails the existing
+stale-review check rather than being overwritten.
+
+Django saves workflow state, source/job IDs, retrieval diagnostics and the proposal
+and provenance; page text/raw bytes remain in the service. Refreshing or opening
+from another signed-in browser resumes the same workflow. The editor links to its
+five most recent attempts. Reopening a proposal does not make another AI call;
+a pending expired review is renewed, or recreated from its saved proposal after
+review-record cleanup. Approval itself remains a local database transaction.
+
+Ordinary same-user URL submissions reuse suitable captures, including unavailable
+content, across idempotency keys. Equivalent host casing, default ports, fragments
+and empty paths are normalized; query strings and path semantics are preserved.
+The raw-response option is part of capture identity. Adding a URL already in your
+bookmarks opens your own existing record without overwriting fields; the legacy
+global raw-URL uniqueness constraint is unchanged. Canonical lookup walks an
+owner's URLs at current demo volume; large collections will need a stored index.
+
+Uncertain network submissions retain stable idempotency keys. A database lease
+prevents the browser and reconciliation command from advancing the same attempt
+concurrently. Analysis keys include capture ID, named configuration and existing
+tag names, so an unchanged analysis can be reused. **Retry download** asks for a
+fresh capture (reusing a matching in-flight job); **Retry analysis** explicitly uses
+a new AI operation/key and may incur provider charges. Repeated POSTs from the
+same retry screen reuse the new local attempt. Worker failure, content denial and
+provider failure remain visible with diagnostics; unavailable content stops the
+chain before analysis. Failed analysis is never silently repeated as a new AI call.
+
+### Advance work without an open browser
+
+Run once per minute as the same configured application user/environment, using
+the application's virtualenv and absolute manage.py path, for example:
+
+```sh
+python manage.py advance_bookmark_enrichment --limit 100
+```
+
+Each pass advances one stage per due attempt; subsequent passes poll completion.
+The browser also advances every three seconds through CSRF-protected POSTs. GETs
+only display state. Transient network/429/5xx failures retain state and back off
+for 30 seconds; expired leases recover interrupted commands. Scheduling is an
+operational deployment step, not installed automatically by this Python package.
+
+### Retention
+
+Each account starts with 365 days, can choose 1–36500 days, or **Keep indefinitely**.
+This applies to future service jobs in its application-user namespace. Existing
+captures retain their policy, and reused captures keep their original retention;
+referenced sources remain protected by their retained analyses. Changing a local
+setting with job mode disabled is synchronized when it is enabled again.
+
+These settings govern remote artifacts, not local bookmark/workflow snapshots.
+Existing `cleanup_bookmark_ai` review-record cleanup can still run; workflow
+records retain the approved-review inputs/proposal needed for history. Remote
+artifact deletion does not delete bookmarks. The service's deletion/preview API
+remains available to trusted application callers; a Django artifact-management
+screen and bulk history browsing are later UI work. Do not use a matching Cognito
+email to infer ownership of application-created artifacts.

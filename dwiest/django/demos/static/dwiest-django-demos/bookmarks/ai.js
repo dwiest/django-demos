@@ -48,3 +48,31 @@ if (editor && siteRules) {
   window.addEventListener('pageshow', refresh);
   refresh();
 }
+
+const enrichment = document.querySelector('[data-enrichment][data-active]');
+if (enrichment) {
+  let busy = false;
+  const check = async () => {
+    if (busy) return;
+    busy = true;
+    try {
+      const response = await fetch(location.pathname, {
+        method: 'POST', credentials: 'same-origin',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': enrichment.querySelector('[name=csrfmiddlewaretoken]').value},
+        body: 'action=advance',
+      });
+      if (!response.ok) throw new Error('Progress check failed. Reload the page to try again.');
+      const data = await response.json();
+      if (data.terminal) { location.reload(); return; }
+      document.querySelector('[data-enrichment-status]').textContent = data.status;
+      document.querySelector('[data-enrichment-message]').textContent = data.message || '';
+      setTimeout(check, 3000);
+    } catch (error) {
+      document.querySelector('[data-enrichment-message]').textContent = error.message;
+    } finally { busy = false; }
+  };
+  enrichment.addEventListener('submit', event => {
+    if (event.submitter?.value === 'advance') { event.preventDefault(); check(); }
+  });
+  check();
+}

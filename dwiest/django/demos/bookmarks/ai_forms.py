@@ -94,3 +94,25 @@ class AIProposalForm(StyledForm):
         data = {name: self.cleaned_data[name] for name in FIELDS}
         data['article_date'] = data['article_date'].isoformat() if data['article_date'] else None
         return data
+
+
+class JobServiceSettingsForm(StyledForm):
+    use_job_service = forms.BooleanField(required=False, label='Use the URL and AI job service')
+    include_raw_html = forms.BooleanField(required=False, initial=True, label='Keep the original HTTP response')
+    keep_indefinitely = forms.BooleanField(required=False, label='Keep job results indefinitely')
+    job_retention_days = forms.IntegerField(required=False, min_value=1, max_value=36500, initial=365, label='Retention days for new jobs')
+
+    def clean(self):
+        data = super().clean()
+        if data.get('keep_indefinitely'):
+            data['job_retention_days'] = None
+        elif data.get('job_retention_days') is None:
+            self.add_error('job_retention_days', 'Enter retention days or select Keep indefinitely.')
+        if data.get('use_job_service'):
+            from .job_client import connection
+            from .ai_credentials import AIError
+            try:
+                connection()
+            except AIError as exc:
+                raise forms.ValidationError(str(exc))
+        return data

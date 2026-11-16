@@ -44,9 +44,14 @@ class AIProtectedView(View):
 
 @method_decorator(sensitive_post_parameters('api_key'), name='dispatch')
 class AISettingsView(AIProtectedView):
-    def page(self, request, form, prefs, error='', blacklist_form=None):
+    def page(self, request, form, prefs, error='', blacklist_form=None, job_form=None):
+        from .ai_forms import JobServiceSettingsForm
+        from .ai_credentials import configured
+        job_form = job_form if job_form is not None else JobServiceSettingsForm(initial={
+            'use_job_service': prefs.use_job_service, 'include_raw_html': prefs.include_raw_html,
+            'keep_indefinitely': prefs.job_retention_days is None, 'job_retention_days': prefs.job_retention_days})
         return render(request, ROOT + 'ai_settings.html', {
-            'form': form, 'ai_error': error, 'nav_section': 'ai',
+            'form': form, 'job_form': job_form, 'job_service_url': configured('BOOKMARKS_JOB_SERVICE_URL', ''), 'ai_error': error, 'nav_section': 'ai',
             'session_key_set': bool(request.session.get(SESSION_KEY)),
             'saved_key_set': bool(prefs.encrypted_api_key),
             'blacklist_form': blacklist_form if blacklist_form is not None else AISiteBlacklistForm(initial={'blocked_domains': '\n'.join(prefs.blocked_domains)}),
@@ -61,6 +66,23 @@ class AISettingsView(AIProtectedView):
     def post(self, request):
         prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
         action = request.POST.get('action', 'save')
+        if action == 'save_job_service':
+            from .ai_forms import JobServiceSettingsForm
+            from .job_client import JobClient
+            job_form = JobServiceSettingsForm(request.POST)
+            form = AISettingsForm(initial={'instructions': prefs.instructions or DEFAULT_INSTRUCTIONS, 'model': prefs.model})
+            if job_form.is_valid():
+                try:
+                    if job_form.cleaned_data['use_job_service']:
+                        JobClient(request.user).request('POST', '/retention', {'days': job_form.cleaned_data['job_retention_days']})
+                    for name in ('use_job_service', 'include_raw_html', 'job_retention_days'):
+                        setattr(prefs, name, job_form.cleaned_data[name])
+                    prefs.save(update_fields=['use_job_service', 'include_raw_html', 'job_retention_days'])
+                except AIError as exc:
+                    return self.page(request, form, prefs, str(exc), job_form=job_form)
+                messages.success(request, 'URL retrieval settings saved. Retention changes apply to new service jobs.')
+                return HttpResponseRedirect(reverse('demos:bookmarks:ai_settings') + '#url-retrieval')
+            return self.page(request, form, prefs, job_form=job_form)
         if action == 'save_blacklist':
             blacklist_form = AISiteBlacklistForm(request.POST)
             if not blacklist_form.is_valid():
@@ -117,6 +139,8 @@ def start_analysis(request, bookmark):
     if not form.is_valid():
         raise AIError('Enter a valid HTTP or HTTPS URL and instructions of at most 4,000 characters.')
     prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
+    if request.POST.get('action') == 'job_download' and not prefs.use_job_service:
+        raise AIError('Enable the job service in AI settings before downloading a page.')
     listed = blacklisted_site(form.cleaned_data['url'], prefs.blocked_domains)
     if listed:
         messages.warning(request, '{} is on your AI site blacklist. Analysis is being attempted at your request.'.format(listed))
@@ -137,6 +161,13 @@ def start_analysis(request, bookmark):
     if len(tags) != len(set(tag_ids)):
         raise AIError('One or more selected tags are unavailable.')
     draft.update(tags=[t.title for t in tags], status=status, unread='unread' in request.POST)
+    if prefs.use_job_service:
+        if form.cleaned_data['instructions']:
+            raise AIError('The job service uses bookmark.enrichment.v1. Per-analysis custom instructions apply only to direct AI analysis.')
+        from .enrichment import start
+        mode = 'download' if request.POST.get('action') == 'job_download' else 'analyze'
+        attempt = start(request.user, bookmark, {'persisted': original, 'draft': draft}, form.cleaned_data['url'], mode=mode)
+        return HttpResponseRedirect(reverse('demos:bookmarks:enrichment', args=[attempt.pk]))
     proposal, sources = ai_service.analyze(request.user, api_key_for(request), prefs,
         form.cleaned_data['url'], bookmark.pk, form.cleaned_data['instructions'])
     review = BookmarkAIAnalysis.objects.create(owner=request.user, bookmark_id=bookmark.pk,

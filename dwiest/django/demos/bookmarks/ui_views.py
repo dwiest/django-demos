@@ -23,6 +23,35 @@ def legacy_id(value):
         raise Http404('Record not found')
 
 
+def existing_bookmark(owner, url):
+    """Only clear HTTP equivalents; retain path/query and never reveal another owner."""
+    from urllib.parse import urlunsplit
+    def canonical(value):
+        parsed = urlsplit(value)
+        if parsed.scheme.lower() not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+            return value
+        host = parsed.hostname.encode('idna').decode('ascii').lower()
+        if ':' in host:
+            host = '[' + host + ']'
+        if parsed.port and (parsed.scheme.lower(), parsed.port) not in (('http', 80), ('https', 443)):
+            host += ':' + str(parsed.port)
+        return urlunsplit((parsed.scheme.lower(), host, parsed.path or '/', parsed.query, ''))
+    direct = Bookmark.objects.filter(owner=owner, url=url).first()
+    if direct:
+        return direct
+    try:
+        target = canonical(url)
+        for bookmark in Bookmark.objects.filter(owner=owner).only('id', 'url').order_by('id').iterator():
+            try:
+                if canonical(bookmark.url) == target:
+                    return bookmark
+            except (ValueError, UnicodeError):
+                continue
+    except (ValueError, UnicodeError):
+        return None
+    return None
+
+
 def owner_for(request):
     # Preserve the existing browser application's anonymous owner=None behavior.
     return request.user if request.user.is_authenticated else None
@@ -142,6 +171,9 @@ class BookmarkEditorUI(View):
             value = (form['url'].value() or '').strip()
             url_form = AnalyzeForm({'url': value})
             attempt_url = url_form.cleaned_data['url'] if url_form.is_valid() else ''
+            context['use_job_service'] = bool(prefs and prefs.use_job_service)
+            from ..bookmark_ai_models import BookmarkEnrichmentAttempt
+            context['enrichment_attempts'] = BookmarkEnrichmentAttempt.objects.filter(owner=request.user, bookmark_id=form.instance.pk)[:5] if form.instance.pk else []
             context.update(ai_blocked_domains=domains, ai_blacklisted_site=blacklisted_site(value, domains),
                            ai_attempt_url=value, ai_last_attempt=BookmarkAIAttempt.objects.filter(owner=request.user, url=attempt_url).first() if attempt_url else None)
         return context
@@ -152,6 +184,18 @@ class BookmarkEditorUI(View):
 
     def post(self, request):
         instance = self.bookmark(request)
+        from ..bookmark_ai_models import BookmarkAISettings
+        service_mode = request.user.is_authenticated and BookmarkAISettings.objects.filter(owner=request.user, use_job_service=True).exists()
+        lookup_duplicate = request.POST.get('action') not in ('ai_analyze', 'ai_blacklist_site', 'job_download') or service_mode
+        if not instance.pk and lookup_duplicate:
+            # Preserve the existing global URL uniqueness rule; only reveal this user's own record.
+            from .ai_forms import AnalyzeForm
+            lookup_form = AnalyzeForm({'url': request.POST.get('url', '')})
+            lookup_url = lookup_form.cleaned_data['url'] if lookup_form.is_valid() else request.POST.get('url', '').strip()
+            existing = existing_bookmark(owner_for(request), lookup_url)
+            if existing:
+                messages.info(request, 'That URL is already bookmarked. Opened the existing record; no fields were overwritten.')
+                return HttpResponseRedirect(reverse('demos:bookmarks:bookmark') + '?id=' + str(existing.pk))
         if request.POST.get('action') == 'ai_blacklist_site':
             from .ai_credentials import AIError
             from .ai_sites import block_failed_site
@@ -167,7 +211,7 @@ class BookmarkEditorUI(View):
             response = render(request, ROOT + 'bookmark.html', self.context(request, form))
             patch_cache_control(response, private=True, no_store=True)
             return response
-        if request.POST.get('action') == 'ai_analyze':
+        if request.POST.get('action') in ('ai_analyze', 'job_download'):
             from .ai_credentials import AIError, AIArticleAccessError
             from .ai_sites import failed_site_offer
             from .ai_views import start_analysis
