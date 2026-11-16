@@ -12,6 +12,10 @@ SESSION_KEY = 'bookmarks_ai_encrypted_key'
 class AIError(Exception):
     """Safe, user-facing error. Never include provider bodies or credentials."""
 
+    def __init__(self, message, details=None):
+        super().__init__(message)
+        self.details = details or {}
+
 
 class AIArticleAccessError(AIError):
     """Article retrieval or its required evidence failed; a site block may help."""
