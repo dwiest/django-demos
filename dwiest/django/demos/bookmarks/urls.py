@@ -11,12 +11,14 @@ from .api_views import (
 
 from .ui_views import BookmarkPermanentDeleteUI, BookmarksUI, BookmarkEditorUI, BookmarkActionUI, TagsUI, TagEditorUI, LegacyTagRedirectUI, LegacyBookmarkTagRedirectUI
 from .ai_views import AISettingsView, AIReviewView
+from .enrichment_views import EnrichmentView
 
 from .pwa_urls import urlpatterns as pwa_patterns
 
 app_name = "bookmarks"
 
 urlpatterns = [
+    path('enrichment/<uuid:attempt_id>/', EnrichmentView.as_view(), name='enrichment'),
     path('ai/settings/', AISettingsView.as_view(), name='ai_settings'),
     path('ai/review/<uuid:analysis_id>/', AIReviewView.as_view(), name='ai_review'),
     path("bookmark/<int:bookmark_id>/permanent-delete/", BookmarkPermanentDeleteUI.as_view(), name="ui_permanent_delete"),

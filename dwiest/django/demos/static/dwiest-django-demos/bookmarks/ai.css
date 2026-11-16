@@ -11,3 +11,8 @@
 .ai-comparison .field { margin-top: 0; }
 .ai-comparison .control { width: 100%; box-sizing: border-box; }
 @media (max-width: 700px) { .ai-comparison { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }
+
+.ai-panel dl { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr); gap: .5rem 1rem; }
+.ai-panel dd { margin: 0; overflow-wrap: anywhere; }
+.ai-settings code { overflow-wrap: anywhere; }
+@media (max-width: 500px) { .ai-panel dl { grid-template-columns: minmax(0, 1fr); } .ai-panel dt { font-weight: 600; } .ai-panel dd { margin-bottom: .5rem; } }

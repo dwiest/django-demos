@@ -3,8 +3,19 @@
 {% block content %}
 <a class="back" href="{% url 'demos:bookmarks:home' %}">← Bookmarks</a>
 <div class="page-heading"><h1>AI settings</h1></div>
-<p>Use your OpenAI API account to analyze articles. API usage is billed to that account. Every bookmark or tag change requires your approval.</p>
+<p>Use the job service for saved retrieval and analysis, or your OpenAI API account to analyze articles. API usage is billed to that account. Every bookmark or tag change requires your approval.</p>
 {% if ai_error %}<div class="notice error" role="alert">{{ ai_error }}</div>{% endif %}
+<section class="ai-panel ai-settings" id="url-retrieval"><h2>URL retrieval and job analysis</h2>
+<p>Download content independently, or retrieve and analyze it as a saved background operation. Existing URLs reuse suitable captures; Retry download requests a fresh one.</p>
+<p>Service endpoint: <code>{{ job_service_url|default:'Not configured on the server' }}</code></p>
+<form method="post">{% csrf_token %}{{ job_form.non_field_errors }}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.use_job_service %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.include_raw_html %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.keep_indefinitely %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.job_retention_days %}
+<p>Retention changes apply to new jobs. Existing artifacts keep their policy. The service uses its configured model and bookmark.enrichment.v1 instructions; the direct OpenAI key, model and custom instructions below do not override it.</p>
+<button class="button primary" name="action" value="save_job_service">Save retrieval settings</button>
+</form></section>
 {{ form.non_field_errors }}
 <form method="post" class="ai-settings">{% csrf_token %}
 <section class="ai-panel"><h2>OpenAI connection</h2>
@@ -15,7 +26,7 @@
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.model %}
 <div class="save-actions"><button class="button secondary" name="action" value="test" type="submit">Test connection</button><button class="button secondary" name="action" value="remove" type="submit" formnovalidate>Remove API keys</button></div>
 </section>
-<section class="ai-panel"><h2>Your instructions</h2><p>Applied to every analysis. You can also give instructions for a single bookmark.</p>
+<section class="ai-panel"><h2>Your instructions</h2><p>Applied to direct OpenAI analysis. Job-service analysis uses its named configuration.</p>
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=form.instructions %}
 <details><summary>Application instructions</summary><pre class="ai-prompt">{{ application_instructions }}</pre></details>
 <div class="save-actions"><button class="button secondary" name="action" value="reset" type="submit" formnovalidate>Reset instructions to defaults</button></div>
