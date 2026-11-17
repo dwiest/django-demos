@@ -1,0 +1,4 @@
+<div class="month-heading" data-month="{{ month }}"{% if image_url %} data-image="true"{% endif %}>
+{% if image_url %}<img class="month-image" src="{{ image_url }}" alt="" loading="lazy">{% endif %}
+<h2 class="month"><span class="month-icon" aria-hidden="true">{{ icon }}</span> {% if date %}{{ date|date:'F Y' }}{% else %}Undated{% endif %}</h2>
+</div>

@@ -1,4 +1,4 @@
-<div class="json-view" data-json-view>
-<label for="{{ json_id }}">JSON display</label><select id="{{ json_id }}" data-json-mode class="control"><option value="pretty">Pretty-printed</option><option value="raw">Raw</option><option value="table">Key/value</option></select>
-<pre class="ai-prompt" data-json-pre>{{ pretty }}</pre><pre data-json-raw hidden>{{ raw }}</pre><div data-json-table hidden></div>
+<div class="json-view" data-json-view data-json-owner="{{ user.pk|default:'guest' }}">
+<label for="{{ json_id }}">JSON display</label><select id="{{ json_id }}" data-json-mode class="control"><option value="raw" selected>Raw</option><option value="pretty">Pretty-printed</option><option value="table">Key/value</option></select>
+<pre class="ai-prompt" data-json-pre>{{ raw }}</pre><pre data-json-raw hidden>{{ raw }}</pre><div data-json-table hidden></div>
 </div>

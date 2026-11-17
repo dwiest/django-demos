@@ -33,5 +33,5 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3
-      - run: python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.bookmarks.test_ai_migrations dwiest.django.demos.bookmarks.test_enrichment dwiest.django.demos.bookmarks.test_creation_history dwiest.django.demos.bookmarks.test_restored_migrations dwiest.django.demos.bookmarks.test_records --settings=dwiest.django.demos.test_bookmarks_ai_settings -v 2
+      - run: python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.bookmarks.test_ai_migrations dwiest.django.demos.bookmarks.test_enrichment dwiest.django.demos.bookmarks.test_creation_history dwiest.django.demos.bookmarks.test_restored_migrations dwiest.django.demos.bookmarks.test_records dwiest.django.demos.bookmarks.test_list_presentation --settings=dwiest.django.demos.test_bookmarks_ai_settings -v 2
       - run: python -m django test dwiest.django.demos.inventory.tests dwiest.django.demos.inventory.test_umbrella_migrations --settings=dwiest.django.demos.inventory.test_umbrella_settings -v 1

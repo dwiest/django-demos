@@ -111,6 +111,12 @@ document.querySelectorAll('textarea[data-autosize]').forEach(field => {
 });
 
 // Render arbitrary JSON using text nodes only, including adversarial article data.
+const jsonRenderers = [];
+const jsonOwner = document.querySelector('[data-json-view]')?.dataset.jsonOwner || 'guest';
+const jsonStorageKey = 'bookmarks.jsonMode.' + jsonOwner;
+const jsonModes = ['raw', 'pretty', 'table'];
+let jsonMode = 'raw';
+try { const saved = localStorage.getItem(jsonStorageKey); if (jsonModes.includes(saved)) jsonMode = saved; } catch {}
 document.querySelectorAll('[data-json-view]').forEach(view => {
   const raw = view.querySelector('[data-json-raw]').textContent;
   const value = JSON.parse(raw);
@@ -132,11 +138,23 @@ document.querySelectorAll('[data-json-view]').forEach(view => {
     }
   }
   row('', value); table.append(body); tableView.append(table);
-  view.querySelector('[data-json-mode]').addEventListener('change', event => {
-    const mode = event.target.value;
+  const renderMode = mode => {
+    view.querySelector('[data-json-mode]').value = mode;
     pre.hidden = mode === 'table'; tableView.hidden = mode !== 'table';
     pre.textContent = mode === 'raw' ? raw : JSON.stringify(value, null, 2);
+  };
+  jsonRenderers.push(renderMode); renderMode(jsonMode);
+  view.querySelector('[data-json-mode]').addEventListener('change', event => {
+    jsonMode = jsonModes.includes(event.target.value) ? event.target.value : 'raw';
+    try { localStorage.setItem(jsonStorageKey, jsonMode); } catch {}
+    jsonRenderers.forEach(render => render(jsonMode));
   });
+});
+window.addEventListener('storage', event => {
+  if (event.key === jsonStorageKey) {
+    jsonMode = jsonModes.includes(event.newValue) ? event.newValue : 'raw';
+    jsonRenderers.forEach(render => render(jsonMode));
+  }
 });
 
 const reviewTags = document.querySelector('[data-tag-editor]');
