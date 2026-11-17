@@ -1,5 +1,10 @@
-{% comment %}
-Optional host-site navigation. Override this template in the project template
-directory to connect the demo switcher to the surrounding website.
-The empty default keeps standalone installations independent.
-{% endcomment %}
+{% comment %}Host projects may override this template with their brand and account menu.{% endcomment %}
+{% if not ww_navigation_styles_loaded %}{% include 'dwiest-django-demos/components/navigation.css' %}{% endif %}
+<div class="ww-site-header">
+  <div class="ww-site-inner">
+    <a class="ww-brand" href="{% url 'demos:home' %}">Demos</a>
+    {% url 'demos:home' as apps_home_url %}
+    {% include 'dwiest-django-demos/components/apps_navigation.html' %}
+  </div>
+</div>
+
