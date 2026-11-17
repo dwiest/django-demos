@@ -7,14 +7,17 @@
 <section class="ai-panel"><h2>Status: <span data-enrichment-status>{{ attempt.status }}</span></h2>
 <p data-enrichment-message role="status">{{ attempt.error.message }}</p>
 {% if active %}<p>Processing continues while you are away when the server reconciliation task is configured. This page checks progress automatically.</p>{% endif %}
-<dl><dt>Attempt</dt><dd>{{ attempt.pk }}</dd><dt>Retrieval job</dt><dd>{{ attempt.retrieval_job_id|default:'Not submitted yet' }}</dd><dt>Analysis job</dt><dd>{{ attempt.analysis_job_id|default:'Not submitted yet' }}</dd><dt>Started</dt><dd>{{ attempt.created_at }}</dd></dl>
+<dl><dt>Attempt</dt><dd>{{ attempt.pk }}</dd><dt>Retrieval job</dt><dd data-enrichment-retrieval>{{ attempt.retrieval_job_id|default:'Not submitted yet' }}</dd><dt>Analysis job</dt><dd data-enrichment-analysis>{{ attempt.analysis_job_id|default:'Not submitted yet' }}</dd><dt>Remote job status</dt><dd data-enrichment-remote>{{ remote_status|default:'Not checked yet' }}</dd><dt>Workflow updated</dt><dd data-enrichment-updated>{{ attempt.updated_at|date:'c' }}</dd><dt>Progress-check lease until</dt><dd data-enrichment-lease>{{ attempt.lease_until|date:'c'|default:'None' }}</dd><dt>Retry after</dt><dd data-enrichment-retry>{{ attempt.retry_after|date:'c'|default:'None' }}</dd><dt>Started</dt><dd>{{ attempt.created_at }}</dd></dl>
 <form method="post" data-enrichment {% if active %}data-active="true"{% endif %}>{% csrf_token %}
 <div class="save-actions">
 {% if active %}<button class="button secondary" name="action" value="advance">Check progress</button>{% endif %}
 {% if attempt.status == 'ready' %}<button class="button primary" name="action" value="review">Review saved proposal</button>{% endif %}
 {% if attempt.status == 'downloaded' %}<button class="button primary" name="action" value="analyze">Analyze saved content</button>{% endif %}
-{% if not active %}<button class="button secondary" name="action" value="retry_download">Retry download</button>{% if attempt.analysis_job_id %}<button class="button secondary" name="action" value="retry_analysis">Retry analysis</button>{% endif %}{% endif %}
+{% if not active %}<button class="button secondary" name="action" value="retry_download">Retry download</button>{% if can_retry_analysis %}<button class="button secondary" name="action" value="retry_analysis">Retry analysis</button>{% endif %}{% endif %}
+{% if attempt.status == 'failed' and attempt.analysis_job_id %}<button class="button secondary" name="action" value="resume_analysis">Check existing analysis</button>{% endif %}
 </div></form>
+{% if attempt.error %}<details><summary>Failure diagnostics</summary><dl>{% for key, value in attempt.error.items %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}</dl></details>{% endif %}
+<p>Check existing analysis only polls its saved job after a configuration fix; it does not request another AI call.</p>
 <p>Retry download creates a fresh capture. Retry analysis explicitly requests another AI call and may incur API charges. Bookmark fields change only after approval.</p>
 </section>
 {% if attempt.retrieval %}<section class="ai-panel"><h2>Retrieval diagnostics</h2><dl>{% for key, value in attempt.retrieval.items %}<dt>{{ key }}</dt><dd>{{ value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}

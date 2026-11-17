@@ -254,6 +254,84 @@ class EnrichmentTests(TestCase):
         self.assertContains(response, 'Enable the job service')
 
 
+    def test_submission_failure_offers_analysis_retry_without_an_analysis_id(self):
+        attempt = self.attempt()
+        attempt.status = 'analysis_pending'
+        attempt.retrieval_job_id = RETRIEVAL
+        attempt.retrieval = {'retrieved': True}
+        attempt.save()
+        remote = Mock()
+        remote.submit.side_effect = JobError('AI analysis is not configured.', 400)
+        with patch('dwiest.django.demos.bookmarks.enrichment.JobClient', return_value=remote):
+            failed = advance(attempt.pk)
+        self.assertEqual(failed.status, 'failed')
+        self.assertFalse(failed.analysis_job_id)
+        self.assertContains(self.client.get(self.url(failed)), 'value="retry_analysis"')
+        one = self.client.post(self.url(failed), {'action':'retry_analysis'})
+        two = self.client.post(self.url(failed), {'action':'retry_analysis'})
+        self.assertEqual(one.url, two.url)
+        retry = BookmarkEnrichmentAttempt.objects.exclude(pk=failed.pk).get()
+        self.assertEqual(retry.status, 'analysis_pending')
+        self.assertEqual(retry.retrieval_job_id, RETRIEVAL)
+
+    def test_service_failure_message_is_preserved(self):
+        attempt = self.attempt()
+        attempt.status = 'analyzing'
+        attempt.analysis_job_id = ANALYSIS
+        attempt.save()
+        failure = {'code':'analysis_secret_access_error', 'message':'Worker cannot read secret.',
+                   'diagnostics':{'aws_error_code':'AccessDeniedException'}}
+        remote = Mock()
+        remote.job.return_value = {'status':'failed', 'error':failure}
+        with patch('dwiest.django.demos.bookmarks.enrichment.JobClient', return_value=remote):
+            result = advance(attempt.pk)
+        self.assertEqual(result.error, failure)
+        self.assertContains(self.client.get(self.url(result)), 'AccessDeniedException')
+
+    def test_resume_polls_existing_job_without_submitting(self):
+        attempt = self.attempt()
+        attempt.status = 'failed'
+        attempt.analysis_job_id = ANALYSIS
+        attempt.error = {'http_status':403}
+        attempt.save()
+        with patch('dwiest.django.demos.bookmarks.enrichment.JobClient') as remote:
+            self.client.post(self.url(attempt), {'action':'resume_analysis'})
+            remote.assert_not_called()
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.status, 'analyzing')
+        self.assertEqual(attempt.analysis_job_id, ANALYSIS)
+        self.assertEqual(attempt.error, {})
+
+    def test_progress_updates_ids_and_explains_lease(self):
+        attempt = self.attempt()
+        attempt.status = 'analyzing'
+        attempt.retrieval_job_id = RETRIEVAL
+        attempt.analysis_job_id = ANALYSIS
+        attempt.lease_until = timezone.now() + timedelta(seconds=60)
+        attempt.save()
+        with patch('dwiest.django.demos.bookmarks.enrichment.JobClient') as remote:
+            data = self.client.post(self.url(attempt), {'action':'advance'}).json()
+            remote.assert_not_called()
+        self.assertEqual(data['analysis_job_id'], ANALYSIS)
+        self.assertEqual(data['retrieval_job_id'], RETRIEVAL)
+        self.assertIn('lease', data['message'])
+        self.assertGreater(data['poll_after_seconds'], 3)
+
+    def test_status_command_explains_skipped_attempt_without_network(self):
+        attempt = self.attempt()
+        attempt.lease_until = timezone.now() + timedelta(seconds=60)
+        attempt.save()
+        with patch('dwiest.django.demos.bookmarks.enrichment.JobClient') as remote:
+            output = io.StringIO()
+            call_command('advance_bookmark_enrichment', attempt=str(attempt.pk), status_only=True, stdout=output)
+            self.assertIn('lease_until', output.getvalue())
+            output = io.StringIO()
+            call_command('advance_bookmark_enrichment', attempt=str(attempt.pk), stdout=output)
+            self.assertIn('No due attempts', output.getvalue())
+            remote.assert_not_called()
+
+
+
 @override_settings(BOOKMARKS_JOB_SERVICE_URL=BASE, BOOKMARKS_JOB_SERVICE_REGION='us-east-1')
 class JobClientTests(TestCase):
     def test_signs_server_controlled_endpoint_with_user_reference(self):

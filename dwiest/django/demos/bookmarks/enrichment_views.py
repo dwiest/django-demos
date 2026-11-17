@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, reverse
 from django.utils import timezone
@@ -19,15 +20,35 @@ class EnrichmentView(AIProtectedView):
     def get(self, request, attempt_id):
         attempt = self.record(request, attempt_id)
         return render(request, ROOT + 'enrichment.html', {'attempt': attempt, 'active': attempt.status not in TERMINAL,
-            'analysis_provenance': {k: v for k, v in attempt.analysis.items() if k != 'proposal'}})
+            'remote_status': (attempt.analysis if attempt.analysis_job_id else attempt.retrieval).get('job_status', ''),
+            'analysis_provenance': {k: v for k, v in attempt.analysis.items() if k != 'proposal'},
+            'can_retry_analysis': bool(attempt.retrieval_job_id and attempt.retrieval.get('retrieved') is True and attempt.mode == 'analyze')})
 
     def post(self, request, attempt_id):
         attempt = self.record(request, attempt_id)
         action = request.POST.get('action')
         if action == 'advance':
             attempt = advance(attempt.pk)
-            return JsonResponse({'status': attempt.status, 'message': attempt.error.get('message', ''),
-                                 'terminal': attempt.status in TERMINAL})
+            now = timezone.now()
+            wait_until = attempt.retry_after or attempt.lease_until
+            wait = max(3, min(90, int((wait_until - now).total_seconds()) + 1)) if wait_until and wait_until > now else 3
+            message = attempt.error.get('message', '')
+            if attempt.lease_until and attempt.lease_until > now:
+                message = message or 'Another progress check holds a lease until ' + attempt.lease_until.isoformat() + '.'
+            return JsonResponse({'status': attempt.status, 'message': message,
+                'terminal': attempt.status in TERMINAL, 'poll_after_seconds': wait,
+                'retrieval_job_id': attempt.retrieval_job_id, 'analysis_job_id': attempt.analysis_job_id,
+                'remote_status': (attempt.analysis if attempt.analysis_job_id else attempt.retrieval).get('job_status', ''),
+                'updated_at': attempt.updated_at.isoformat(),
+                'lease_until': attempt.lease_until.isoformat() if attempt.lease_until else '',
+                'retry_after': attempt.retry_after.isoformat() if attempt.retry_after else ''})
+        if action == 'resume_analysis' and attempt.status == 'failed' and attempt.analysis_job_id:
+            # Recheck an existing remote job after fixing local credentials/configuration.
+            # This never creates a new remote job or repeats a provider call.
+            BookmarkEnrichmentAttempt.objects.filter(pk=attempt.pk, owner=request.user, status='failed').filter(
+                Q(lease_until__isnull=True) | Q(lease_until__lte=timezone.now())).update(
+                    status='analyzing', error={}, retry_after=None, updated_at=timezone.now())
+            return HttpResponseRedirect(reverse('demos:bookmarks:enrichment', args=[attempt.pk]))
         if action == 'review' and attempt.status == 'ready':
             with transaction.atomic():
                 BookmarkEnrichmentAttempt.objects.filter(pk=attempt.pk, owner=request.user).update(updated_at=timezone.now())

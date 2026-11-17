@@ -66,7 +66,20 @@ if (enrichment) {
       if (data.terminal) { location.reload(); return; }
       document.querySelector('[data-enrichment-status]').textContent = data.status;
       document.querySelector('[data-enrichment-message]').textContent = data.message || '';
-      setTimeout(check, 3000);
+      const fields = {
+        retrieval: data.retrieval_job_id || 'Not submitted yet',
+        analysis: data.analysis_job_id || 'Not submitted yet',
+        remote: data.remote_status || 'Not checked yet',
+        updated: data.updated_at || '',
+        lease: data.lease_until || 'None',
+        retry: data.retry_after || 'None',
+      };
+      for (const [name, value] of Object.entries(fields)) {
+        const target = document.querySelector('[data-enrichment-' + name + ']');
+        if (target) target.textContent = value;
+      }
+      const seconds = Math.max(3, Math.min(90, Number(data.poll_after_seconds) || 3));
+      setTimeout(check, seconds * 1000);
     } catch (error) {
       document.querySelector('[data-enrichment-message]').textContent = error.message;
     } finally { busy = false; }
