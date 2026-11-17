@@ -86,6 +86,8 @@ class BookmarksUI(View):
                 for field in fields:
                     q |= Q(**{field + '__icontains': term})
                 bookmarks = bookmarks.filter(q)
+            from .job_status import filter_state
+            bookmarks = filter_state(bookmarks, owner, data.get('download_status'), data.get('analysis_status'))
             mode = data.get('filter')
             if mode == 'untitled':
                 bookmarks = bookmarks.filter(title='')
@@ -120,19 +122,8 @@ class BookmarksUI(View):
                 tag_params.pop('page', None)
                 tag_params.setlist('tag_id', list(dict.fromkeys(tag_params.getlist('tag_id') + [str(tag.pk)])))
                 tag.filter_url = '?' + tag_params.urlencode()
-        from ..bookmark_ai_models import BookmarkEnrichmentAttempt
-        from .history import outcome_label
-        latest = {}
-        ids = [bookmark.pk for bookmark in page]
-        # Correlated subquery bounds history lookups to one attempt per listed bookmark.
-        from django.db.models import OuterRef, Subquery
-        newest = BookmarkEnrichmentAttempt.objects.filter(owner=owner, bookmark_id=OuterRef('bookmark_id')).order_by('-created_at').values('pk')[:1]
-        for attempt in BookmarkEnrichmentAttempt.objects.filter(owner=owner, bookmark_id__in=ids, pk=Subquery(newest)):
-
-            if attempt.bookmark_id not in latest:
-                latest[attempt.bookmark_id] = outcome_label(attempt)
-        for bookmark in page:
-            bookmark.enrichment_status = latest.get(bookmark.pk, '')
+        from .job_status import decorate
+        decorate(page.object_list, owner)
         params = request.GET.copy()
         params.pop('page', None)
         chips = []
@@ -140,6 +131,7 @@ class BookmarksUI(View):
         labels = {'term': 'Search: ' + data.get('term', ''), 'filter': dict(form.fields['filter'].choices).get(data.get('filter')), 'hide_read': 'Unread only', 'show_hidden': 'Including hidden', 'show_deleted': 'Including deleted', 'deleted_only': 'Deleted only'}
         if data.get('filter') == 'date':
             labels['filter'] = 'Publication date: ' + str(data.get('year', '')) + (' / ' + str(data['month']) if data.get('month') else '')
+        labels.update(download_status='Download: ' + dict(form.fields['download_status'].choices).get(data.get('download_status'), ''), analysis_status='Analysis: ' + dict(form.fields['analysis_status'].choices).get(data.get('analysis_status'), ''))
         for key, label in labels.items():
             if data.get(key) and not (key == 'filter' and data[key] == 'none'):
                 cleared = params.copy()
@@ -419,3 +411,17 @@ class BookmarkPermanentDeleteUI(View):
             return render(request, ROOT + 'confirm_delete.html', {'bookmark': bookmark, 'next_url': self.destination(request), 'delete_error': 'This bookmark is referenced by other records and could not be removed. No changes were made.'}, status=409)
         messages.success(request, 'Bookmark permanently removed. Its URL can now be saved again.')
         return HttpResponseRedirect(self.destination(request))
+
+
+class BookmarkDetailUI(View):
+    def get(self, request, bookmark_id):
+        bookmark = get_object_or_404(Bookmark, owner=owner_for(request), pk=bookmark_id)
+        from .job_status import decorate
+        decorate([bookmark], owner_for(request))
+        tags = Tag.objects.filter(owner=owner_for(request), bookmarktag__bookmark=bookmark).order_by('title')
+        from ..bookmark_ai_models import BookmarkEnrichmentAttempt
+        from django.core.paginator import Paginator
+        attempts = Paginator(BookmarkEnrichmentAttempt.objects.filter(owner=owner_for(request), bookmark_id=bookmark.pk), 20).get_page(request.GET.get('page'))
+        return render(request, ROOT + 'detail.html', {'bookmark': bookmark, 'tags': tags,
+            'bookmark_url': display_url(bookmark.url), 'domain': urlsplit(display_url(bookmark.url)).hostname or '',
+            'page_obj': attempts, 'page_query': '', 'page_item_label': 'Attempts'})

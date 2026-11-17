@@ -9,16 +9,20 @@ from .api_views import (
     BookmarkTagDetailAPIView,
 )
 
-from .ui_views import BookmarkPermanentDeleteUI, BookmarksUI, BookmarkEditorUI, BookmarkActionUI, TagsUI, TagEditorUI, LegacyTagRedirectUI, LegacyBookmarkTagRedirectUI
+from .ui_views import BookmarkDetailUI, BookmarkPermanentDeleteUI, BookmarksUI, BookmarkEditorUI, BookmarkActionUI, TagsUI, TagEditorUI, LegacyTagRedirectUI, LegacyBookmarkTagRedirectUI
 from .ai_views import AISettingsView, AIReviewView
 from .enrichment_views import EnrichmentView
 from .history_views import EnrichmentHistoryView
+from .record_views import AttemptRecordView, JobRecordView
 
 from .pwa_urls import urlpatterns as pwa_patterns
 
 app_name = "bookmarks"
 
 urlpatterns = [
+    path('bookmark/<int:bookmark_id>/', BookmarkDetailUI.as_view(), name='ui_detail'),
+    path('enrichment/<uuid:attempt_id>/record/', AttemptRecordView.as_view(), name='attempt_record'),
+    path('enrichment/<uuid:attempt_id>/jobs/<str:kind>/', JobRecordView.as_view(), name='job_record'),
     path('enrichment/history/', EnrichmentHistoryView.as_view(), name='enrichment_history'),
     path('enrichment/<uuid:attempt_id>/', EnrichmentView.as_view(), name='enrichment'),
     path('ai/settings/', AISettingsView.as_view(), name='ai_settings'),

@@ -16,3 +16,19 @@
 .ai-panel dd { margin: 0; overflow-wrap: anywhere; }
 .ai-settings code { overflow-wrap: anywhere; }
 @media (max-width: 500px) { .ai-panel dl { grid-template-columns: minmax(0, 1fr); } .ai-panel dt { font-weight: 600; } .ai-panel dd { margin-bottom: .5rem; } }
+.control[data-autosize] { resize: vertical; min-height: 2.6rem; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; }
+.json-view { min-width: 0; }
+.json-view pre { max-height: 34rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.json-view table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.json-view th, .json-view td { padding: .4rem; border-bottom: 1px solid var(--border, #ddd); text-align: left; vertical-align: top; overflow-wrap: anywhere; white-space: pre-wrap; }
+.tag-proposals { padding: 0; list-style: none; }
+.tag-proposals li { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: .5rem; margin-bottom: .3rem; }
+.tag-proposals li > span { flex: 1; overflow-wrap: anywhere; }
+[data-change=added] { background: #e8f6ed; color: #174a28; border-left: 3px solid #2c7543; }
+[data-change=removed] { background: #fff0ee; color: #742b21; padding: .5rem; border-left: 3px solid #b44c3c; }
+.job-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin: .4rem 0; }
+.job-badge { font-size: .8rem; border: 1px solid var(--border, #ddd); border-radius: .4rem; padding: .15rem .45rem; }
+.job-badge[data-state=failed], .job-badge[data-state=unavailable] { color: #8b3525; }
+.job-badge[data-state=available], .job-badge[data-state=applied] { color: #216339; }
+.bookmark-row .tags { margin: .35rem 0; }
+.ai-panel .url, .page-heading h1 { overflow-wrap: anywhere; }

@@ -11,6 +11,7 @@ from .ai_credentials import AIError
 from .ai_views import AIProtectedView, snapshot
 from .enrichment import TERMINAL, advance, start, valid_proposal, review_sources
 from .ui_views import ROOT
+from .record_views import provenance_rows, job_url
 
 
 class EnrichmentView(AIProtectedView):
@@ -21,7 +22,8 @@ class EnrichmentView(AIProtectedView):
         attempt = self.record(request, attempt_id)
         return render(request, ROOT + 'enrichment.html', {'attempt': attempt, 'active': attempt.status not in TERMINAL,
             'remote_status': (attempt.analysis if attempt.analysis_job_id else attempt.retrieval).get('job_status', ''),
-            'analysis_provenance': {k: v for k, v in attempt.analysis.items() if k != 'proposal'},
+            'provenance_rows': provenance_rows(attempt, {k: v for k, v in attempt.analysis.items() if k != 'proposal'}),
+            'retrieval_rows': provenance_rows(attempt, attempt.retrieval),
             'can_retry_analysis': bool(attempt.retrieval_job_id and attempt.retrieval.get('retrieved') is True and attempt.mode == 'analyze')})
 
     def post(self, request, attempt_id):
@@ -38,6 +40,8 @@ class EnrichmentView(AIProtectedView):
             return JsonResponse({'status': attempt.status, 'message': message,
                 'terminal': attempt.status in TERMINAL, 'poll_after_seconds': wait,
                 'retrieval_job_id': attempt.retrieval_job_id, 'analysis_job_id': attempt.analysis_job_id,
+                'retrieval_url': job_url(attempt, 'retrieval') if attempt.retrieval_job_id else '',
+                'analysis_url': job_url(attempt, 'analysis') if attempt.analysis_job_id else '',
                 'remote_status': (attempt.analysis if attempt.analysis_job_id else attempt.retrieval).get('job_status', ''),
                 'updated_at': attempt.updated_at.isoformat(),
                 'lease_until': attempt.lease_until.isoformat() if attempt.lease_until else '',

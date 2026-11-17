@@ -18,6 +18,7 @@
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.keep_failed_history %}
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.failed_attempt_retention_days %}
 <p>New-bookmark enrichment fills missing metadata and adds tags automatically. Existing values are preserved. Later edits require review. Failed local history defaults to 30 days and does not control remote artifacts.</p>
+<p id="service-analysis-settings">Service analysis settings: the model is configured by the deployment variable <code>JOB_SERVICE_AI_MODEL</code>. The named configuration and prompt version are versioned in the job-service code. Update and deploy the service to change them; the controls below apply to direct analysis. Saved provenance always describes the original job.</p>
 <p>Retention changes apply to new jobs. Existing artifacts keep their policy. The service uses its configured model and bookmark.enrichment.v1 instructions; the direct OpenAI key, model and custom instructions below do not override it.</p>
 <button class="button primary" name="action" value="save_job_service">Save retrieval settings</button>
 </form></section>

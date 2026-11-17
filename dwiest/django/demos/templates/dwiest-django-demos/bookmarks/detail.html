@@ -1,0 +1,13 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}
+{% block title %}{{ bookmark.title|default:bookmark.url }}{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:bookmarks:home' %}">← Bookmarks</a>
+<div class="page-heading"><h1>{{ bookmark.title|default:bookmark.url }}</h1><a class="button secondary" href="{% url 'demos:bookmarks:bookmark' %}?id={{ bookmark.pk }}">Edit bookmark</a></div>
+{% if bookmark_url %}<p class="url"><a href="{{ bookmark_url }}" rel="noopener noreferrer" target="_blank">{{ bookmark.url }}</a></p>{% else %}<p>{{ bookmark.url }}</p>{% endif %}
+<p>{{ domain }}{% if bookmark.article_author %} — author: {{ bookmark.article_author }}{% endif %}</p>
+<p class="tags">{% for tag in tags %}<a class="tag" href="{% url 'demos:bookmarks:home' %}?tag_id={{ tag.pk }}">{{ tag.title }}</a>{% empty %}No tags{% endfor %}</p>
+{% include 'dwiest-django-demos/bookmarks/components/job_badges.html' %}
+<section class="ai-panel"><h2>Bookmark details</h2><dl><dt>Publication date</dt><dd>{{ bookmark.article_date|date:'Y-m-d'|default:'Unknown' }}</dd><dt>Read status</dt><dd>{{ bookmark.unread|yesno:'Unread,Read' }}</dd><dt>Visibility</dt><dd>{% if bookmark.status == 1 %}Hidden{% elif bookmark.status == -1 %}Deleted{% else %}Active{% endif %}</dd></dl><p>{{ bookmark.description|default:'No description.'|linebreaksbr }}</p></section>
+<section class="ai-panel"><h2>Saved retrieval and analysis</h2><ul>{% for attempt in page_obj %}<li><a href="{% url 'demos:bookmarks:enrichment' attempt.pk %}">{{ attempt.created_at|date:'Y-m-d H:i T' }} — {{ attempt.status }}</a>{% if attempt.retrieval_job_id %} · <a href="{% url 'demos:bookmarks:job_record' attempt.pk 'retrieval' %}">Download record</a>{% endif %}{% if attempt.analysis_job_id %} · <a href="{% url 'demos:bookmarks:job_record' attempt.pk 'analysis' %}">Analysis record</a>{% endif %}</li>{% empty %}<li>No attempts yet.</li>{% endfor %}</ul></section>
+{% include 'dwiest-django-demos/bookmarks/components/pagination.html' %}
+{% endblock %}

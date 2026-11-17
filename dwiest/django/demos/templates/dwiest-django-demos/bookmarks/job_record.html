@@ -1,0 +1,14 @@
+{% extends 'dwiest-django-demos/bookmarks/base.html' %}{% load bookmark_records %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'demos:bookmarks:enrichment' attempt.pk %}">← Retrieval and analysis</a>
+<div class="page-heading"><h1>{{ heading }}</h1></div><p class="url">{{ attempt.url }}</p>
+{% if job_id %}<p>Job {{ job_id }} · <a href="">Refresh record</a></p>{% endif %}
+{% if record_error %}<p class="notice error" role="alert">{{ record_error }}</p><p>The remote record may be expired or deleted. Saved workflow diagnostics remain available on the retrieval and analysis page.</p>{% endif %}
+{% if record %}<section class="ai-panel"><h2>Stored record</h2>{% json_value record %}</section>{% endif %}
+{% if result %}<section class="ai-panel"><h2>Saved result</h2>{% include 'dwiest-django-demos/bookmarks/components/provenance.html' %}
+{% if article_text %}<h3>Downloaded article</h3><textarea class="control" rows="20" readonly aria-label="Downloaded article">{{ article_text }}</textarea>{% endif %}
+{% if kind == 'analysis' %}<p>The provider response ID identifies this saved analysis. Provider-side response storage is disabled; this page shows the stored service output.</p>{% endif %}
+</section>{% endif %}
+{% if downloads %}<section class="ai-panel"><h2>Downloads</h2><p>Download links expire after five minutes. Refresh this page for new links. Captured HTML is downloaded as text.</p><ul>{% for download in downloads %}<li><a href="{{ download.url }}" rel="noreferrer">Download {{ download.name }}</a></li>{% endfor %}</ul></section>{% endif %}
+{% endblock %}

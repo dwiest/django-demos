@@ -179,7 +179,7 @@ def start_analysis(request, bookmark):
 
 def proposal_initial(review):
     values = dict(review.proposal)
-    values['tags'] = '\n'.join(values['tags'])
+    values['tags'] = '\n'.join(sorted(values['tags'], key=str.casefold))
     values['selected'] = list(FIELDS)
     return values
 
@@ -257,13 +257,21 @@ class AIReviewView(AIProtectedView):
         return get_object_or_404(BookmarkAIAnalysis, pk=analysis_id, owner=request.user)
 
     def page(self, request, review, form, error=''):
+        same_url = review.original['draft']['url'] == review.proposal['url']
         rows = [{'name': name, 'label': LABELS[name], 'before': review.original['draft'][name], 'field': form[name]}
-                for name in FIELDS]
+                for name in FIELDS if name != 'url' or not same_url]
+        current_tags = sorted(review.original['draft']['tags'], key=str.casefold)
+        for row in rows:
+            if row['name'] == 'article_date':
+                row['before'] = row['before'] or '—'
+        
         if review.status == 'pending' and review.expires_at <= timezone.now():
             review.status = 'expired'
         response = render(request, ROOT + 'ai_review.html', {
             'review': review, 'form': form, 'rows': rows, 'ai_error': error,
-            'preserved': review.original['draft'], 'selected_fields': form['selected'].value() or []})
+            'preserved': review.original['draft'], 'selected_fields': form['selected'].value() or [],
+            'same_url': same_url, 'current_tags': current_tags, 'current_tags_text': '\n'.join(current_tags),
+            'available_tags': list(Tag.objects.filter(owner=request.user).order_by('title').values_list('title', flat=True))})
         return response
 
     def get(self, request, analysis_id):
