@@ -69,9 +69,9 @@ main.container{padding-block:22px 36px}
 #bookmark-list .day{margin:24px 0 4px;padding:9px 12px;border-top:3px solid var(--teal);border-radius:4px 4px 0 0;background:#f0f5f7;color:#24394d;font-size:17px;font-weight:750;letter-spacing:.25px;text-transform:none}
 #bookmark-list .bookmark-row{display:block;padding:12px 8px;border-bottom:1px dotted #cdd6df}
 #bookmark-list .bookmark-content{display:block;min-width:0}
-#bookmark-list .bookmark-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:6px 16px;margin-top:7px}
+#bookmark-list .bookmark-footer{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:85ch;font-size:16px;gap:6px;margin-top:7px}
 #bookmark-list .bookmark-footer .tags{min-width:0;margin:0}
-#bookmark-list .bookmark-footer .row-actions{display:flex;position:static;grid-area:auto;grid-column:2;justify-self:end;margin:0;gap:2px;align-self:end}
+#bookmark-list .bookmark-footer .row-actions{display:flex;position:static;grid-area:auto;justify-content:flex-end;margin:0;gap:2px;align-self:flex-end}
 #bookmark-list:not(.expanded) .job-badges{display:none}
 #bookmark-list .bookmark-meta{display:flex;flex-direction:column;gap:6px;min-width:0}
 #bookmark-list .bookmark-meta .job-badges{margin:0}
@@ -98,8 +98,3 @@ main.container{padding-block:22px 36px}
 #bookmark-list .month-heading[data-month="10"]{--month-bg:#ffead5;--month-ink:#7b411e}
 #bookmark-list .month-heading[data-month="11"]{--month-bg:#eee1d3;--month-ink:#68452b}
 #bookmark-list .month-heading[data-month="12"]{--month-bg:#f4e3e8;--month-ink:#702f43}
-@media(max-width:500px){
- #bookmark-list .bookmark-footer{display:flex;flex-wrap:wrap;align-items:flex-end}
- #bookmark-list .bookmark-meta{flex:1 1 100%}
- #bookmark-list .bookmark-footer .row-actions{margin-left:auto}
-}
