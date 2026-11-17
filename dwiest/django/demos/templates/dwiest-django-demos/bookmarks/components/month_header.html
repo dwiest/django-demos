@@ -1,4 +1,5 @@
+{% load static %}
 <div class="month-heading" data-month="{{ month }}"{% if image_url %} data-image="true"{% endif %}>
 {% if image_url %}<img class="month-image" src="{{ image_url }}" alt="" loading="lazy">{% endif %}
-<h2 class="month">{% if date %}{{ date|date:'F Y' }}{% else %}Undated{% endif %}{% if icon %} <span class="month-icon" aria-hidden="true">{{ icon }}</span>{% endif %}</h2>
+<h2 class="month">{% if date %}{{ date|date:'F Y' }}{% else %}Undated{% endif %}{% if icon %} <span class="month-icon" aria-hidden="true">{% if month == 7 and icon == '🇺🇸' %}<img class="month-flag" src="{% static 'dwiest-django-demos/bookmarks/us-flag.svg' %}" alt="">{% else %}{{ icon }}{% endif %}</span>{% endif %}</h2>
 </div>
