@@ -3,7 +3,7 @@
 {% block main_class %}bookmark-index{% endblock %}
 {% block content %}
 <div class="bookmark-reading-column">
-<div class="page-heading"><div><h1>{% if deleted_only %}Deleted bookmarks{% elif selected_tag %}Tagged: {{ selected_tag.title }}{% elif selected_tags %}Tagged: {% for tag in selected_tags %}{{ tag.title }}{% if not forloop.last %} + {% endif %}{% endfor %}{% else %}All bookmarks{% endif %}</h1>{% if selected_tag %}{% if selected_tag.description %}<p class="tag-context">{{ selected_tag.description }}</p>{% endif %}<a class="tag-context-edit" href="{% url 'demos:bookmarks:tag_edit' %}?id={{ selected_tag.pk }}&amp;next={{ next_url|urlencode }}">Edit tag</a>{% endif %}{% if selected_tags|length > 1 %}<p class="tag-context">Matching all selected tags.</p>{% endif %}</div><div class="heading-actions"><a class="button secondary" href="{% url 'demos:bookmarks:home' %}?deleted_only=1">Deleted</a><a class="button primary" href="{% url 'demos:bookmarks:bookmark' %}?next={{ next_url|urlencode }}">＋ Add bookmark</a></div></div>
+<div class="page-heading"><div><h1>{% if deleted_only %}Deleted bookmarks{% elif selected_tag %}Tagged: {{ selected_tag.title }}{% elif selected_tags %}Tagged: {% for tag in selected_tags %}{{ tag.title }}{% if not forloop.last %} + {% endif %}{% endfor %}{% else %}All bookmarks{% endif %}</h1>{% if selected_tag %}{% if selected_tag.description %}<p class="tag-context">{{ selected_tag.description }}</p>{% endif %}<a class="tag-context-edit" href="{% url 'demos:bookmarks:tag_edit' %}?id={{ selected_tag.pk }}&amp;next={{ next_url|urlencode }}">Edit tag</a>{% endif %}{% if selected_tags|length > 1 %}<p class="tag-context">Matching all selected tags.</p>{% endif %}</div><div class="heading-actions"><a class="button primary" href="{% url 'demos:bookmarks:bookmark' %}?next={{ next_url|urlencode }}">＋ Add bookmark</a></div></div>
 {% include 'dwiest-django-demos/bookmarks/components/query_toolbar.html' %}
 <div class="list-toolbar"><p class="muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} bookmarks</p><div class="view-toggle" role="group" aria-label="Bookmark display"><button type="button" data-density="compact" aria-pressed="true">☰ Compact</button><button type="button" data-density="expanded" aria-pressed="false">▤ Expanded</button></div></div>
 <section aria-label="Bookmarks" id="bookmark-list">
@@ -17,3 +17,4 @@
 <div id="action-status" class="notice" role="status" hidden></div>
 </div>
 {% endblock %}
+

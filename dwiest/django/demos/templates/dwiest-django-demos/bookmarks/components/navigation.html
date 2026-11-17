@@ -1,17 +1,29 @@
-<header class="site-header">
+<header class="site-header bookmarks-header">
   <nav class="nav app-navigation container" aria-label="Bookmarks navigation">
-    <a class="brand" href="{% url 'demos:bookmarks:home' %}">
+    <a class="brand" aria-label="Bookmarks home" href="{% url 'demos:bookmarks:home' %}">
       <svg width="22" height="26" viewBox="0 0 22 26" fill="none" aria-hidden="true">
         <path d="M3 2h16v22l-8-5-8 5V2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
       </svg>
       <span>Bookmarks</span>
     </a>
-    <a class="nav-link {% if nav_section != 'tags' and nav_section != 'ai' and nav_section != 'history' %}selected{% endif %}" href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
-    <a class="nav-link {% if nav_section == 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:tags' %}">Tags</a>
-    {% if request.user.is_authenticated %}<a class="nav-link {% if nav_section == 'ai' %}selected{% endif %}" href="{% url 'demos:bookmarks:ai_settings' %}">AI settings</a>{% endif %}
+    <div class="bookmarks-tabs">
+      <a class="nav-link {% if nav_section != 'tags' and nav_section != 'ai' and nav_section != 'history' %}selected{% endif %}"{% if nav_section != 'tags' and nav_section != 'ai' and nav_section != 'history' %} aria-current="page"{% endif %} href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
+      <a class="nav-link {% if nav_section == 'tags' %}selected{% endif %}"{% if nav_section == 'tags' %} aria-current="page"{% endif %} href="{% url 'demos:bookmarks:tags' %}">Tags</a>
+      {% if request.user.is_authenticated %}<a class="nav-link {% if nav_section == 'ai' %}selected{% endif %}"{% if nav_section == 'ai' %} aria-current="page"{% endif %} href="{% url 'demos:bookmarks:ai_settings' %}">AI settings</a>{% endif %}
+    </div>
     <div class="nav-actions">
-      <a class="button secondary" href="{% url 'demos:bookmarks:export' %}">Export</a>
+      <details class="ww-tools ww-nav-menu" data-nav-menu>
+        <summary>Tools</summary>
+        <nav class="ww-tools-panel" aria-label="Bookmarks tools">
+          <h2>Bookmarks tools</h2>
+          <a href="{% url 'demos:bookmarks:export' %}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 14v7h16v-7"/></svg>Export bookmarks</a>
+          {% if request.user.is_authenticated %}<a href="{% url 'demos:bookmarks:enrichment_history' %}"{% if nav_section == 'history' %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg>Job history</a>{% endif %}
+          <hr>
+          <a href="{% url 'demos:bookmarks:home' %}?deleted_only=1"{% if deleted_only %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg>Deleted bookmarks</a>
+        </nav>
+      </details>
       {% block nav_action %}{% endblock %}
     </div>
-  {% if request.user.is_authenticated %}<a class="nav-link {% if nav_section == 'history' %}selected{% endif %}" href="{% url 'demos:bookmarks:enrichment_history' %}">Job history</a>{% endif %}</nav>
+  </nav>
 </header>
+

@@ -1,0 +1,68 @@
+<style>
+/* Scoped shell styles also work on older Django pages. */
+.ww-site-header { position: sticky; top: 0; z-index: 100; background: #f7f9fb; border-bottom: 1px solid #dce2e9; color: #172234; font: 15px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+.ww-site-header *, .ww-nav-menu * { box-sizing: border-box; }
+.ww-site-inner { position: relative; width: min(1360px, calc(100% - 48px)); min-height: 52px; margin-inline: auto; display: flex; align-items: center; gap: 24px; }
+.ww-site-header a { color: #65738a; text-decoration: none; }
+.ww-site-header .ww-brand { flex-shrink: 0; color: #172234; font-size: 18px; font-weight: 700; white-space: nowrap; }
+.ww-nav-menu { position: relative; color: #172234; font: 15px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+.ww-nav-menu > summary { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 6px 12px; border-radius: 6px; list-style: none; cursor: pointer; white-space: nowrap; }
+.ww-nav-menu > summary::-webkit-details-marker { display: none; }
+.ww-nav-menu > summary::after { content: '▾'; font-size: 11px; }
+.ww-nav-menu[open] > summary, .ww-nav-menu > summary:hover { background: #e3f2f1; color: #087f83; }
+.ww-nav-menu > summary:focus-visible, .ww-nav-menu a:focus-visible, .ww-site-header a:focus-visible { outline: 3px solid #13a4a7; outline-offset: 2px; }
+.ww-nav-menu > nav { position: absolute; top: calc(100% + 6px); z-index: 110; padding: 12px; background: #fff; border: 1px solid #dce2e9; border-radius: 8px; box-shadow: 0 8px 24px #15253c20; max-height: calc(100vh - 76px); max-height: calc(100dvh - 76px); overflow-y: auto; }
+.ww-nav-menu > nav a { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 10px; border-radius: 5px; color: #172234; text-decoration: none; font-weight: 400; }
+.ww-nav-menu > nav a:hover { color: #087f83; background: #f0f7f7; text-decoration: none; }
+.ww-nav-menu > nav a[aria-current] { background: #e3f2f1; color: #087f83; font-weight: 600; }
+.ww-nav-menu > nav a[aria-current]::after { content: '✓'; margin-left: auto; }
+.ww-apps { position: relative; }
+.ww-apps > .ww-apps-panel { left: 0; width: min(580px, calc(100vw - 180px)); }
+.ww-apps-home { margin-bottom: 10px; }
+.ww-apps-home span { font-size: 21px; line-height: 1; }
+.ww-apps-groups { display: flex; gap: 16px; border-top: 1px solid #dce2e9; padding-top: 10px; }
+.ww-apps-applications { flex: 1; min-width: 0; }
+.ww-apps-grid { display: grid; grid-template-rows: repeat(6, auto); grid-auto-flow: column; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+.ww-apps-groups h2, .ww-tools-panel h2 { margin: 0 10px 4px; color: #65738a; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.ww-apps-services { flex: 0 0 145px; border-left: 1px solid #dce2e9; padding-left: 12px; }
+.ww-account { margin-left: auto; }
+.ww-account > nav { right: 0; width: 210px; }
+.ww-tools > nav { right: 0; width: 245px; }
+.ww-tools-panel hr { border: 0; border-top: 1px solid #dce2e9; margin: 8px 0; }
+.ww-tools-panel svg { width: 18px; height: 18px; flex-shrink: 0; }
+/* Scroll only the local tabs on phones; Tools remains accessible. */
+.bookmarks-header { background: #f6fbfb; }
+.bookmarks-header .app-navigation { min-height: 48px; flex-wrap: nowrap; gap: 24px; }
+.bookmarks-header .brand { flex-shrink: 0; font-size: 20px; gap: 10px; }
+.bookmarks-header .brand span { display: inline; }
+.bookmarks-tabs { display: flex; align-items: stretch; gap: 24px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.bookmarks-header .nav-link { flex-shrink: 0; display: flex; align-items: center; min-height: 48px; padding: 10px 2px 7px; font-size: 15px; white-space: nowrap; }
+.bookmarks-header .nav-actions { display: flex; align-items: center; flex-shrink: 0; margin-left: auto; }
+@media (max-width: 850px) {
+  .ww-site-inner { width: calc(100% - 32px); }
+}
+@media (max-width: 650px) {
+  .ww-site-inner { width: calc(100% - 24px); gap: 8px; }
+  .ww-site-header .ww-brand { font-size: 16px; }
+  .ww-nav-menu > summary { padding-inline: 8px; }
+  .ww-apps { position: static; }
+  .ww-apps > .ww-apps-panel { left: 0; top: 100%; width: 100%; }
+  .ww-apps-groups { flex-direction: column; gap: 10px; }
+  .ww-apps-services { flex: auto; border-left: 0; border-top: 1px solid #dce2e9; padding: 10px 0 0; }
+  .ww-nav-menu .ww-apps-services a { display: inline-flex; }
+  .ww-apps-grid { column-gap: 4px; }
+  .ww-apps-panel a { font-size: 14px; }
+  .bookmarks-header .app-navigation { gap: 12px; }
+  .bookmarks-header .brand { font-size: 17px; }
+  .bookmarks-header .brand svg { width: 18px; height: 22px; }
+  .bookmarks-tabs { gap: 16px; }
+  .bookmarks-header .nav-link { font-size: 14px; }
+}
+@media (max-width: 480px) {
+  .bookmarks-header .brand span { display: none; }
+  .bookmarks-header .app-navigation { gap: 10px; }
+  .bookmarks-tabs { gap: 12px; }
+  .ww-tools > summary { font-size: 14px; }
+}
+@media print { .ww-site-header, .bookmarks-header { display: none; } }
+</style>

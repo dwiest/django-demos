@@ -1,20 +1,4 @@
-{% include 'dwiest-django-demos/components/site_navigation.html' %}
-<header class="demo-header">
-  <div class="demo-header-inner container">
-    <a class="demo-brand" href="{% url 'demos:home' %}">Django Demos</a>
-    <nav class="demo-nav" aria-label="Demo applications">
-      <a href="{% url 'demos:home' %}"{% if demo_section == 'home' %} aria-current="page"{% endif %}>Home</a>
-      <a href="{% url 'demos:bookmarks:home' %}"{% if demo_section == 'bookmarks' %} aria-current="true"{% endif %}>Bookmarks</a>
-      <a href="{% url 'demos:invoicer:home' %}"{% if demo_section == 'invoicer' %} aria-current="true"{% endif %}>Invoicer</a>
-      <a href="{% url 'demos:journal:home' %}"{% if demo_section == 'journal' %} aria-current="true"{% endif %}>Journal</a>
-      <a href="{% url 'demos:qrcode:home' %}"{% if demo_section == 'qrcode' %} aria-current="true"{% endif %}>QR Code</a>
-      <a href="{% url 'demos:otp:home' %}"{% if demo_section == 'otp' %} aria-current="true"{% endif %}>Time-Based OTP</a>
-      <a href="{% url 'demos:expenses:home' %}"{% if demo_section == 'expenses' %} aria-current="true"{% endif %}>Expenses</a>
-      <a href="{% url 'demos:inventory:home' %}"{% if demo_section == 'inventory' %} aria-current="true"{% endif %}>Inventory</a>
-      <a href="{% url 'demos:file:index' %}"{% if demo_section == 'file' %} aria-current="true"{% endif %}>File Manager</a>
-      <a href="{% url 'demos:news:home' %}"{% if demo_section == 'news' %} aria-current="true"{% endif %}>WebSockets</a>
-      <a href="{% url 'demos:selenium:home' %}"{% if demo_section == 'selenium' %} aria-current="true"{% endif %}>Selenium</a>
-      <a href="{% url 'demos:store:home' %}"{% if demo_section == 'store' %} aria-current="true"{% endif %}>Store</a>
-    </nav>
-  </div>
-</header>
+{% comment %}App switching belongs to the site bar; each app supplies its local bar.{% endcomment %}
+{% include 'dwiest-django-demos/components/navigation.css' %}
+{% include 'dwiest-django-demos/components/site_navigation.html' with ww_navigation_styles_loaded=True %}
+
