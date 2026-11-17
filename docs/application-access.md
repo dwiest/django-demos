@@ -43,8 +43,8 @@ APPLICATION_ACCESS_ENABLED defaults to True. False is a deployment/testing
 escape hatch bypassing catalog grants and menu filtering. Existing view
 permissions still apply. Do not use it for an ordinary multiuser rollout.
 
-DESKTOP_TOYS_BASE_URL defaults to /desktop-toys/. Set it to the actual collection
-directory, for example https://your-toy-host.example/desktop-toys/.
+DESKTOP_TOYS_BASE_URL defaults to https://staging.wiest.world/desktop-toys/.
+Override it when the collection moves to a different host or directory.
 Nested prefixes work and links include index.html. An empty string hides toy
 launch links until their host is configured.
 
