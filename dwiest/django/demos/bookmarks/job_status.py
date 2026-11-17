@@ -1,10 +1,11 @@
 """Derived workflow state, separate from user-managed subject tags."""
 from django.db.models import Case, CharField, Value, When, Q, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from ..bookmark_ai_models import BookmarkEnrichmentAttempt
 
 DOWNLOAD_STATES = (('not_requested', 'Not requested'), ('pending', 'Pending'), ('available', 'Available'),
                    ('unavailable', 'Content unavailable'), ('failed', 'Failed'))
-ANALYSIS_STATES = (('not_requested', 'Not requested'), ('pending', 'Pending'), ('ready', 'Ready for review'),
+ANALYSIS_STATES = (('not_available', 'Not available'), ('not_requested', 'Not requested'), ('pending', 'Pending'), ('ready', 'Ready for review'),
                    ('applied', 'Applied'), ('failed', 'Failed'), ('cancelled', 'Cancelled'))
 
 
@@ -23,15 +24,22 @@ def state_attempts(owner):
 
 
 def filter_state(bookmarks, owner, download='', analysis=''):
-    for mode, value, field in (('download', download, 'download_state'), ('analysis', analysis, 'analysis_state')):
-        if not value:
-            continue
-        candidates = state_attempts(owner).filter(bookmark_id=OuterRef('pk'), url=OuterRef('url'))
-        if mode == 'analysis':
-            candidates = candidates.filter(mode='analyze')
-        bookmarks = bookmarks.annotate(**{'_filter_' + mode: Subquery(candidates.order_by('-created_at', '-pk').values(field)[:1])})
-        key = '_filter_' + mode
-        bookmarks = bookmarks.filter(**{key + '__isnull': True}) if value == 'not_requested' else bookmarks.filter(**{key: value})
+    if not download and not analysis:
+        return bookmarks
+    candidates = state_attempts(owner).filter(bookmark_id=OuterRef('pk'), url=OuterRef('url')).order_by('-created_at', '-pk')
+    analyses = candidates.filter(mode='analyze')
+    bookmarks = bookmarks.annotate(
+        _filter_download=Coalesce(Subquery(candidates.values('download_state')[:1]), Value('not_requested')),
+        _analysis_raw=Coalesce(Subquery(analyses.values('analysis_state')[:1]), Value('not_requested')),
+        _analysis_job=Coalesce(Subquery(analyses.values('analysis_job_id')[:1]), Value('')))
+    bookmarks = bookmarks.annotate(_filter_analysis=Case(
+        When(Q(_filter_download__in=('failed', 'unavailable')) & Q(_analysis_job='') &
+             Q(_analysis_raw__in=('not_requested', 'failed')), then=Value('not_available')),
+        default='_analysis_raw', output_field=CharField()))
+    if download:
+        bookmarks = bookmarks.filter(_filter_download=download)
+    if analysis:
+        bookmarks = bookmarks.filter(_filter_analysis=analysis)
     return bookmarks
 
 
@@ -53,10 +61,13 @@ def decorate(bookmarks, owner):
         attempt, analysis, capture = found.get(key), analyses.get(key), captures.get(key)
         bookmark.download_state = attempt.download_state if attempt else 'not_requested'
         bookmark.analysis_state = analysis.analysis_state if analysis else 'not_requested'
+        if (bookmark.download_state in ('failed', 'unavailable') and
+                (not analysis or not analysis.analysis_job_id) and bookmark.analysis_state in ('not_requested', 'failed')):
+            bookmark.analysis_state = 'not_available'
         bookmark.download_label = dict(DOWNLOAD_STATES)[bookmark.download_state]
         bookmark.analysis_label = dict(ANALYSIS_STATES)[bookmark.analysis_state]
         bookmark.download_attempt = attempt
-        bookmark.analysis_attempt = analysis
+        bookmark.analysis_attempt = analysis or (attempt if bookmark.analysis_state == 'not_available' else None)
         author = capture.retrieval.get('author') if capture else ''
         bookmark.article_author = author if isinstance(author, str) else ''
     return bookmarks

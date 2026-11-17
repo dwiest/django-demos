@@ -591,3 +591,32 @@ Page progress checks also advance the same state machine. Cron supplies progress
 when no page is open. For lower idle latency, replace the periodic trigger with a
 continuous worker or authenticated completion-event consumer while retaining leases,
 idempotency and reconciliation as recovery; avoid an in-process background thread.
+
+### List appearance and JSON display
+
+Day headings use a heavy divider and shaded label; dotted row dividers separate
+bookmarks within a day. Tags and inline actions follow the article description.
+Download/analysis badges appear only in expanded list mode (and remain available
+on detail pages). A failed download with no submitted analysis is labeled
+“Analysis: Not available”; this has its own analysis filter.
+
+JSON defaults to raw. Changing its mode updates all JSON panels and is remembered
+per signed-in user in local browser storage, including between tabs. It is not a
+cross-device preference. Unavailable browser storage falls back to raw.
+
+Month headings have seasonal icons, including 🎃 October, 🦃 November and 🎄 🎁
+December. Set `BOOKMARKS_MONTH_HEADERS` in Django settings to customize icons and
+optionally use decorative header images. Omit a month to retain its default icon;
+set `icon` to an empty string to suppress it. Images can be same-origin absolute
+paths or HTTPS URLs; use an origin permitted by your site's image CSP.
+
+```python
+BOOKMARKS_MONTH_HEADERS = {
+    10: {"icon": "🎃", "image_url": "/static/site/months/october.jpg"},
+    11: {"icon": "🦃", "image_url": "https://your-cdn.example/months/november.jpg"},
+    12: {"icon": "🎄 🎁"},
+}
+```
+
+Supply your own images; no external image requests are made by default. The month
+and year remain readable text, including when images fail to load.
