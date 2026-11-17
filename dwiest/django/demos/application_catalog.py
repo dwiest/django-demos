@@ -34,7 +34,7 @@ class Application:
 
     def destination(self):
         if self.category == 'toys':
-            base = getattr(settings, 'DESKTOP_TOYS_BASE_URL', '/desktop-toys/')
+            base = getattr(settings, 'DESKTOP_TOYS_BASE_URL', 'https://staging.wiest.world/desktop-toys/')
             return urljoin(base.rstrip('/') + '/', self.url) if base else ''
         if self.route:
             try:
