@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 import sys
 
+# Direct script execution puts tests/ on sys.path, not the checkout root.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'dwiest.django.demos.test_application_settings'
 import django
 django.setup()
