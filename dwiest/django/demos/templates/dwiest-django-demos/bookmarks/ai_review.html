@@ -23,6 +23,11 @@
 <div class="notice" role="status">Proposal status: {{ review.status }}.</div>
 {% if review.status == 'uncertain' or review.status == 'applying' %}<p>Some operations may have completed. Check your bookmarks and tags before starting another analysis. This proposal cannot be submitted again.</p>{% endif %}
 {% if review.results %}<ul>{% for result in review.results %}<li>Confirmed {{ result.tool }}{% if result.id %}: {{ result.id }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+{% if review.status == 'applied' %}
+<section class="ai-panel"><h2>Applied bookmark values</h2><p>Saved values at approval time. Later bookmark edits do not change this record.</p><dl>{% for row in applied_rows %}<dt>{{ row.label }}</dt><dd class="ai-before">{{ row.value|default_if_none:'—'|default:'—' }}</dd>{% endfor %}</dl></section>
+<details class="ai-panel"><summary>Original AI proposal</summary><dl>{% for row in proposed_rows %}<dt>{{ row.label }}</dt><dd class="ai-before">{{ row.value|default_if_none:'—'|default:'—' }}</dd>{% endfor %}</dl></details>
+{% if review.bookmark_id %}<a class="button secondary" href="{% url 'demos:bookmarks:ui_detail' review.bookmark_id %}">View bookmark</a>{% endif %}
+{% endif %}
 <a class="button secondary" href="{% url 'demos:bookmarks:home' %}">View bookmarks</a>
 {% endif %}
 {% endblock %}

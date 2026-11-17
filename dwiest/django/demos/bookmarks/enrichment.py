@@ -22,12 +22,14 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
 
 
-def start(owner, bookmark, original, url, mode='analyze', force_download=False, force_analysis=False, retry_token=None, source_attempt=None, auto_apply=False, instructions=""):
+def start(owner, bookmark, original, url, mode='analyze', force_download=False, force_analysis=False, retry_token=None, source_attempt=None, auto_apply=False, instructions=None):
     require_demo_owner(owner)
     if bookmark.owner_id != owner.pk:
         raise AIError('Only your own bookmarks can be enriched.')
     if not bookmark.pk:
         raise AIError('Save the bookmark first, then retrieve or analyze its URL. Automatic enrichment on creation is a separate update.')
+    if instructions is None:
+        instructions = source_attempt.request_options.get('instructions', '') if source_attempt is not None else ''
     if not isinstance(instructions, str) or len(instructions) > 4000:
         raise AIError('Analysis instructions must be at most 4,000 characters.')
     base, _ = connection()
@@ -45,8 +47,6 @@ def start(owner, bookmark, original, url, mode='analyze', force_download=False, 
         source = {'retrieval_job_id': valid_job_id(source_attempt.retrieval_job_id),
                   'retrieval': source_attempt.retrieval, 'status': 'analysis_pending'}
         options['include_raw_html'] = source_attempt.request_options['include_raw_html']
-    if source_attempt is not None and not instructions:
-        instructions = source_attempt.request_options.get('instructions', '')
     if instructions.strip():
         options['instructions'] = instructions.strip()
     if auto_apply:

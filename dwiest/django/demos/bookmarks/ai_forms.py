@@ -129,3 +129,9 @@ class JobServiceSettingsForm(StyledForm):
             except AIError as exc:
                 raise forms.ValidationError(str(exc))
         return data
+
+
+class AnalysisRetryForm(StyledForm):
+    instructions = forms.CharField(required=False, max_length=4000,
+        label='Instructions for the next attempt', widget=forms.Textarea(attrs={'rows': 4}),
+        help_text='Edit these instructions before retrying. Leave blank to use only the job service configuration.')
