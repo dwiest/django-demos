@@ -7,7 +7,7 @@ from . import test_enrichment as fixtures
 from .test_enrichment import BASE, URL, ANALYSIS
 from .enrichment import start
 from .job_status import decorate, filter_state
-from .models import Bookmark
+from .models import Bookmark, Tag, BookmarkTag
 from ..bookmark_ai_models import BookmarkEnrichmentAttempt
 
 
@@ -35,8 +35,14 @@ class ListPresentationTests(TestCase):
         text = response.content.decode()
         row = text[text.index('<article class="bookmark-row"'):text.index('</article>')]
         self.assertLess(row.index('class="description"'), row.index('class="bookmark-footer"'))
-        self.assertLess(row.index('class="tags"'), row.index('class="row-actions"'))
-        self.assertLess(row.index('class="row-actions"'), row.index('class="job-badges"'))
+        self.assertNotIn('class="tags"', row)
+        self.assertLess(row.index('class="job-badges"'), row.index('class="row-actions"'))
+        tag = Tag.objects.create(owner=self.user, title='Topic', style='')
+        BookmarkTag.objects.create(owner=self.user, bookmark=self.bookmark, tag=tag)
+        text = self.client.get(reverse('demos:bookmarks:home')).content.decode()
+        row = text[text.index('<article class="bookmark-row"'):text.index('</article>')]
+        self.assertLess(row.index('class="tags"'), row.index('class="job-badges"'))
+        self.assertLess(row.index('class="job-badges"'), row.index('class="row-actions"'))
 
 
 class MonthHeaderTests(SimpleTestCase):
@@ -45,7 +51,7 @@ class MonthHeaderTests(SimpleTestCase):
             __import__('dwiest.django.demos.templatetags.bookmark_records', fromlist=['month_header']).month_header(datetime(2026, month, 1)))
 
     def test_seasonal_defaults_and_custom_safe_image(self):
-        self.assertIn('🎃', self.render(10)); self.assertIn('🦃', self.render(11)); self.assertIn('🎄 🎁', self.render(12))
+        self.assertLess(self.render(10).index('October 2026'), self.render(10).index('🎃')); self.assertIn('🎃', self.render(10)); self.assertIn('🦃', self.render(11)); self.assertIn('🎄 🎁', self.render(12))
         with override_settings(BOOKMARKS_MONTH_HEADERS={11: {'icon': '🍁', 'image_url': '/static/month.jpg'}}):
             rendered = self.render(11)
             self.assertIn('/static/month.jpg', rendered); self.assertIn('November 2026', rendered)
