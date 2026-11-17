@@ -620,3 +620,36 @@ BOOKMARKS_MONTH_HEADERS = {
 
 Supply your own images; no external image requests are made by default. The month
 and year remain readable text, including when images fail to load.
+
+### Re-running analysis and reviewing applied results
+
+The editor labels existing operations **Retry Download** and **Retry Analysis**
+for the current bookmark URL. Retry Download explicitly requests a fresh capture.
+Retry Analysis reuses a readable capture from the same owner, bookmark, URL and
+service endpoint, and explicitly requests another provider call. If there is no
+readable capture, download the page first. Unsaved editor values remain part of
+the review draft. A signed owner/bookmark-bound form nonce makes duplicate retry
+submissions reuse the same local operation; a fresh editor page permits a new run.
+
+The retrieval page shows the custom instructions saved with the original attempt
+and a separate editable field for the next attempt. Editing or clearing that field
+creates a retry with those instructions; blank means the named service configuration
+without additional custom instructions. Omitting the field in an older client
+preserves the saved instructions. Original attempts and stored provenance are never
+rewritten. Retry analysis may incur provider charges; checking an existing analysis
+only polls its recorded job.
+
+If saved bookmark metadata changed since the old attempt (including after approval),
+a retry starts from the current saved snapshot and still requires review. A changed
+URL requires reopening the editor. Creation-time automatic approval is not inherited
+by retries. Normal optimistic checks still protect subsequent edits during analysis.
+
+Applied review pages display the immutable approved values and the original AI
+proposal, read-only. Later manual edits to the bookmark do not alter this record,
+and the proposal cannot be applied again.
+
+History opened from an editor is scoped to that owned bookmark. The scope is kept
+through pagination, cleanup preview/confirmation, cancellation and redirects.
+Confirmation tokens bind the owner, bookmark scope and exact eligible rows; changing
+the URL to another bookmark or to global history cannot broaden a cleanup. The
+page offers an explicit link to all-bookmark history when that is wanted.

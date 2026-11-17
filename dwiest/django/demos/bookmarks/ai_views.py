@@ -134,6 +134,25 @@ class AISettingsView(AIProtectedView):
         return HttpResponseRedirect(reverse('demos:bookmarks:ai_settings'))
 
 
+def editor_retry_token(owner, bookmark_id):
+    import uuid
+    from django.core import signing
+    return signing.dumps({'owner': owner.pk, 'bookmark': bookmark_id, 'nonce': uuid.uuid4().hex}, salt='bookmark-editor-retry-v1')
+
+
+def validated_editor_retry_token(request, bookmark_id):
+    from django.core import signing
+    from .enrichment import digest
+    token = request.POST.get('ai_retry_token', '')
+    try:
+        value = signing.loads(token, salt='bookmark-editor-retry-v1', max_age=86400)
+        if value['owner'] != request.user.pk or value['bookmark'] != bookmark_id or not value['nonce']:
+            raise signing.BadSignature()
+    except (signing.BadSignature, KeyError, TypeError):
+        raise AIError('This retry form expired or is invalid. Reload the bookmark editor and try again.') from None
+    return digest(token)
+
+
 @sensitive_variables()
 def start_analysis(request, bookmark):
     """Called by the existing editor POST; normal Save remains the existing path."""
@@ -142,7 +161,7 @@ def start_analysis(request, bookmark):
     if not form.is_valid():
         raise AIError('Enter a valid HTTP or HTTPS URL and instructions of at most 4,000 characters.')
     prefs, _ = BookmarkAISettings.objects.get_or_create(owner=request.user)
-    if request.POST.get('action') == 'job_download' and not prefs.use_job_service:
+    if request.POST.get('action') in ('job_download', 'job_retry_download', 'job_retry_analysis') and not prefs.use_job_service:
         raise AIError('Enable the job service in AI settings before downloading a page.')
     listed = blacklisted_site(form.cleaned_data['url'], prefs.blocked_domains)
     if listed:
@@ -166,8 +185,20 @@ def start_analysis(request, bookmark):
     draft.update(tags=[t.title for t in tags], status=status, unread='unread' in request.POST)
     if prefs.use_job_service:
         from .enrichment import start
-        mode = 'download' if request.POST.get('action') == 'job_download' else 'analyze'
-        attempt = start(request.user, bookmark, {'persisted': original, 'draft': draft}, form.cleaned_data['url'], mode=mode, instructions=form.cleaned_data['instructions'])
+        from .job_client import connection
+        from ..bookmark_ai_models import BookmarkEnrichmentAttempt
+        action = request.POST.get('action')
+        mode = 'download' if action in ('job_download', 'job_retry_download') else 'analyze'
+        retry = action in ('job_retry_download', 'job_retry_analysis')
+        nonce = validated_editor_retry_token(request, bookmark.pk) if retry else None
+        base, _ = connection()
+        source = BookmarkEnrichmentAttempt.objects.filter(owner=request.user, bookmark_id=bookmark.pk,
+            url=form.cleaned_data['url'], service_url=base, retrieval__retrieved=True).exclude(retrieval_job_id='').first() if mode == 'analyze' else None
+        if action == 'job_retry_analysis' and source is None:
+            raise AIError('No readable saved download is available for this URL. Download the page first, or wait for the current download to finish.')
+        attempt = start(request.user, bookmark, {'persisted': original, 'draft': draft}, form.cleaned_data['url'],
+            mode=mode, instructions=form.cleaned_data['instructions'], source_attempt=source,
+            force_download=action == 'job_retry_download', force_analysis=action == 'job_retry_analysis', retry_token=nonce)
         return HttpResponseRedirect(reverse('demos:bookmarks:enrichment', args=[attempt.pk]))
     proposal, sources = ai_service.analyze(request.user, api_key_for(request), prefs,
         form.cleaned_data['url'], bookmark.pk, form.cleaned_data['instructions'])
@@ -271,6 +302,8 @@ class AIReviewView(AIProtectedView):
             'review': review, 'form': form, 'rows': rows, 'ai_error': error,
             'preserved': review.original['draft'], 'selected_fields': form['selected'].value() or [],
             'same_url': same_url, 'current_tags': current_tags, 'current_tags_text': '\n'.join(current_tags),
+            'applied_rows': [{'label': LABELS[name], 'name': name, 'value': '\n'.join(sorted(review.approved.get(name, []), key=str.casefold)) if name == 'tags' else review.approved.get(name)} for name in FIELDS],
+            'proposed_rows': [{'label': LABELS[name], 'name': name, 'value': '\n'.join(sorted(review.proposal.get(name, []), key=str.casefold)) if name == 'tags' else review.proposal.get(name)} for name in FIELDS],
             'available_tags': list(Tag.objects.filter(owner=request.user).order_by('title').values_list('title', flat=True))})
         return response
 

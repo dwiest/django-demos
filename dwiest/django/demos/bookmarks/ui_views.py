@@ -187,6 +187,13 @@ class BookmarkEditorUI(View):
             for attempt in attempts:
                 attempt.outcome_label = outcome_label(attempt)
             context['enrichment_attempts'] = attempts
+            current_attempts = BookmarkEnrichmentAttempt.objects.filter(owner=request.user, bookmark_id=form.instance.pk, url=attempt_url) if form.instance.pk else BookmarkEnrichmentAttempt.objects.none()
+            latest = current_attempts.first()
+            context['has_download'] = current_attempts.exists()
+            context['has_analysis'] = current_attempts.filter(mode='analyze').exists() if context['use_job_service'] else BookmarkAIAttempt.objects.filter(owner=request.user, url=attempt_url).exists()
+            context['ai_instructions'] = request.POST.get('ai_instructions', latest.request_options.get('instructions', '') if latest else '')
+            from .ai_views import editor_retry_token
+            context['ai_retry_token'] = request.POST.get('ai_retry_token') or editor_retry_token(request.user, form.instance.pk)
             context.update(ai_blocked_domains=domains, ai_blacklisted_site=blacklisted_site(value, domains),
                            ai_attempt_url=value, ai_last_attempt=BookmarkAIAttempt.objects.filter(owner=request.user, url=attempt_url).first() if attempt_url else None)
         return context
@@ -199,7 +206,7 @@ class BookmarkEditorUI(View):
         instance = self.bookmark(request)
         from ..bookmark_ai_models import BookmarkAISettings
         service_mode = request.user.is_authenticated and BookmarkAISettings.objects.filter(owner=request.user, use_job_service=True).exists()
-        lookup_duplicate = request.POST.get('action') not in ('ai_analyze', 'ai_blacklist_site', 'job_download') or service_mode
+        lookup_duplicate = request.POST.get('action') not in ('ai_analyze', 'ai_blacklist_site', 'job_download', 'job_retry_download', 'job_retry_analysis') or service_mode
         if not instance.pk and lookup_duplicate:
             # Preserve the existing global URL uniqueness rule; only reveal this user's own record.
             from .ai_forms import AnalyzeForm
@@ -224,7 +231,7 @@ class BookmarkEditorUI(View):
             response = render(request, ROOT + 'bookmark.html', self.context(request, form))
             patch_cache_control(response, private=True, no_store=True)
             return response
-        if request.POST.get('action') in ('ai_analyze', 'job_download'):
+        if request.POST.get('action') in ('ai_analyze', 'job_download', 'job_retry_download', 'job_retry_analysis'):
             from .ai_credentials import AIError, AIArticleAccessError
             from .ai_sites import failed_site_offer
             from .ai_views import start_analysis

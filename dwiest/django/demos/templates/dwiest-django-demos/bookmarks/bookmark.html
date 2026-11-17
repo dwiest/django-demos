@@ -12,11 +12,12 @@
 <section class="ai-panel" aria-label="AI bookmark enrichment">
 <strong>{% if use_job_service and not form.instance.pk %}Analysis instructions{% else %}Analyze with AI{% endif %}</strong>
 <p>{% if use_job_service and not form.instance.pk %}Choose download and enrichment below. Optional instructions apply to the analysis requested when you save.{% elif use_job_service %}The job service retrieves content and stores a proposal. Review and approve before bookmark fields change.{% else %}OpenAI retrieves the article and proposes metadata and tags. Review and approve before anything is saved.{% endif %}</p>
-<details data-ai-instructions><summary>Custom analysis instructions (optional)</summary><label for="ai-instructions">Instructions for this analysis (optional)</label><textarea class="control" id="ai-instructions" name="ai_instructions" rows="2" maxlength="4000">{{ request.POST.ai_instructions }}</textarea></details>
+<input type="hidden" name="ai_retry_token" value="{{ ai_retry_token }}"><details data-ai-instructions><summary>Custom analysis instructions (optional)</summary><label for="ai-instructions">Instructions for this analysis (optional)</label><textarea class="control" id="ai-instructions" name="ai_instructions" rows="2" maxlength="4000">{{ ai_instructions }}</textarea></details>
+{% if use_job_service and has_download %}<p>Retry Download requests a fresh capture.{% if has_analysis %} Retry Analysis reuses saved content and requests another AI call, which may incur API charges.{% endif %}</p>{% endif %}
 <div class="save-actions">
 {% if form.instance.pk or not use_job_service %}
-{% if use_job_service %}<button class="button secondary" name="action" value="job_download" type="submit" formnovalidate>Download page</button>{% endif %}
-<button class="button secondary" name="action" value="ai_analyze" type="submit" formnovalidate data-ai-analyze>Analyze</button>
+{% if use_job_service %}<button class="button secondary" name="action" value="{% if has_download %}job_retry_download{% else %}job_download{% endif %}" type="submit" formnovalidate>{% if has_download %}Retry Download{% else %}Download page{% endif %}</button>{% endif %}
+<button class="button secondary" name="action" value="{% if use_job_service and has_analysis %}job_retry_analysis{% else %}ai_analyze{% endif %}" type="submit" formnovalidate data-ai-analyze>{% if has_analysis %}Retry Analysis{% else %}Analyze{% endif %}</button>
 {% endif %}<a href="{% url 'demos:bookmarks:ai_settings' %}">AI settings</a><span role="status" data-ai-status></span></div>
 </section>{% endif %}
 {% if enrichment_attempts %}<section class="ai-panel"><h2>Saved retrieval and analysis</h2><a href="{% url 'demos:bookmarks:enrichment_history' %}?bookmark={{ form.instance.pk }}">View all attempts / clear failed history</a><ul>{% for attempt in enrichment_attempts %}<li><a href="{% url 'demos:bookmarks:enrichment' attempt.pk %}">{{ attempt.created_at|date:'M j, Y, g:i A' }} — {{ attempt.outcome_label }}</a></li>{% endfor %}</ul></section>{% endif %}
