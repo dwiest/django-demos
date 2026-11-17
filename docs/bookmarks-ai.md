@@ -431,14 +431,30 @@ the bucket-scoped ListBucket permission and enable those diagnostics. No existin
 jobs are automatically replayed and uncertain provider calls remain protected.
 
 
-## PR 4 draft: new bookmarks and local history
+## PR 4: new bookmarks and local history
 
-**Migration prerequisite:** this draft adds additive preference migration 0013, but
-must not be deployed to the existing server until its missing historical migration
-files and applied merge through 0045 are restored and the graph is joined. Do not
-run makemigrations --merge on each install, remove applied migrations, or fake the
-new preferences. The server's original migration archive is needed to resolve
-this prerequisite; migration names and dependencies must remain intact.
+The recovered production history through `0045_merge_20261116_2248` is committed
+with its original filenames and dependencies, unchanged from the server archive.
+`0046_squashed_legacy_history` is a replacement baseline for clean installations,
+not a new schema migration to replay on the existing server. Django recognizes
+it as already applied when all 51 original migrations are recorded. The original
+files are retained. `0047_merge_creation_history` joins this history with additive
+preference migration `0013_bookmark_creation_preferences`, leaving one leaf.
+Legacy models are also registered during app loading so autodetection cannot
+mistake their existing tables for deleted models.
+
+For the supplied server history, `python manage.py migrate demos --plan` should
+show only `0013_bookmark_creation_preferences` and the empty `0047` merge. If the
+plan proposes replaying old CreateModel operations or executing the replacement
+baseline, stop and compare `showmigrations demos` with the recovered archive.
+The verified upgrade adds preference fields; SQLite may rebuild that preferences
+table internally, preserving encrypted credentials and other values. Bookmark,
+Tag and Inventory tables are not rebuilt. A clean installation uses the baseline
+to avoid duplicate Inventory table creation from the two historical branches.
+Do not remove the recovered originals, regenerate historical migrations, or fake
+application of missing schema changes. These tests cover a fresh database and
+the supplied fully applied 0045 history; independently divergent or partially
+applied deployments require their own plan review.
 
 For new bookmarks in job-service mode, Download content saves a capture after the
 bookmark is saved. AI enrichment implies downloading and explicitly authorizes
@@ -487,7 +503,7 @@ remote ID. It is enforced when the browser or reconciler next advances the recor
 without a running reconciler, closed-browser states do not change by themselves.
 BOOKMARKS_ENRICHMENT_TIMEOUT_SECONDS can configure that local deadline. Timing out
 locally does not cancel remote work or delete content. Preserve the reconciliation
-schedule, collect static files and restart after the migration prerequisite is met.
+schedule, collect static files and restart after applying the migration plan.
 
 
 Per-request instructions are restored for job-service analysis. The editor's
@@ -497,3 +513,21 @@ participate in local and remote idempotency and effective prompt hashing. They
 cannot change the schema, enable browsing/tools or override source grounding and
 source-title preservation. Direct-AI account credentials/model settings remain
 separate. Deploy the companion service instructions PR before enabling this form.
+
+
+### Deploy the reconciled history
+
+After installing the updated package, inspect the plan and apply it:
+
+```sh
+python manage.py showmigrations demos
+python manage.py migrate demos --plan
+python manage.py migrate demos
+python manage.py collectstatic --noinput
+```
+
+Restart the Django web workers and retain the reconciliation schedule. The
+new daily `cleanup_bookmark_enrichment` command uses account preferences. Future
+authored migrations must follow `0047_merge_creation_history` (or its successor),
+not restart another branch from 0012. Application deployments should run migrate;
+makemigrations belongs in the source development/review workflow.

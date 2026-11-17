@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'dwiest/django/demos/bookmarks/**'
+      - 'dwiest/django/demos/migrations/**'
       - 'dwiest/django/demos/migrations/0009_bookmark_ai.py'
       - 'dwiest/django/demos/migrations/0010_bookmark_ai_blocked_domains.py'
       - 'dwiest/django/demos/migrations/0011_bookmark_ai_attempt.py'
@@ -31,5 +32,5 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3
-      - run: python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.bookmarks.test_ai_migrations dwiest.django.demos.bookmarks.test_enrichment dwiest.django.demos.bookmarks.test_creation_history --settings=dwiest.django.demos.test_bookmarks_ai_settings -v 2
+      - run: python -m django test dwiest.django.demos.bookmarks.test_ai dwiest.django.demos.bookmarks.test_ai_migrations dwiest.django.demos.bookmarks.test_enrichment dwiest.django.demos.bookmarks.test_creation_history dwiest.django.demos.bookmarks.test_restored_migrations --settings=dwiest.django.demos.test_bookmarks_ai_settings -v 2
       - run: python -m django test dwiest.django.demos.inventory.tests dwiest.django.demos.inventory.test_umbrella_migrations --settings=dwiest.django.demos.inventory.test_umbrella_settings -v 1

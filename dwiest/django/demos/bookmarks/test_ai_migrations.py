@@ -14,7 +14,14 @@ from django.conf import settings
 settings.configure(SECRET_KEY='migration-test', INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes', 'dwiest.django.demos'], DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}, DEFAULT_AUTO_FIELD='django.db.models.BigAutoField')
 django.setup()
 from django.db import connection
-from django.db.migrations.executor import MigrationExecutor
+from django.db.migrations.executor import MigrationExecutor as BaseMigrationExecutor
+from django.db.migrations.loader import MigrationLoader
+
+class MigrationExecutor(BaseMigrationExecutor):
+    def __init__(self, connection, progress_callback=None):
+        super().__init__(connection, progress_callback)
+        self.loader = MigrationLoader(connection, replace_migrations=False)
+
 executor = MigrationExecutor(connection)
 executor.migrate([('demos', '0008_inventorytransaction')])
 state = executor.loader.project_state([('demos', '0008_inventorytransaction')]).apps
