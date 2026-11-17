@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from ..application_api import BookmarkAPIView as APIView
 
 from .api_views import get_api_owner, serialize_bookmark, _parse_article_date
 from .models import Bookmark, BookmarkTag, Tag
@@ -326,3 +326,4 @@ class BulkUpdateAPIView(BulkWriteBase):
         if type(bookmark_id) is not int or bookmark_id < 1:
             raise ValidationError({"id": "Expected a positive integer."})
         return update_one(owner, bookmark_id, item["changes"])
+

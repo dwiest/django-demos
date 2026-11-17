@@ -26,14 +26,17 @@ class RestoredMigrationTests(SimpleTestCase):
         self.run_script("""
 x = MigrationExecutor(connection)
 assert not x.loader.detect_conflicts()
-assert x.loader.graph.leaf_nodes('demos') == [('demos','0047_merge_creation_history')]
-x.migrate([('demos','0047_merge_creation_history')])
+assert x.loader.graph.leaf_nodes('demos') == [('demos','0048_application_catalog')]
+x.migrate([('demos','0048_application_catalog')])
 from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings
 from django.contrib.auth.models import User
 owner = User.objects.create(username='fresh')
 prefs = BookmarkAISettings.objects.create(owner=owner)
 assert (prefs.download_on_create, prefs.enrich_on_create, prefs.failed_attempt_retention_days) == (False,False,30)
 assert {'demos_bookmark','demos_inventoryentry','demos_inventorytransaction','demos_journal','demos_invoice'} <= set(connection.introspection.table_names())
+from dwiest.django.demos.application_catalog import APPLICATIONS
+from dwiest.django.demos.application_models import Application
+assert set(Application.objects.values_list('key',flat=True)) == {app.key for app in APPLICATIONS}
 # Runtime registration must never propose deleting recovered legacy tables.
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.state import ProjectState
@@ -97,4 +100,21 @@ assert not x.loader.detect_conflicts()
 x.migrate([('demos','0046_squashed_legacy_history')])
 assert old.objects.get(owner_id=owner.pk).encrypted_api_key == 'kept-ciphertext'
 assert Bookmark.objects.get(pk=bookmark.pk).title == 'Keep title'
+""")
+
+
+    def test_application_catalog_upgrade_preserves_existing_data_and_grants(self):
+        self.run_script("""
+x = MigrationExecutor(connection)
+x.migrate([('demos','0047_merge_creation_history')])
+from django.contrib.auth.models import User
+from dwiest.django.demos.bookmarks.models import Bookmark
+user = User.objects.create_user(username='catalog-upgrade')
+bookmark = Bookmark.objects.create(owner=user, url='https://example.com/preserved', title='Preserved')
+x = MigrationExecutor(connection)
+x.migrate([('demos','0048_application_catalog')])
+from dwiest.django.demos.application_models import Application
+assert Application.objects.count() == 30
+assert User.objects.get(pk=user.pk).user_permissions.count() == 0
+assert Bookmark.objects.get(pk=bookmark.pk).title == 'Preserved'
 """)

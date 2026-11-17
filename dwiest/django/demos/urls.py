@@ -15,9 +15,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import TemplateView
+from .application_views import desktop_toys
 
 app_name='demos'
 urlpatterns = [
+  path('toys/', desktop_toys, name='desktop_toys'),
   path('',
     TemplateView.as_view(
       template_name="dwiest-django-demos/demo_landing.html"), name='home'
@@ -48,3 +50,4 @@ urlpatterns = [
   path('restapi/',
     include('dwiest.django.demos.restapi.urls', namespace='restapi')),
 ]
+

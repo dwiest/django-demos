@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from .models import InventoryItem, InventoryList, InventoryTransaction
 from .serializers import ItemSerializer, ListSerializer, EntrySerializer, TransactionSerializer
 from .services import adjust_quantity, create_entry, owned_entries
+from ..application_api import ApplicationPermission
 
 
 class Pagination(PageNumberPagination):
@@ -20,8 +21,9 @@ class Pagination(PageNumberPagination):
 
 
 class OwnerAPI:
+    application_key = 'inventory'
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ApplicationPermission]
     pagination_class = Pagination
 
     def handle_exception(self, exc):
@@ -112,3 +114,4 @@ class TransactionListAPI(OwnerAPI, generics.ListAPIView):
             entry = get_object_or_404(owned_entries(self.request.user), pk=self.kwargs['pk'])
             qs = qs.filter(entry=entry)
         return qs
+

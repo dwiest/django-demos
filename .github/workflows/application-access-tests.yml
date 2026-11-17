@@ -1,0 +1,54 @@
+name: Application access and navigation
+on:
+  pull_request:
+    paths:
+      - 'dwiest/django/demos/application_*.py'
+      - 'dwiest/django/demos/admin.py'
+      - 'dwiest/django/demos/models.py'
+      - 'dwiest/django/demos/migrations/**'
+      - 'dwiest/django/demos/test_application_*.py'
+      - 'dwiest/django/demos/templatetags/application_navigation.py'
+      - 'dwiest/django/demos/templates/dwiest-django-demos/components/**'
+      - 'dwiest/django/demos/templates/dwiest-django-demos/applications/**'
+      - 'dwiest/django/demos/templates/dwiest-django-demos/demo_landing.html'
+      - 'dwiest/django/demos/urls.py'
+      - 'dwiest/django/demos/bookmarks/*api*.py'
+      - 'dwiest/django/demos/inventory/api_views.py'
+      - 'dwiest/django/demos/news/consumers.py'
+      - 'dwiest/django/demos/restapi/views.py'
+      - 'tests/*navigation*'
+      - '.github/workflows/application-access-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  access:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python: ['3.7', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' 'channels>=3,<4' django-appconf qrcode boto3
+      - run: python -m django test dwiest.django.demos.test_application_access --settings=dwiest.django.demos.test_application_settings -v 2
+      - run: python -m django makemigrations demos --check --dry-run --settings=dwiest.django.demos.test_application_settings
+  navigation:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3
+      - run: npm install --prefix "$RUNNER_TEMP/navigation-tests" jsdom@31.0.1 --ignore-scripts --no-audit --no-fund
+      - run: python tests/render_navigation_fixture.py "$RUNNER_TEMP/navigation.html"
+      - run: node --test tests/application-navigation.test.cjs
+        env:
+          APPLICATION_NAVIGATION_FIXTURE: ${{ runner.temp }}/navigation.html
+          NODE_PATH: ${{ runner.temp }}/navigation-tests/node_modules

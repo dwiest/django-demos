@@ -12,19 +12,27 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from ..application_api import BookmarkAPIView as APIView
+from ..application_access import access_checks_enabled
 
 from .models import Bookmark, BookmarkTag, Tag
 
 
 def get_api_owner(request):
-    """Resolve the configured owner for this temporary private-test API."""
+    """Bind normal API calls to the caller; preserve the explicit private owner."""
     from django.contrib.auth import get_user_model
 
     owner_id = getattr(django_settings, "BOOKMARKS_API_OWNER_ID", None)
+    if access_checks_enabled():
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Sign in to use the bookmarks API.")
+        if not owner_id:
+            return request.user
+        if str(request.user.pk) != str(owner_id):
+            raise PermissionDenied("This API is restricted to its configured owner.")
     if not owner_id:
         return None
     try:
@@ -340,4 +348,5 @@ class BookmarkTagDetailAPIView(APIView):
         association = get_object_or_404(BookmarkTag, owner=owner, bookmark=bookmark, tag_id=tag_id)
         association.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 

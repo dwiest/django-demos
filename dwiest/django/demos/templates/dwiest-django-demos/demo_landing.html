@@ -1,4 +1,5 @@
-{% load static %}
+{% load static application_navigation %}
+{% application_catalog as app_catalog %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,6 +19,7 @@
       <p>Save what you find, keep track of your work, and make room for your ideas. Explore the applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
+      {% if app_catalog.by_key.bookmarks %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4Z"/></svg></span>
         <h2>Bookmarks</h2>
@@ -25,6 +27,8 @@
         <ul><li>Organize links with tags</li><li>Search and filter your collection</li><li>Add notes and export bookmarks</li></ul>
         <a class="button primary" href="{% url 'demos:bookmarks:home' %}">Open Bookmarks <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.invoicer %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6Z M14 3v5h5 M9 12h7 M9 16h7"/></svg></span>
         <h2>Invoicer</h2>
@@ -32,6 +36,8 @@
         <ul><li>Manage clients and invoices</li><li>Record line items, time, and rates</li><li>Preview and print invoices</li></ul>
         <a class="button primary" href="{% url 'demos:invoicer:home' %}">Open Invoicer <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.journal %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18H5Z M9 3v18 M12 8h4 M12 12h4"/></svg></span>
         <h2>Journal</h2>
@@ -39,6 +45,8 @@
         <ul><li>Create journals for different topics</li><li>Write and edit dated entries</li><li>Browse entries by date</li></ul>
         <a class="button primary" href="{% url 'demos:journal:home' %}">Open Journal <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.qrcode %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h6v6H3Z M15 3h6v6h-6Z M3 15h6v6H3Z M15 15h3v3h3v3h-6Z M12 3v9H3 M15 12h6 M12 15v6"/></svg></span>
         <h2>QR Code Generator</h2>
@@ -46,6 +54,8 @@
         <ul><li>Encode a URL or text</li><li>Preview your generated QR code</li><li>Scan it with your phone camera</li></ul>
         <a class="button primary" href="{% url 'demos:qrcode:home' %}">Open QR Code Generator <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.otp %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2 M9 2h6 M12 2v3"/></svg></span>
         <h2>Time-Based OTP</h2>
@@ -53,6 +63,8 @@
         <ul><li>Set up a demo account and secret key</li><li>Scan a QR code with your authenticator</li><li>Generate a time-based password</li></ul>
         <a class="button primary" href="{% url 'demos:otp:home' %}">Open Time-Based OTP <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.expenses %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2Z M8 7h8 M8 11h4 M8 15h8"/></svg></span>
         <h2>Expenses</h2>
@@ -60,6 +72,8 @@
         <ul><li>Create and manage expense lists</li><li>Define categories for your spending</li><li>Review expenses by list</li></ul>
         <a class="button primary" href="{% url 'demos:expenses:home' %}">Open Expenses <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.inventory %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 3 9 5v8l-9 5-9-5V8Z M3 8l9 5 9-5 M12 13v8 M7.5 5.5l9 5"/></svg></span>
         <h2>Inventory</h2>
@@ -67,6 +81,8 @@
         <ul><li>Build a reusable item catalog</li><li>Group items into inventory lists</li><li>Update quantities in each list</li></ul>
         <a class="button primary" href="{% url 'demos:inventory:home' %}">Open Inventory <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.file %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h7l2 2h9v12H3Z M3 8V4h7l2 2"/></svg></span>
         <h2>File Manager</h2>
@@ -74,6 +90,8 @@
         <ul><li>Upload files and track storage usage</li><li>Edit filenames and descriptions</li><li>Open, download, and delete files</li></ul>
         <a class="button primary" href="{% url 'demos:file:index' %}">Open File Manager <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.news %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-4-4 M20 17H4l4 4 M7 10v4 M12 10v4 M17 10v4"/></svg></span>
         <h2>WebSockets</h2>
@@ -81,6 +99,8 @@
         <ul><li>Connect and pause the feed</li><li>Adjust the update interval</li><li>Create and manage news items</li></ul>
         <a class="button primary" href="{% url 'demos:news:home' %}">Open WebSockets <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.selenium %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 8h18 M6 6h1 M9 6h1 M8 16l3-3 3 3 2-2 3 3"/></svg></span>
         <h2>Selenium</h2>
@@ -88,6 +108,8 @@
         <ul><li>Enter a webpage URL</li><li>Choose the browser window size</li><li>Preview and download a PNG screenshot</li></ul>
         <a class="button primary" href="{% url 'demos:selenium:home' %}">Open Selenium <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
+      {% if app_catalog.by_key.store %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-1 14H5Z M8 7V5a4 4 0 0 1 8 0v2"/></svg></span>
         <h2>Store</h2>
@@ -95,15 +117,18 @@
         <ul><li>Browse products and catalogs</li><li>Choose options and build a cart</li><li>Manage products with administrator permissions</li></ul>
         <a class="button primary" href="{% url 'demos:store:home' %}">Open Store <span aria-hidden="true">→</span></a>
       </article>
+      {% endif %}
     </section>
-    <details class="older-demos">
+    {% if not app_catalog.applications %}<div class="empty"><h2>No applications available yet</h2><p>Your account is ready. Contact the site administrator to enable applications.</p></div>{% endif %}
+    {% if app_catalog.by_key.grecaptcha %}<details class="older-demos">
       <summary>Other demos</summary>
       <ul>
         <li><a href="{% url 'demos:grecaptcha:home' %}">Google reCAPTCHA</a></li>
       </ul>
-    </details>
+    </details>{% endif %}
 
   </main>
   {% include 'dwiest-django-demos/components/site_footer.html' %}
 </body>
 </html>
+

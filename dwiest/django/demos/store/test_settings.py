@@ -23,3 +23,7 @@ TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP
 STATIC_URL = '/static/'
 USE_TZ = True
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
+
+# These suites exercise application behavior; grant enforcement has its own suite.
+APPLICATION_ACCESS_ENABLED = False

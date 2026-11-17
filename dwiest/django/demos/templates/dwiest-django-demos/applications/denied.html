@@ -1,0 +1,10 @@
+{% extends 'dwiest-django-demos/applications/base.html' %}
+{% block title %}Application unavailable{% endblock %}
+{% block content %}
+  <div class="application-empty">
+    <p class="demo-eyebrow">Application access</p>
+    <h1>Application unavailable</h1>
+    <p>Your account doesn't have access to this application. Contact the site administrator if you think you should have access.</p>
+    <a class="button primary" href="{% url 'demos:home' %}">Browse your applications</a>
+  </div>
+{% endblock %}
