@@ -60,20 +60,22 @@ main.container{padding-block:22px 36px}
 }
 
 /* Month banners and strong day boundaries; quiet dotted rules within a day. */
-#bookmark-list .month-heading{position:relative;isolation:isolate;overflow:hidden;border-radius:8px;border-left:5px solid var(--teal);background:#edf5f4;margin:26px 0 12px;padding:14px 18px}
+#bookmark-list .month-heading{position:relative;isolation:isolate;overflow:hidden;border-radius:8px;border:0;background:var(--month-bg,#f3ede4);margin:26px 0 12px;padding:14px 18px}
 #bookmark-list .month-heading[data-image]{min-height:130px;display:flex;align-items:flex-end}
 #bookmark-list .month-image{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover}
-#bookmark-list .month{border:0;margin:0;padding:0;font-size:25px;line-height:1.4;color:var(--ink)}
+#bookmark-list .month{border:0;margin:0;padding:0;font-size:25px;line-height:1.4;color:var(--month-ink,#493b2a)}
 #bookmark-list .month-heading[data-image] .month{background:#fffffff2;border-radius:6px;padding:4px 12px}
-#bookmark-list .month-icon{margin-right:8px}
+#bookmark-list .month-icon{margin-left:8px}
 #bookmark-list .day{margin:24px 0 4px;padding:9px 12px;border-top:3px solid var(--teal);border-radius:4px 4px 0 0;background:#f0f5f7;color:#24394d;font-size:17px;font-weight:750;letter-spacing:.25px;text-transform:none}
 #bookmark-list .bookmark-row{display:block;padding:12px 8px;border-bottom:1px dotted #cdd6df}
 #bookmark-list .bookmark-content{display:block;min-width:0}
-#bookmark-list .bookmark-footer{display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;margin-top:7px}
-#bookmark-list .bookmark-footer .tags{flex:1;min-width:0;margin:0}
-#bookmark-list .bookmark-footer .row-actions{display:flex;position:static;grid-area:auto;margin-left:auto;gap:2px;align-self:center}
+#bookmark-list .bookmark-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:6px 16px;margin-top:7px}
+#bookmark-list .bookmark-footer .tags{min-width:0;margin:0}
+#bookmark-list .bookmark-footer .row-actions{display:flex;position:static;grid-area:auto;grid-column:2;justify-self:end;margin:0;gap:2px;align-self:end}
 #bookmark-list:not(.expanded) .job-badges{display:none}
-#bookmark-list .job-badges{margin-top:7px}
+#bookmark-list .bookmark-meta{display:flex;flex-direction:column;gap:6px;min-width:0}
+#bookmark-list .bookmark-meta .job-badges{margin:0}
+#bookmark-list:not(.expanded) .bookmark-meta[data-tags="false"]{display:none}
 @media(max-width:650px){
  #bookmark-list .month-heading{padding:12px;margin-top:22px}
  #bookmark-list .month{font-size:23px}
@@ -81,4 +83,23 @@ main.container{padding-block:22px 36px}
  #bookmark-list .bookmark-row{padding:10px 2px}
  #bookmark-list .bookmark-footer{gap:4px 8px}
  #bookmark-list .bookmark-footer .icon-button{width:40px;height:40px}
+}
+
+/* Seasonal month palettes remain separate from the teal day boundaries. */
+#bookmark-list .month-heading[data-month="1"]{--month-bg:#e9edfa;--month-ink:#303e6a}
+#bookmark-list .month-heading[data-month="2"]{--month-bg:#fbe8ee;--month-ink:#792d48}
+#bookmark-list .month-heading[data-month="3"]{--month-bg:#edf3de;--month-ink:#435c25}
+#bookmark-list .month-heading[data-month="4"]{--month-bg:#f3eafa;--month-ink:#674079}
+#bookmark-list .month-heading[data-month="5"]{--month-bg:#f9ebf1;--month-ink:#753c58}
+#bookmark-list .month-heading[data-month="6"]{--month-bg:#fff4cf;--month-ink:#72531c}
+#bookmark-list .month-heading[data-month="7"]{--month-bg:#fce7e4;--month-ink:#7b3730}
+#bookmark-list .month-heading[data-month="8"]{--month-bg:#f9efd4;--month-ink:#705522}
+#bookmark-list .month-heading[data-month="9"]{--month-bg:#f2eadb;--month-ink:#67502b}
+#bookmark-list .month-heading[data-month="10"]{--month-bg:#ffead5;--month-ink:#7b411e}
+#bookmark-list .month-heading[data-month="11"]{--month-bg:#eee1d3;--month-ink:#68452b}
+#bookmark-list .month-heading[data-month="12"]{--month-bg:#f4e3e8;--month-ink:#702f43}
+@media(max-width:500px){
+ #bookmark-list .bookmark-footer{display:flex;flex-wrap:wrap;align-items:flex-end}
+ #bookmark-list .bookmark-meta{flex:1 1 100%}
+ #bookmark-list .bookmark-footer .row-actions{margin-left:auto}
 }
