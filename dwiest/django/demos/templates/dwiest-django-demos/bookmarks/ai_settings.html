@@ -13,6 +13,11 @@
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.include_raw_html %}
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.keep_indefinitely %}
 {% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.job_retention_days %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.download_on_create %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.enrich_on_create %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.keep_failed_history %}
+{% include 'dwiest-django-demos/bookmarks/components/field.html' with field=job_form.failed_attempt_retention_days %}
+<p>New-bookmark enrichment fills missing metadata and adds tags automatically. Existing values are preserved. Later edits require review. Failed local history defaults to 30 days and does not control remote artifacts.</p>
 <p>Retention changes apply to new jobs. Existing artifacts keep their policy. The service uses its configured model and bookmark.enrichment.v1 instructions; the direct OpenAI key, model and custom instructions below do not override it.</p>
 <button class="button primary" name="action" value="save_job_service">Save retrieval settings</button>
 </form></section>

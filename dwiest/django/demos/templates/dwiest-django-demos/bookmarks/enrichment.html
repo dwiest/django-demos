@@ -11,6 +11,7 @@
 <form method="post" data-enrichment {% if active %}data-active="true"{% endif %}>{% csrf_token %}
 <div class="save-actions">
 {% if active %}<button class="button secondary" name="action" value="advance">Check progress</button>{% endif %}
+{% if attempt.status == 'applied' %}<p role="status">Suggestions applied automatically using your creation-time approval.</p>{% if attempt.review_id %}<a href="{% url 'demos:bookmarks:ai_review' attempt.review_id %}">View applied proposal</a>{% endif %}{% endif %}{% if attempt.analysis.needs_review_reason %}<p>{{ attempt.analysis.needs_review_reason }}</p>{% endif %}
 {% if attempt.status == 'ready' %}<button class="button primary" name="action" value="review">Review saved proposal</button>{% endif %}
 {% if attempt.status == 'downloaded' %}<button class="button primary" name="action" value="analyze">Analyze saved content</button>{% endif %}
 {% if not active %}<button class="button secondary" name="action" value="retry_download">Retry download</button>{% if can_retry_analysis %}<button class="button secondary" name="action" value="retry_analysis">Retry analysis</button>{% endif %}{% endif %}

@@ -6,12 +6,12 @@
       </svg>
       <span>Bookmarks</span>
     </a>
-    <a class="nav-link {% if nav_section != 'tags' and nav_section != 'ai' %}selected{% endif %}" href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
+    <a class="nav-link {% if nav_section != 'tags' and nav_section != 'ai' and nav_section != 'history' %}selected{% endif %}" href="{% url 'demos:bookmarks:home' %}">Bookmarks</a>
     <a class="nav-link {% if nav_section == 'tags' %}selected{% endif %}" href="{% url 'demos:bookmarks:tags' %}">Tags</a>
     {% if request.user.is_authenticated %}<a class="nav-link {% if nav_section == 'ai' %}selected{% endif %}" href="{% url 'demos:bookmarks:ai_settings' %}">AI settings</a>{% endif %}
     <div class="nav-actions">
       <a class="button secondary" href="{% url 'demos:bookmarks:export' %}">Export</a>
       {% block nav_action %}{% endblock %}
     </div>
-  </nav>
+  {% if request.user.is_authenticated %}<a class="nav-link {% if nav_section == 'history' %}selected{% endif %}" href="{% url 'demos:bookmarks:enrichment_history' %}">Job history</a>{% endif %}</nav>
 </header>

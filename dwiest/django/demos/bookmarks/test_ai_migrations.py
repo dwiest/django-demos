@@ -14,7 +14,14 @@ from django.conf import settings
 settings.configure(SECRET_KEY='migration-test', INSTALLED_APPS=['django.contrib.auth', 'django.contrib.contenttypes', 'dwiest.django.demos'], DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}, DEFAULT_AUTO_FIELD='django.db.models.BigAutoField')
 django.setup()
 from django.db import connection
-from django.db.migrations.executor import MigrationExecutor
+from django.db.migrations.executor import MigrationExecutor as BaseMigrationExecutor
+from django.db.migrations.loader import MigrationLoader
+
+class MigrationExecutor(BaseMigrationExecutor):
+    def __init__(self, connection, progress_callback=None):
+        super().__init__(connection, progress_callback)
+        self.loader = MigrationLoader(connection, replace_migrations=False)
+
 executor = MigrationExecutor(connection)
 executor.migrate([('demos', '0008_inventorytransaction')])
 state = executor.loader.project_state([('demos', '0008_inventorytransaction')]).apps
@@ -40,17 +47,20 @@ assert set(connection.introspection.table_names()) == after | {'demos_bookmarkai
 executor = MigrationExecutor(connection)
 executor.migrate([('demos', '0012_bookmark_enrichment')])
 assert set(connection.introspection.table_names()) == after | {'demos_bookmarkaiattempt', 'demos_bookmarkenrichmentattempt'}
+executor = MigrationExecutor(connection)
+executor.migrate([('demos', '0013_bookmark_creation_preferences')])
 from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt, BookmarkEnrichmentAttempt
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.state import ProjectState
 executor = MigrationExecutor(connection)
-actual = executor.loader.project_state([('demos', '0012_bookmark_enrichment')])
+actual = executor.loader.project_state([('demos', '0013_bookmark_creation_preferences')])
 expected = ProjectState.from_apps(django.apps.apps)
 for model in (BookmarkAISettings, BookmarkAIAnalysis, BookmarkAIAttempt, BookmarkEnrichmentAttempt):
     key = ('demos', model._meta.model_name)
     assert {n: f.deconstruct()[1:] for n, f in actual.models[key].fields.items()} == {n: f.deconstruct()[1:] for n, f in expected.models[key].fields.items()}
 upgraded = BookmarkAISettings.objects.get(pk=prefs.pk)
 assert upgraded.blocked_domains == []
+assert (upgraded.download_on_create, upgraded.enrich_on_create, upgraded.failed_attempt_retention_days) == (False, False, 30)
 assert (upgraded.use_job_service, upgraded.include_raw_html, upgraded.job_retention_days) == (False, True, 365)
 assert (upgraded.encrypted_api_key, upgraded.instructions, upgraded.model) == ('existing-ciphertext', 'Keep these', 'existing-model')
 upgraded.blocked_domains = ['example.com']

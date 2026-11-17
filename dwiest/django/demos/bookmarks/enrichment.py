@@ -15,19 +15,21 @@ from .ai_credentials import AIError, require_demo_owner
 from .job_client import JobClient, JobError, connection
 from .models import Bookmark, Tag
 
-TERMINAL = ('ready', 'downloaded', 'failed', 'cancelled')
+TERMINAL = ('ready', 'downloaded', 'failed', 'cancelled', 'applied')
 
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
 
 
-def start(owner, bookmark, original, url, mode='analyze', force_download=False, force_analysis=False, retry_token=None, source_attempt=None):
+def start(owner, bookmark, original, url, mode='analyze', force_download=False, force_analysis=False, retry_token=None, source_attempt=None, auto_apply=False, instructions=""):
     require_demo_owner(owner)
     if bookmark.owner_id != owner.pk:
         raise AIError('Only your own bookmarks can be enriched.')
     if not bookmark.pk:
         raise AIError('Save the bookmark first, then retrieve or analyze its URL. Automatic enrichment on creation is a separate update.')
+    if not isinstance(instructions, str) or len(instructions) > 4000:
+        raise AIError('Analysis instructions must be at most 4,000 characters.')
     base, _ = connection()
     prefs, _ = BookmarkAISettings.objects.get_or_create(owner=owner)
     tags = list(Tag.objects.filter(owner=owner).order_by('title', 'id').values_list('title', flat=True))
@@ -43,6 +45,12 @@ def start(owner, bookmark, original, url, mode='analyze', force_download=False, 
         source = {'retrieval_job_id': valid_job_id(source_attempt.retrieval_job_id),
                   'retrieval': source_attempt.retrieval, 'status': 'analysis_pending'}
         options['include_raw_html'] = source_attempt.request_options['include_raw_html']
+    if source_attempt is not None and not instructions:
+        instructions = source_attempt.request_options.get('instructions', '')
+    if instructions.strip():
+        options['instructions'] = instructions.strip()
+    if auto_apply:
+        options['auto_apply'] = True
     fingerprint = digest({'capture': source.get('retrieval_job_id'), 'bookmark': bookmark.pk, 'url': url, 'service': base, 'mode': mode,
                           'original': original, 'options': options,
                           'refresh_nonce': (retry_token or uuid.uuid4().hex) if force_download else ''})
@@ -101,6 +109,10 @@ def advance(attempt_id):
     attempt = BookmarkEnrichmentAttempt.objects.select_related('owner').get(pk=attempt_id)
     try:
         require_demo_owner(attempt.owner)
+        from django.conf import settings
+        limit = getattr(settings, 'BOOKMARKS_ENRICHMENT_TIMEOUT_SECONDS', 10800)
+        if (timezone.now() - attempt.created_at).total_seconds() > limit:
+            raise AIError('This workflow exceeded its processing deadline. Reopen the bookmark to retry.', {'code': 'workflow_timeout'})
         if not attempt.bookmark:
             raise AIError('The bookmark was deleted. This attempt cannot apply changes.')
         client = JobClient(attempt.owner, attempt.service_url)
@@ -128,6 +140,8 @@ def advance(attempt_id):
         elif attempt.status == 'analysis_pending':
             payload = {'type': 'ai.analyze', 'version': 1, 'request': {'capture_id': attempt.retrieval_job_id,
                 'configuration': 'bookmark.enrichment.v1', 'existing_tags': attempt.request_options['existing_tags']}}
+            if attempt.request_options.get('instructions'):
+                payload['request']['instructions'] = attempt.request_options['instructions']
             key = 'bookmark-analysis:' + digest({'request': payload, 'nonce': attempt.request_options['analysis_nonce']})
             job = client.submit(payload, key)
             attempt.analysis_job_id = valid_job_id(job['job_id'])
@@ -157,7 +171,8 @@ def advance(attempt_id):
                         BookmarkEnrichmentAttempt.objects.filter(pk=attempt.pk, lease_token=token).update(review=review)
                     else:
                         attempt.review_id = current.review_id
-                attempt.status = 'ready'
+                from .creation import auto_apply_saved_proposal
+                attempt.status = auto_apply_saved_proposal(attempt, token) if attempt.request_options.get('auto_apply') else 'ready'
         attempt.error = attempt.error if attempt.status == 'failed' else {}
         attempt.retry_after = None
     except JobError as exc:
