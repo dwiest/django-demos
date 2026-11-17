@@ -3,12 +3,41 @@ export function initList() {
   if (!list) return;
   let density = 'compact';
   try { density = localStorage.getItem('bookmarks.density') || density; } catch {}
+  const rows = [...list.querySelectorAll('[data-bookmark-row]')];
+  const updateRow = row => {
+    const disclosure = row.querySelector('[data-bookmark-disclosure]');
+    if (!disclosure) return;
+    const expanded = list.classList.contains('expanded') || row.classList.contains('is-expanded');
+    disclosure.hidden = list.classList.contains('expanded');
+    disclosure.setAttribute('aria-expanded', String(expanded));
+    const title = row.querySelector('.bookmark-title')?.textContent.trim() || 'bookmark';
+    disclosure.setAttribute('aria-label', (expanded ? 'Hide' : 'Show') + ' details for ' + title);
+    disclosure.textContent = expanded ? '▾' : '▸';
+  };
+  const toggleRow = row => {
+    if (list.classList.contains('expanded')) return;
+    row.classList.toggle('is-expanded');
+    if (!row.classList.contains('is-expanded')) row.querySelectorAll('details[open]').forEach(details => { details.open = false; });
+    updateRow(row);
+  };
+  rows.forEach(row => {
+    row.querySelector('[data-bookmark-disclosure]')?.addEventListener('click', () => toggleRow(row));
+    row.addEventListener('click', event => {
+      if (event.target.closest('a, button, input, select, textarea, label, summary, details, form, [contenteditable]')) return;
+      // Selecting article text should not unexpectedly hide it.
+      if (window.getSelection()?.toString().trim()) return;
+      toggleRow(row);
+    });
+  });
   const applyDensity = value => {
-    list.classList.toggle('expanded', value === 'expanded');
-    document.querySelectorAll('[data-density]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.density === value)));
-    try { localStorage.setItem('bookmarks.density', value); } catch {}
+    density = value === 'expanded' ? 'expanded' : 'compact';
+    list.classList.toggle('expanded', density === 'expanded');
+    rows.forEach(updateRow);
+    document.querySelectorAll('[data-density]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.density === density)));
+    try { localStorage.setItem('bookmarks.density', density); } catch {}
   };
   document.querySelectorAll('[data-density]').forEach(button => button.addEventListener('click', () => applyDensity(button.dataset.density)));
+  list.classList.add('is-enhanced');
   applyDensity(density);
   list.querySelectorAll('[data-row-action]').forEach(form => form.addEventListener('submit', async event => {
     event.preventDefault();
