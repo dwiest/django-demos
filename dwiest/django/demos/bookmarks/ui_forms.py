@@ -3,6 +3,7 @@ import calendar
 from django import forms
 from .models import Bookmark, Tag
 from .ui_tags import PALETTE, tag_tone
+from .job_status import DOWNLOAD_STATES, ANALYSIS_STATES
 
 
 class TagCheckboxWidget(forms.CheckboxSelectMultiple):
@@ -15,15 +16,15 @@ class TagCheckboxWidget(forms.CheckboxSelectMultiple):
 
 
 class BookmarkEditorForm(forms.ModelForm):
-    url = forms.URLField(max_length=255, label='URL')
-    title = forms.CharField(max_length=255, required=False)
+    url = forms.URLField(max_length=255, label='URL', widget=forms.Textarea(attrs={'rows': 1, 'data-autosize': ''}))
+    title = forms.CharField(max_length=255, required=False, widget=forms.Textarea(attrs={'rows': 1, 'data-autosize': ''}))
     tag_ids = forms.ModelMultipleChoiceField(queryset=Tag.objects.none(), required=False, label='Tags', widget=TagCheckboxWidget)
     status = forms.TypedChoiceField(coerce=int, choices=((0, 'Active'), (1, 'Hidden'), (-1, 'Deleted')))
 
     class Meta:
         model = Bookmark
         fields = ('url', 'title', 'description', 'article_date', 'unread', 'status')
-        widgets = {'description': forms.Textarea(attrs={'rows': 8}), 'article_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'})}
+        widgets = {'description': forms.Textarea(attrs={'rows': 8}), 'article_date': forms.DateInput(format='%Y-%m-%d', attrs={'placeholder': 'YYYY-MM-DD', 'inputmode': 'numeric'})}
         labels = {'article_date': 'Publication date'}
 
     def __init__(self, *args, owner=None, **kwargs):
@@ -36,6 +37,8 @@ class BookmarkEditorForm(forms.ModelForm):
 
 
 class BookmarkQueryForm(forms.Form):
+    download_status = forms.ChoiceField(required=False, choices=[('', 'Any download status')] + list(DOWNLOAD_STATES))
+    analysis_status = forms.ChoiceField(required=False, choices=[('', 'Any analysis status')] + list(ANALYSIS_STATES))
     term = forms.CharField(required=False, max_length=255)
     field = forms.ChoiceField(required=False, choices=(('all', 'All fields'), ('title', 'Title'), ('description', 'Description'), ('url', 'URL')))
     filter = forms.ChoiceField(required=False, choices=(('none', 'All dates and titles'), ('undated', 'Undated'), ('untitled', 'Untitled'), ('date', 'Publication date')))

@@ -1,0 +1,2 @@
+{% load bookmark_records %}
+<dl>{% for row in rows %}<dt id="{{ row.key }}">{{ row.key }}</dt><dd>{% if row.json %}{% json_value row.value %}{% elif row.link %}<a href="{{ row.link }}">{{ row.value|default_if_none:'—' }}</a>{% else %}{{ row.value|default_if_none:'—' }}{% endif %}</dd>{% endfor %}</dl>

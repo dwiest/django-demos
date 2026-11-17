@@ -531,3 +531,63 @@ new daily `cleanup_bookmark_enrichment` command uses account preferences. Future
 authored migrations must follow `0047_merge_creation_history` (or its successor),
 not restart another branch from 0012. Application deployments should run migrate;
 makemigrations belongs in the source development/review workflow.
+
+### Inspecting saved jobs and reviewing tags
+
+A bookmark now has a read-only detail page, separate from its editor. Download and
+analysis badges report the newest workflow for the current URL, with independent
+filters on the main list. They are derived from durable job data, never written to
+subject tags. Author metadata is shown from the latest readable saved capture when
+available. Failed analysis does not turn a successful download into a failed one.
+These badges describe the last reconciled workflow; the retrieval page checks the
+remote job. Existing attempts remain accessible after editing a bookmark's URL.
+
+Attempt and job references on retrieval pages link to owner-bound records in Django.
+The job page reads the same service result endpoint used by URL Jobs, shows captured
+text, and offers short-lived artifact downloads. Opening a record never submits
+work or calls the AI provider. Expired/deleted remote artifacts cannot be restored
+from local workflow diagnostics. HTML is displayed as text, never executed.
+`analysis_id` and `capture_id` link to their saved service records.
+`provider_response_id` links to the stored analysis and its provider reference;
+provider-side response storage is disabled, so it is not a provider dashboard link.
+Usage and other JSON can be shown raw, pretty-printed, or as a key/value table.
+
+Configuration/model/prompt links open AI settings with a clear distinction between
+direct-analysis preferences and deployment-controlled service settings. Historical
+provenance is immutable. Changing `JOB_SERVICE_AI_MODEL` and deploying affects new
+service analyses; prompt versions change through versioned service releases.
+
+Matching review URLs appear once. Direct analysis can return a different URL; that
+case retains explicit comparison and approval. Titles and URLs expand to show long
+values. Publication-date fields and review/detail values use YYYY-MM-DD. Tags are
+alphabetical, one per row; current tags are read-only. Proposed tags use Add/Remove
+and Undo, with explicit New tag / Added assignment / Removed labels. The underlying
+newline textarea remains a no-JavaScript fallback. New names are created only on
+approval (or creation-time consent); no existing tag is renamed. New-tag prompt
+guidance aims for 3–5 tags total and at most three new names, rather than preventing
+new vocabulary or enforcing an arbitrary hard cap on manually approved tags.
+
+### Identity boundaries and future collections
+
+The URL Jobs browser signs in with Cognito and owns jobs by its JWT subject. Django
+uses IAM plus an application-scoped Django user reference. A shared email address
+or a matching URL is not proof that these are the same account. Their remote
+histories remain separate until a trusted account-linking flow exists. Do not
+loosen owner checks or expose `/service` directly to browser credentials. The Django
+record viewer provides download/result parity for Django-created jobs now; it does
+not make those jobs visible in the standalone Cognito history.
+
+Collections should be a separate owner-managed grouping model with membership and
+ordering, optionally public visibility and an editor-homepage selection. Subject
+tags remain many-to-many metadata. Before sharing is enabled, the globally unique
+Bookmark URL constraint must be revisited: sharing a public article should not grant
+access to another user's private bookmarks, captures, prompts, or analysis history.
+Account linking, collections and publishing are separate follow-up changes.
+
+The reconciliation command is orchestration, not batching: it submits pending work,
+polls completed downloads, and starts dependent analysis durably. Web requests save
+pending work quickly so closing a browser or restarting a worker cannot lose it.
+Page progress checks also advance the same state machine. Cron supplies progress
+when no page is open. For lower idle latency, replace the periodic trigger with a
+continuous worker or authenticated completion-event consumer while retaining leases,
+idempotency and reconciliation as recovery; avoid an in-process background thread.

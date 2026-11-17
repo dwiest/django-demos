@@ -5,7 +5,7 @@ from .ai_sites import normalize_site
 FIELDS = ('url', 'title', 'description', 'article_date', 'tags')
 LABELS = {'url': 'URL', 'title': 'Title', 'description': 'Description', 'article_date': 'Publication date', 'tags': 'Tags'}
 DEFAULT_INSTRUCTIONS = ('Preserve the original article title. Summarize the first paragraph concisely and factually. '
-                        'Reuse existing tags and prefer specific technical tags when appropriate.')
+                        'Reuse matching existing tags. Suggest a few useful new tags when no existing tag fits; avoid synonyms and overly broad tags.')
 
 
 class StyledForm(forms.Form):
@@ -65,10 +65,10 @@ class AnalyzeForm(StyledForm):
 
 
 class AIProposalForm(StyledForm):
-    url = forms.URLField(max_length=255, label='URL')
-    title = forms.CharField(max_length=255)
+    url = forms.URLField(max_length=255, label='URL', widget=forms.Textarea(attrs={'rows': 1, 'data-autosize': ''}))
+    title = forms.CharField(max_length=255, widget=forms.Textarea(attrs={'rows': 1, 'data-autosize': ''}))
     description = forms.CharField(required=False, max_length=20000, widget=forms.Textarea(attrs={'rows': 7}))
-    article_date = forms.DateField(required=False, label='Publication date', input_formats=['%Y-%m-%d'], widget=forms.DateInput(attrs={'type': 'date'}))
+    article_date = forms.DateField(required=False, label='Publication date', input_formats=['%Y-%m-%d'], widget=forms.DateInput(format='%Y-%m-%d', attrs={'placeholder': 'YYYY-MM-DD', 'inputmode': 'numeric'}))
     tags = forms.CharField(required=False, max_length=8000, widget=forms.Textarea(attrs={'rows': 4}), help_text='One tag per line. New tags are created only when you approve.')
     selected = forms.MultipleChoiceField(choices=[(n, LABELS[n]) for n in FIELDS], required=False, widget=forms.CheckboxSelectMultiple)
 

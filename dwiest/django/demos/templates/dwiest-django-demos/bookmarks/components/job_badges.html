@@ -1,0 +1,4 @@
+<div class="job-badges">
+{% if bookmark.download_attempt %}<a class="job-badge" data-state="{{ bookmark.download_state }}" href="{% url 'demos:bookmarks:enrichment' bookmark.download_attempt.pk %}">Download: {{ bookmark.download_label }}</a>{% else %}<span class="job-badge">Download: Not requested</span>{% endif %}
+{% if bookmark.analysis_attempt %}<a class="job-badge" data-state="{{ bookmark.analysis_state }}" href="{% url 'demos:bookmarks:enrichment' bookmark.analysis_attempt.pk %}">Analysis: {{ bookmark.analysis_label }}</a>{% else %}<span class="job-badge">Analysis: Not requested</span>{% endif %}
+</div>

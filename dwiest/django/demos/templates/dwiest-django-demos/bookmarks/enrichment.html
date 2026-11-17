@@ -7,7 +7,7 @@
 <section class="ai-panel"><h2>Status: <span data-enrichment-status>{{ attempt.status }}</span></h2>
 <p data-enrichment-message role="status">{{ attempt.error.message }}</p>
 {% if active %}<p>Processing continues while you are away when the server reconciliation task is configured. This page checks progress automatically.</p>{% endif %}
-<dl><dt>Attempt</dt><dd>{{ attempt.pk }}</dd><dt>Retrieval job</dt><dd data-enrichment-retrieval>{{ attempt.retrieval_job_id|default:'Not submitted yet' }}</dd><dt>Analysis job</dt><dd data-enrichment-analysis>{{ attempt.analysis_job_id|default:'Not submitted yet' }}</dd><dt>Remote job status</dt><dd data-enrichment-remote>{{ remote_status|default:'Not checked yet' }}</dd><dt>Workflow updated</dt><dd data-enrichment-updated>{{ attempt.updated_at|date:'c' }}</dd><dt>Progress-check lease until</dt><dd data-enrichment-lease>{{ attempt.lease_until|date:'c'|default:'None' }}</dd><dt>Retry after</dt><dd data-enrichment-retry>{{ attempt.retry_after|date:'c'|default:'None' }}</dd><dt>Started</dt><dd>{{ attempt.created_at }}</dd></dl>
+<dl><dt>Attempt</dt><dd><a href="{% url 'demos:bookmarks:attempt_record' attempt.pk %}">{{ attempt.pk }}</a></dd><dt>Retrieval job</dt><dd data-enrichment-retrieval>{% if attempt.retrieval_job_id %}<a href="{% url 'demos:bookmarks:job_record' attempt.pk 'retrieval' %}">{{ attempt.retrieval_job_id }}</a>{% else %}Not submitted yet{% endif %}</dd><dt>Analysis job</dt><dd data-enrichment-analysis>{% if attempt.analysis_job_id %}<a href="{% url 'demos:bookmarks:job_record' attempt.pk 'analysis' %}">{{ attempt.analysis_job_id }}</a>{% else %}Not submitted yet{% endif %}</dd><dt>Remote job status</dt><dd data-enrichment-remote>{{ remote_status|default:'Not checked yet' }}</dd><dt>Workflow updated</dt><dd data-enrichment-updated>{{ attempt.updated_at|date:'c' }}</dd><dt>Progress-check lease until</dt><dd data-enrichment-lease>{{ attempt.lease_until|date:'c'|default:'None' }}</dd><dt>Retry after</dt><dd data-enrichment-retry>{{ attempt.retry_after|date:'c'|default:'None' }}</dd><dt>Started</dt><dd>{{ attempt.created_at }}</dd></dl>
 <form method="post" data-enrichment {% if active %}data-active="true"{% endif %}>{% csrf_token %}
 <div class="save-actions">
 {% if active %}<button class="button secondary" name="action" value="advance">Check progress</button>{% endif %}
@@ -21,6 +21,6 @@
 <p>Check existing analysis only polls its saved job after a configuration fix; it does not request another AI call.</p>
 <p>Retry download creates a fresh capture. Retry analysis explicitly requests another AI call and may incur API charges. Bookmark fields change only after approval.</p>
 </section>
-{% if attempt.retrieval %}<section class="ai-panel"><h2>Retrieval diagnostics</h2><dl>{% for key, value in attempt.retrieval.items %}<dt>{{ key }}</dt><dd>{{ value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}
-{% if analysis_provenance %}<section class="ai-panel"><h2>Analysis provenance</h2><dl>{% for key, value in analysis_provenance.items %}<dt>{{ key }}</dt><dd>{{ value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}
+{% if attempt.retrieval %}<section class="ai-panel"><h2>Retrieval diagnostics</h2><dl>{% for row in retrieval_rows %}<dt>{{ row.key }}</dt><dd>{{ row.value|default_if_none:'—' }}</dd>{% endfor %}</dl></section>{% endif %}
+{% if provenance_rows %}<section class="ai-panel"><h2>Analysis provenance</h2>{% include 'dwiest-django-demos/bookmarks/components/provenance.html' with rows=provenance_rows %}</section>{% endif %}
 {% endblock %}
