@@ -11,7 +11,7 @@ class UmbrellaMigrationTests(SimpleTestCase):
         script = r"""
 import django
 from django.conf import settings
-settings.configure(SECRET_KEY='inventory-adoption-test', INSTALLED_APPS=['django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','rest_framework','dwiest.django.demos'], DATABASES={'default':{'ENGINE':'django.db.backends.sqlite3','NAME':':memory:'}}, DEFAULT_AUTO_FIELD='django.db.models.BigAutoField', ROOT_URLCONF='dwiest.django.demos.inventory.api_urls', USE_TZ=True, MIDDLEWARE=[], PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+settings.configure(APPLICATION_ACCESS_ENABLED=False, SECRET_KEY='inventory-adoption-test', INSTALLED_APPS=['django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','rest_framework','dwiest.django.demos'], DATABASES={'default':{'ENGINE':'django.db.backends.sqlite3','NAME':':memory:'}}, DEFAULT_AUTO_FIELD='django.db.models.BigAutoField', ROOT_URLCONF='dwiest.django.demos.inventory.api_urls', USE_TZ=True, MIDDLEWARE=[], PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
 django.setup()
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
@@ -50,3 +50,4 @@ assert response.data['before'] == 7 and response.data['after'] == 9
 """
         result = subprocess.run([sys.executable, '-c', script], cwd=str(Path(__file__).parents[4]), capture_output=True, text=True, env=os.environ.copy())
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+

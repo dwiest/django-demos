@@ -6,3 +6,7 @@ ROOT_URLCONF = 'dwiest.django.demos.inventory.api_urls'
 USE_TZ = True
 MIDDLEWARE = []
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
+
+# These suites exercise application behavior; grant enforcement has its own suite.
+APPLICATION_ACCESS_ENABLED = False

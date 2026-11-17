@@ -21,3 +21,7 @@ BOOKMARKS_AI_MCP_URL = 'https://example.execute-api.us-east-1.amazonaws.com/api/
 BOOKMARKS_AI_MCP_TOKEN = 'unit-test-only-' + 't' * 40
 BOOKMARKS_AI_MODEL = 'test-model'
 BOOKMARKS_AI_MODELS = ['test-model']
+
+
+# These suites exercise application behavior; grant enforcement has its own suite.
+APPLICATION_ACCESS_ENABLED = False

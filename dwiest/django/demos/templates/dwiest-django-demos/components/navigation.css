@@ -17,12 +17,33 @@
 .ww-nav-menu > nav a[aria-current] { background: #e3f2f1; color: #087f83; font-weight: 600; }
 .ww-nav-menu > nav a[aria-current]::after { content: '✓'; margin-left: auto; }
 .ww-apps { position: relative; }
-.ww-apps > .ww-apps-panel { left: 0; width: min(580px, calc(100vw - 180px)); }
+.ww-apps > .ww-apps-panel { left: 0; width: min(700px, calc(100vw - 180px)); }
 .ww-apps-home { margin-bottom: 10px; }
 .ww-apps-home span { font-size: 21px; line-height: 1; }
 .ww-apps-groups { display: flex; gap: 16px; border-top: 1px solid #dce2e9; padding-top: 10px; }
 .ww-apps-applications { flex: 1; min-width: 0; }
-.ww-apps-grid { display: grid; grid-template-rows: repeat(6, auto); grid-auto-flow: column; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+.ww-apps-grid { display: grid; grid-template-rows: repeat(var(--app-rows, 6), auto); grid-auto-flow: column; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+.ww-app-tabs { display: none; border-top: 1px solid #dce2e9; border-bottom: 1px solid #dce2e9; margin-bottom: 12px; }
+.ww-tabs-ready .ww-app-tabs { display: flex; }
+.ww-app-tabs button { flex: 1; min-width: 0; min-height: 44px; padding: 8px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #172234; font: inherit; cursor: pointer; }
+.ww-app-tabs button[aria-selected="true"] { border-bottom-color: #087f83; color: #087f83; font-weight: 600; }
+.ww-app-tabs button:focus-visible { outline: 3px solid #13a4a7; outline-offset: -3px; }
+.ww-app-panel[hidden] { display: none; }
+.ww-app-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.ww-app-panel-heading h2 { font-size: 14px; margin: 0 10px; }
+.ww-tabs-ready .ww-app-panel:not([data-app-panel="toys"]) .ww-app-panel-heading { display: none; }
+.ww-nav-menu .ww-app-panel-heading > a { font-size: 13px; min-height: 32px; padding: 4px 10px; color: #087f83; }
+.ww-app-section { min-width: 0; }
+.ww-app-section h3 { color: #65738a; font-size: 13px; font-weight: 600; margin: 4px 10px; }
+.ww-toy-sections { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; }
+.ww-toy-sections .ww-app-section + .ww-app-section { border-left: 1px solid #dce2e9; padding-left: 12px; }
+.ww-toy-sections [data-toy-section="Ambient"] .ww-apps-grid { display: flex; flex-direction: column; }
+.ww-toy-sections .ww-app-section:only-child { grid-column: 1 / -1; }
+.ww-toy-sections .ww-app-section:only-child .ww-apps-grid { display: grid; }
+.ww-app-count, .ww-app-empty { margin: 12px 0 0; padding: 12px 10px 0; border-top: 1px solid #dce2e9; font-size: 13px; color: #65738a; }
+.ww-app-empty { margin-top: 0; padding-bottom: 8px; }
+.ww-app-panel + .ww-app-panel { margin-top: 16px; }
+.ww-tabs-ready .ww-app-panel { margin-top: 0; }
 .ww-apps-groups h2, .ww-tools-panel h2 { margin: 0 10px 4px; color: #65738a; font-size: 13px; font-weight: 600; line-height: 1.5; }
 .ww-apps-services { flex: 0 0 145px; border-left: 1px solid #dce2e9; padding-left: 12px; }
 .ww-account { margin-left: auto; }
@@ -52,6 +73,9 @@
   .ww-nav-menu .ww-apps-services a { display: inline-flex; }
   .ww-apps-grid { column-gap: 4px; }
   .ww-apps-panel a { font-size: 14px; }
+  .ww-toy-sections { grid-template-columns: 1fr; }
+  .ww-toy-sections .ww-app-section + .ww-app-section { border-left: 0; border-top: 1px solid #dce2e9; padding: 10px 0 0; }
+  .ww-toy-sections [data-toy-section="Ambient"] .ww-apps-grid { display: grid; }
   .bookmarks-header .app-navigation { gap: 12px; }
   .bookmarks-header .brand { font-size: 17px; }
   .bookmarks-header .brand svg { width: 18px; height: 22px; }
@@ -59,6 +83,7 @@
   .bookmarks-header .nav-link { font-size: 14px; }
 }
 @media (max-width: 480px) {
+  .ww-app-tabs button { font-size: 13px; padding-inline: 4px; }
   .bookmarks-header .brand span { display: none; }
   .bookmarks-header .app-navigation { gap: 10px; }
   .bookmarks-tabs { gap: 12px; }
@@ -66,3 +91,4 @@
 }
 @media print { .ww-site-header, .bookmarks-header { display: none; } }
 </style>
+

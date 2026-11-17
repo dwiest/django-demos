@@ -7,6 +7,8 @@ from time import sleep
 from .models import NewsItem
 #from channels.layers import get_channel_layer
 from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
+from ..application_access import ApplicationAccess
 
 class NewsFeed(AsyncJsonWebsocketConsumer):
 
@@ -22,6 +24,11 @@ class NewsFeed(AsyncJsonWebsocketConsumer):
 
 
     async def websocket_connect(self, event):
+        allowed = await database_sync_to_async(
+            lambda: ApplicationAccess(self.scope.get('user')).allows('news'))()
+        if not allowed:
+            await self.close(code=4403)
+            return
 #        print("websocket connected", event)
 #        sync_to_async(NewsItem.objects.get)()
 #        await self.channel_layer.group_add('woot',self.channel_name)
@@ -54,4 +61,5 @@ class NewsFeed(AsyncJsonWebsocketConsumer):
       while True:
         yield i
         i = (i+1)%n
+
 

@@ -1,0 +1,26 @@
+{% extends 'dwiest-django-demos/applications/base.html' %}
+{% block title %}Desktop toys{% endblock %}
+{% block content %}
+  <div class="demo-intro">
+    <p class="demo-eyebrow">A little room to play</p>
+    <h1>Desktop toys</h1>
+    <p>Browser diversions for a moment away from the workday. {{ toy_count }} toy{{ toy_count|pluralize }} available to you.</p>
+  </div>
+  {% for section in toy_sections %}
+    <section class="toy-section" aria-label="{{ section.title }}">
+      <h2>{{ section.title }}</h2>
+      <div class="demo-grid demo-catalog">
+        {% for toy in section.items %}
+          <article class="demo-card toy-card">
+            <span class="demo-icon" aria-hidden="true">{% if section.title == 'Ambient' %}✦{% else %}▦{% endif %}</span>
+            <h2>{{ toy.title }}</h2>
+            <p>{{ toy.description }}</p>
+            <a class="button primary" href="{{ toy.url }}">Open {{ toy.title }} <span aria-hidden="true">→</span></a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% empty %}
+    <div class="application-empty"><h2>No toys available yet</h2><p>No desktop toys have been enabled for your account. Your other applications are available from Apps.</p></div>
+  {% endfor %}
+{% endblock %}

@@ -10,3 +10,5 @@ from .journal.models import Journal, JournalEntry
 from .news.models import NewsItem
 from .invoicer.models import BillTo, Invoice, LineItem
 from .expenses.models import ExpenseList, ExpenseCategory, Expense
+from .application_models import Application
+

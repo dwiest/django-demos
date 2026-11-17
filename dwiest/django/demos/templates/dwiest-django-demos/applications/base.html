@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Applications{% endblock %} | Wiest.World</title>
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/bookmarks/ui.css' %}">
+  <link rel="stylesheet" href="{% static 'dwiest-django-demos/demo_ui.css' %}">
+  <style>
+    .application-empty { max-width: 640px; padding: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+    .application-empty h1 { margin-bottom: 16px; }
+    .application-empty p { color: var(--muted); }
+    .toy-section { margin-top: 32px; }
+    .toy-section > h2 { margin-bottom: 16px; }
+    .toy-card .demo-icon { font-size: 24px; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  {% include 'dwiest-django-demos/components/demo_navigation.html' %}
+  <main id="main" class="container demo-home">{% block content %}{% endblock %}</main>
+  {% include 'dwiest-django-demos/components/site_footer.html' %}
+</body>
+</html>
