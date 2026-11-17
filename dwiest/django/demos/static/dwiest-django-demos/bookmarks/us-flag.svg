@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 100">
+<title>United States flag</title>
+<rect width="190" height="100" fill="#fff"/>
+<rect y="0.00000" width="190" height="7.69231" fill="#b22234"/>
+<rect y="15.38462" width="190" height="7.69231" fill="#b22234"/>
+<rect y="30.76923" width="190" height="7.69231" fill="#b22234"/>
+<rect y="46.15385" width="190" height="7.69231" fill="#b22234"/>
+<rect y="61.53846" width="190" height="7.69231" fill="#b22234"/>
+<rect y="76.92308" width="190" height="7.69231" fill="#b22234"/>
+<rect y="92.30769" width="190" height="7.69231" fill="#b22234"/>
+<rect width="76" height="53.84615" fill="#3c3b6e"/>
+<defs><polygon id="star" points="0.00000,-3.08000 0.69124,-0.95140 2.92925,-0.95177 1.11844,0.36340 1.81038,2.49177 0.00000,1.17600 -1.81038,2.49177 -1.11844,0.36340 -2.92925,-0.95177 -0.69124,-0.95140" fill="#fff"/></defs>
+<use href="#star" x="6.33333" y="5.38462"/>
+<use href="#star" x="19.00000" y="5.38462"/>
+<use href="#star" x="31.66667" y="5.38462"/>
+<use href="#star" x="44.33333" y="5.38462"/>
+<use href="#star" x="57.00000" y="5.38462"/>
+<use href="#star" x="69.66667" y="5.38462"/>
+<use href="#star" x="12.66667" y="10.76923"/>
+<use href="#star" x="25.33333" y="10.76923"/>
+<use href="#star" x="38.00000" y="10.76923"/>
+<use href="#star" x="50.66667" y="10.76923"/>
+<use href="#star" x="63.33333" y="10.76923"/>
+<use href="#star" x="6.33333" y="16.15385"/>
+<use href="#star" x="19.00000" y="16.15385"/>
+<use href="#star" x="31.66667" y="16.15385"/>
+<use href="#star" x="44.33333" y="16.15385"/>
+<use href="#star" x="57.00000" y="16.15385"/>
+<use href="#star" x="69.66667" y="16.15385"/>
+<use href="#star" x="12.66667" y="21.53846"/>
+<use href="#star" x="25.33333" y="21.53846"/>
+<use href="#star" x="38.00000" y="21.53846"/>
+<use href="#star" x="50.66667" y="21.53846"/>
+<use href="#star" x="63.33333" y="21.53846"/>
+<use href="#star" x="6.33333" y="26.92308"/>
+<use href="#star" x="19.00000" y="26.92308"/>
+<use href="#star" x="31.66667" y="26.92308"/>
+<use href="#star" x="44.33333" y="26.92308"/>
+<use href="#star" x="57.00000" y="26.92308"/>
+<use href="#star" x="69.66667" y="26.92308"/>
+<use href="#star" x="12.66667" y="32.30769"/>
+<use href="#star" x="25.33333" y="32.30769"/>
+<use href="#star" x="38.00000" y="32.30769"/>
+<use href="#star" x="50.66667" y="32.30769"/>
+<use href="#star" x="63.33333" y="32.30769"/>
+<use href="#star" x="6.33333" y="37.69231"/>
+<use href="#star" x="19.00000" y="37.69231"/>
+<use href="#star" x="31.66667" y="37.69231"/>
+<use href="#star" x="44.33333" y="37.69231"/>
+<use href="#star" x="57.00000" y="37.69231"/>
+<use href="#star" x="69.66667" y="37.69231"/>
+<use href="#star" x="12.66667" y="43.07692"/>
+<use href="#star" x="25.33333" y="43.07692"/>
+<use href="#star" x="38.00000" y="43.07692"/>
+<use href="#star" x="50.66667" y="43.07692"/>
+<use href="#star" x="63.33333" y="43.07692"/>
+<use href="#star" x="6.33333" y="48.46154"/>
+<use href="#star" x="19.00000" y="48.46154"/>
+<use href="#star" x="31.66667" y="48.46154"/>
+<use href="#star" x="44.33333" y="48.46154"/>
+<use href="#star" x="57.00000" y="48.46154"/>
+<use href="#star" x="69.66667" y="48.46154"/>
+</svg>

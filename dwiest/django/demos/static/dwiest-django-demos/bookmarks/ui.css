@@ -98,3 +98,5 @@ main.container{padding-block:22px 36px}
 #bookmark-list .month-heading[data-month="10"]{--month-bg:#ffead5;--month-ink:#7b411e}
 #bookmark-list .month-heading[data-month="11"]{--month-bg:#eee1d3;--month-ink:#68452b}
 #bookmark-list .month-heading[data-month="12"]{--month-bg:#f4e3e8;--month-ink:#702f43}
+
+#bookmark-list .month-flag{display:inline-block;width:1.9em;height:1em;vertical-align:-.1em}

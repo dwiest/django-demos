@@ -51,6 +51,8 @@ class MonthHeaderTests(SimpleTestCase):
             __import__('dwiest.django.demos.templatetags.bookmark_records', fromlist=['month_header']).month_header(datetime(2026, month, 1)))
 
     def test_seasonal_defaults_and_custom_safe_image(self):
+        self.assertIn('us-flag.svg', self.render(7))
+        self.assertNotIn('🇺🇸', self.render(7))
         self.assertLess(self.render(10).index('October 2026'), self.render(10).index('🎃')); self.assertIn('🎃', self.render(10)); self.assertIn('🦃', self.render(11)); self.assertIn('🎄 🎁', self.render(12))
         with override_settings(BOOKMARKS_MONTH_HEADERS={11: {'icon': '🍁', 'image_url': '/static/month.jpg'}}):
             rendered = self.render(11)
