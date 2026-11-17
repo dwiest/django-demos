@@ -84,7 +84,9 @@ def review_sources(attempt):
 
 def fail(attempt, message, details=None):
     attempt.status = 'failed'
-    attempt.error = dict(details or {}, message=message)
+    attempt.error = dict(details or {})
+    # Keep the service's actionable message instead of replacing it with a generic one.
+    attempt.error['message'] = attempt.error.get('message') or message
 
 
 def advance(attempt_id):
@@ -113,6 +115,7 @@ def advance(attempt_id):
             attempt.status = 'retrieving'
         elif attempt.status == 'retrieving':
             job = client.job(attempt.retrieval_job_id)
+            attempt.retrieval['job_status'] = job['status']
             if job['status'] == 'failed':
                 fail(attempt, 'Retrieval worker failed.', job.get('error'))
             elif job['status'] == 'completed':
@@ -131,6 +134,7 @@ def advance(attempt_id):
             attempt.status = 'analyzing'
         elif attempt.status == 'analyzing':
             job = client.job(attempt.analysis_job_id)
+            attempt.analysis['job_status'] = job['status']
             if job['status'] == 'failed':
                 fail(attempt, 'Analysis did not complete. Use Retry analysis to request another provider call.', job.get('error'))
             elif job['status'] == 'completed':

@@ -388,3 +388,44 @@ artifact deletion does not delete bookmarks. The service's deletion/preview API
 remains available to trusted application callers; a Django artifact-management
 screen and bulk history browsing are later UI work. Do not use a matching Cognito
 email to infer ownership of application-created artifacts.
+
+## Troubleshooting saved retrieval and analysis
+
+Inspect persisted state without making AWS or job-service requests:
+
+```sh
+python manage.py advance_bookmark_enrichment --attempt ATTEMPT_UUID --status-only
+python manage.py advance_bookmark_enrichment --attempt ATTEMPT_UUID
+```
+
+The command prints job IDs, last observed remote status, errors, lease and retry
+times. If nothing is due it explains that terminal records, live leases and future
+retry times are skipped. A 90-second local progress-check lease is separate from
+the remote Lambda lease and 360-second SQS visibility timeout. Browser polling
+also claims the local lease. The progress page now updates IDs and these times
+while polling; no page reload is required to see newly submitted job IDs.
+
+After correcting local credentials/configuration, Check existing analysis resumes
+polling the existing analysis ID without a new provider call. If the remote job
+failed, it reports that failure again. Retry analysis explicitly requests a new
+analysis against the exact saved capture and can incur charges. It is available
+for readable captures even when a configuration error prevented initial submission
+and no analysis ID exists yet. Duplicate retry POSTs reuse the new local operation.
+Service error messages/codes/diagnostics are preserved in the workflow and page.
+
+Verify AWS identity from inside manage.py shell, not only the AWS CLI. Django
+startup or systemd environment can select a different AWS_PROFILE. Cron must use
+the same server settings and role as the web process. Never print credentials or
+API key values while diagnosing configuration.
+
+Search AnalysisWorkerFunction logs by analysis ID. Handled terminal failures now
+log safe metadata distinguishing secret access/format, provider HTTP/transport/
+output and result-storage failures even when Lambda Errors is zero. Two not-visible
+SQS messages means received messages, not two active Lambda calls; console polling
+also hides messages. Check the analysis queue versus its DLQ before retrying.
+
+This update needs collectstatic and a web restart; no database migration is added.
+Historical failed jobs retain their original diagnostics; new worker executions
+produce the richer error metadata. Deploy the companion service change to persist
+the bucket-scoped ListBucket permission and enable those diagnostics. No existing
+jobs are automatically replayed and uncertain provider calls remain protected.
