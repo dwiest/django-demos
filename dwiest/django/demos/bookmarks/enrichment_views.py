@@ -20,6 +20,7 @@ class EnrichmentView(AIProtectedView):
     def get(self, request, attempt_id):
         attempt = self.record(request, attempt_id)
         return render(request, ROOT + 'enrichment.html', {'attempt': attempt, 'active': attempt.status not in TERMINAL,
+            'remote_status': (attempt.analysis if attempt.analysis_job_id else attempt.retrieval).get('job_status', ''),
             'analysis_provenance': {k: v for k, v in attempt.analysis.items() if k != 'proposal'},
             'can_retry_analysis': bool(attempt.retrieval_job_id and attempt.retrieval.get('retrieved') is True and attempt.mode == 'analyze')})
 
