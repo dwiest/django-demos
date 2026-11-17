@@ -1,6 +1,6 @@
 import { colorTags } from './tags.js';
 import { initEditor } from './editor.js';
-import { initList } from './list.js';
+import { initList } from './list.js?v=2';
 colorTags();
 const editor = document.querySelector('[data-editor]');
 if (editor) initEditor(editor);

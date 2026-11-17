@@ -72,10 +72,8 @@ main.container{padding-block:22px 36px}
 #bookmark-list .bookmark-footer{display:flex;flex-direction:row;align-items:flex-start;width:100%;font-size:inherit;gap:8px 12px;margin-top:7px}
 #bookmark-list .bookmark-footer .tags{min-width:0;margin:0}
 #bookmark-list .bookmark-footer .row-actions{display:flex;position:static;grid-area:auto;justify-content:flex-end;flex-shrink:0;margin:0 0 0 auto;gap:2px;align-self:flex-start}
-#bookmark-list:not(.expanded) .job-badges{display:none}
 #bookmark-list .bookmark-meta{display:flex;flex-direction:column;flex:1;gap:6px;min-width:0}
 #bookmark-list .bookmark-meta .job-badges{margin:0}
-#bookmark-list:not(.expanded) .bookmark-meta[data-tags="false"]{display:none}
 @media(max-width:650px){
  #bookmark-list .month-heading{padding:12px;margin-top:22px}
  #bookmark-list .month{font-size:23px}
@@ -161,3 +159,13 @@ main.container.bookmark-index{font-size:1rem;width:calc(100% - 24px);max-width:n
  .bookmark-index .pagination{font-size:calc(14 * var(--bookmark-unit));gap:calc(20 * var(--bookmark-unit));padding-top:calc(14 * var(--bookmark-unit))}
  .bookmark-index .pagination form,.bookmark-index .pagination nav{gap:calc(12 * var(--bookmark-unit))}
 }
+
+/* In compact mode each article can disclose its own details independently. */
+#bookmark-list .bookmark-details .description{display:block}
+#bookmark-list.is-enhanced:not(.expanded) .bookmark-row:not(.is-expanded) .bookmark-details{display:none}
+#bookmark-list.is-enhanced:not(.expanded) .bookmark-row{cursor:pointer}
+#bookmark-list.is-enhanced:not(.expanded) .bookmark-row:hover{background:#f7f9fb}
+#bookmark-list.is-enhanced:not(.expanded) .headline{display:flex;align-items:flex-start;flex-wrap:nowrap}
+#bookmark-list.is-enhanced:not(.expanded) .bookmark-title{flex:1;min-width:0}
+#bookmark-list .bookmark-disclosure{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;border:0;border-radius:4px;background:transparent;color:var(--teal);font:inherit;font-size:1.1em;min-width:32px;min-height:32px;padding:0 6px}
+#bookmark-list .bookmark-disclosure:hover{background:#e3f2f1}
