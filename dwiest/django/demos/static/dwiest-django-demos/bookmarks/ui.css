@@ -101,8 +101,9 @@ main.container{padding-block:22px 36px}
 
 #bookmark-list .month-flag{display:inline-block;width:1.9em;height:1em;vertical-align:-.1em}
 
-/* A bounded reading column grows gently with wide-screen typography. */
-main.container.bookmark-index{font-size:clamp(1rem,calc(.75rem + .4vw),1.25rem);width:calc(100% - 48px);max-width:min(60rem,88ch);margin-inline:auto}
+/* Keep the small-screen layout; desktop uses a shared proportional unit. */
+main.container.bookmark-index{font-size:1rem;width:calc(100% - 24px);max-width:none;margin-inline:auto}
+.bookmark-index .bookmark-reading-column{width:100%;min-width:0}
 .bookmark-index #bookmark-list .bookmark-title{font-size:1.125em;line-height:1.45}
 .bookmark-index #bookmark-list .description{font-size:1em;max-width:none;line-height:1.6}
 .bookmark-index #bookmark-list .domain{font-size:.8125em}
@@ -110,11 +111,53 @@ main.container.bookmark-index{font-size:clamp(1rem,calc(.75rem + .4vw),1.25rem);
 .bookmark-index #bookmark-list .job-badge{font-size:.75em;max-width:100%;overflow-wrap:anywhere}
 .bookmark-index #bookmark-list .month{font-size:1.5em}
 .bookmark-index #bookmark-list .day{font-size:1em}
-.bookmark-index #bookmark-list .bookmark-footer .icon-button{width:36px;height:36px}
-@media(max-width:650px){
- main.container.bookmark-index{width:calc(100% - 24px)}
- .bookmark-index #bookmark-list .bookmark-footer{gap:6px}
- .bookmark-index #bookmark-list .bookmark-footer .icon-button{width:36px;height:40px}
-}
-
+.bookmark-index #bookmark-list .bookmark-footer .icon-button{width:36px;height:40px}
 .bookmark-index .filter-panel{width:100%;max-width:100%}
+@media(min-width:651px){
+ /* 1x through 1200px; 1.25x at 1680px and above. No transforms or CSS zoom. */
+ main.container.bookmark-index{--bookmark-unit:clamp(1px,calc(.375px + .0520833333vw),1.25px);font-size:calc(17 * var(--bookmark-unit));width:calc(100% - 48 * var(--bookmark-unit));max-width:calc(1200 * var(--bookmark-unit));padding-block:calc(22 * var(--bookmark-unit)) calc(36 * var(--bookmark-unit))}
+ .bookmark-index .bookmark-reading-column,.bookmark-index>.notice{max-width:calc(900 * var(--bookmark-unit));margin-inline:0}
+ .bookmark-index .page-heading{margin-bottom:calc(16 * var(--bookmark-unit));gap:calc(16 * var(--bookmark-unit))}
+ .bookmark-index h1{font-size:calc(28 * var(--bookmark-unit));letter-spacing:-.02em}
+ .bookmark-index .heading-actions{display:flex;gap:calc(8 * var(--bookmark-unit));flex-shrink:0}
+ .bookmark-index .button,.bookmark-index .filters>summary{font-size:calc(14 * var(--bookmark-unit));padding:calc(8 * var(--bookmark-unit)) calc(12 * var(--bookmark-unit));min-height:calc(40 * var(--bookmark-unit));border-radius:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .control{font-size:calc(15 * var(--bookmark-unit));min-height:calc(40 * var(--bookmark-unit));padding:calc(8 * var(--bookmark-unit)) calc(12 * var(--bookmark-unit));border-radius:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .searchbar,.bookmark-index .query-form{gap:calc(10 * var(--bookmark-unit))}
+ .bookmark-index .search-input{padding-left:calc(12 * var(--bookmark-unit));border-radius:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .search-input>span{font-size:calc(24 * var(--bookmark-unit))}
+ .bookmark-index .search-input select{max-width:calc(150 * var(--bookmark-unit));font-size:calc(14 * var(--bookmark-unit))}
+ .bookmark-index .filter-panel{padding:calc(18 * var(--bookmark-unit));border-radius:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .filter-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(16 * var(--bookmark-unit))}
+ .bookmark-index .field{margin-bottom:calc(20 * var(--bookmark-unit))}
+ .bookmark-index .field label{font-size:calc(14 * var(--bookmark-unit));margin-bottom:calc(8 * var(--bookmark-unit))}
+ .bookmark-index .check-row{font-size:calc(14 * var(--bookmark-unit));gap:calc(20 * var(--bookmark-unit))}
+ .bookmark-index input[type=checkbox]{width:calc(18 * var(--bookmark-unit));height:calc(18 * var(--bookmark-unit));min-height:calc(18 * var(--bookmark-unit))}
+ .bookmark-index .chips{margin-top:calc(8 * var(--bookmark-unit));gap:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .chip{font-size:calc(12 * var(--bookmark-unit));padding:calc(3 * var(--bookmark-unit)) calc(8 * var(--bookmark-unit))}
+ .bookmark-index .list-toolbar{margin:calc(10 * var(--bookmark-unit)) 0 calc(14 * var(--bookmark-unit));gap:calc(12 * var(--bookmark-unit))}
+ .bookmark-index .list-toolbar p{font-size:calc(14 * var(--bookmark-unit))}
+ .bookmark-index .view-toggle{gap:calc(6 * var(--bookmark-unit))}
+ .bookmark-index .view-toggle button{font-size:calc(13 * var(--bookmark-unit));padding:calc(6 * var(--bookmark-unit)) calc(10 * var(--bookmark-unit));min-height:calc(36 * var(--bookmark-unit));border-radius:calc(6 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .month-heading{padding:calc(7 * var(--bookmark-unit)) calc(14 * var(--bookmark-unit));margin:calc(18 * var(--bookmark-unit)) 0 calc(12 * var(--bookmark-unit));border-radius:calc(8 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .month-heading[data-image]{min-height:calc(130 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .month{font-size:calc(24 * var(--bookmark-unit));line-height:1.25}
+ .bookmark-index #bookmark-list .month-icon{margin-left:calc(8 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .day{font-size:calc(16 * var(--bookmark-unit));line-height:1.4;margin:calc(16 * var(--bookmark-unit)) 0 calc(4 * var(--bookmark-unit));padding:calc(4 * var(--bookmark-unit)) calc(10 * var(--bookmark-unit));border-top-width:calc(2 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-row{padding:calc(10 * var(--bookmark-unit)) 0}
+ .bookmark-index #bookmark-list .bookmark-title{font-size:calc(19 * var(--bookmark-unit));line-height:1.4}
+ .bookmark-index #bookmark-list .domain{font-size:calc(13 * var(--bookmark-unit));margin-top:calc(2 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .description{font-size:calc(17 * var(--bookmark-unit));line-height:1.5;margin:calc(6 * var(--bookmark-unit)) 0 calc(4 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-footer{gap:calc(8 * var(--bookmark-unit)) calc(12 * var(--bookmark-unit));margin-top:calc(6 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-meta{gap:calc(6 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .tags{gap:calc(6 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .tag{font-size:calc(13 * var(--bookmark-unit));padding:calc(2 * var(--bookmark-unit)) calc(8 * var(--bookmark-unit));border-radius:calc(5 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .job-badges{gap:calc(6 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .job-badge{font-size:calc(12 * var(--bookmark-unit));padding:calc(2 * var(--bookmark-unit)) calc(5 * var(--bookmark-unit));border-radius:calc(5 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-footer .row-actions{gap:calc(2 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-footer .icon-button{font-size:calc(21 * var(--bookmark-unit));width:calc(34 * var(--bookmark-unit));height:calc(34 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .bookmark-footer .read-toggle{font-size:calc(15 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .row-menu form{top:calc(36 * var(--bookmark-unit));width:calc(190 * var(--bookmark-unit));padding:calc(6 * var(--bookmark-unit));font-size:calc(14 * var(--bookmark-unit))}
+ .bookmark-index #bookmark-list .row-menu button{padding:calc(10 * var(--bookmark-unit))}
+ .bookmark-index .pagination{font-size:calc(14 * var(--bookmark-unit));gap:calc(20 * var(--bookmark-unit));padding-top:calc(14 * var(--bookmark-unit))}
+ .bookmark-index .pagination form,.bookmark-index .pagination nav{gap:calc(12 * var(--bookmark-unit))}
+}
