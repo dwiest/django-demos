@@ -97,6 +97,10 @@ class AIProposalForm(StyledForm):
 
 
 class JobServiceSettingsForm(StyledForm):
+    download_on_create = forms.BooleanField(required=False, label='Download new bookmarks by default')
+    enrich_on_create = forms.BooleanField(required=False, label='Enrich new bookmarks by default (automatically apply suggestions)')
+    keep_failed_history = forms.BooleanField(required=False, label='Keep failed attempt history indefinitely')
+    failed_attempt_retention_days = forms.IntegerField(required=False, min_value=1, max_value=36500, label='Days to keep failed local attempts', initial=30)
     use_job_service = forms.BooleanField(required=False, label='Use the URL and AI job service')
     include_raw_html = forms.BooleanField(required=False, initial=True, label='Keep the original HTTP response')
     keep_indefinitely = forms.BooleanField(required=False, label='Keep job results indefinitely')
@@ -108,6 +112,15 @@ class JobServiceSettingsForm(StyledForm):
             data['job_retention_days'] = None
         elif data.get('job_retention_days') is None:
             self.add_error('job_retention_days', 'Enter retention days or select Keep indefinitely.')
+        if data.get('keep_failed_history'):
+            data['failed_attempt_retention_days'] = None
+        elif data.get('failed_attempt_retention_days') is None:
+            # Older settings clients can still save unrelated retention preferences.
+            data['failed_attempt_retention_days'] = 30
+        if data.get('enrich_on_create'):
+            data['download_on_create'] = True
+        if (data.get('enrich_on_create') or data.get('download_on_create')) and not data.get('use_job_service'):
+            raise forms.ValidationError('Enable the job service before selecting new-bookmark defaults.')
         if data.get('use_job_service'):
             from .job_client import connection
             from .ai_credentials import AIError

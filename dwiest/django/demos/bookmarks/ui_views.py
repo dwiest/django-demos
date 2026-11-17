@@ -120,6 +120,19 @@ class BookmarksUI(View):
                 tag_params.pop('page', None)
                 tag_params.setlist('tag_id', list(dict.fromkeys(tag_params.getlist('tag_id') + [str(tag.pk)])))
                 tag.filter_url = '?' + tag_params.urlencode()
+        from ..bookmark_ai_models import BookmarkEnrichmentAttempt
+        from .history import outcome_label
+        latest = {}
+        ids = [bookmark.pk for bookmark in page]
+        # Correlated subquery bounds history lookups to one attempt per listed bookmark.
+        from django.db.models import OuterRef, Subquery
+        newest = BookmarkEnrichmentAttempt.objects.filter(owner=owner, bookmark_id=OuterRef('bookmark_id')).order_by('-created_at').values('pk')[:1]
+        for attempt in BookmarkEnrichmentAttempt.objects.filter(owner=owner, bookmark_id__in=ids, pk=Subquery(newest)):
+
+            if attempt.bookmark_id not in latest:
+                latest[attempt.bookmark_id] = outcome_label(attempt)
+        for bookmark in page:
+            bookmark.enrichment_status = latest.get(bookmark.pk, '')
         params = request.GET.copy()
         params.pop('page', None)
         chips = []
@@ -172,8 +185,16 @@ class BookmarkEditorUI(View):
             url_form = AnalyzeForm({'url': value})
             attempt_url = url_form.cleaned_data['url'] if url_form.is_valid() else ''
             context['use_job_service'] = bool(prefs and prefs.use_job_service)
+            if prefs and prefs.use_job_service and not form.instance.pk:
+                form.fields['title'].required = False
+            context['download_on_create'] = ('download_content' in request.POST if request.method == 'POST' else bool(prefs and prefs.download_on_create))
+            context['enrich_on_create'] = ('enrich_content' in request.POST if request.method == 'POST' else bool(prefs and prefs.enrich_on_create))
             from ..bookmark_ai_models import BookmarkEnrichmentAttempt
-            context['enrichment_attempts'] = BookmarkEnrichmentAttempt.objects.filter(owner=request.user, bookmark_id=form.instance.pk)[:5] if form.instance.pk else []
+            from .history import outcome_label
+            attempts = list(BookmarkEnrichmentAttempt.objects.filter(owner=request.user, bookmark_id=form.instance.pk)[:5]) if form.instance.pk else []
+            for attempt in attempts:
+                attempt.outcome_label = outcome_label(attempt)
+            context['enrichment_attempts'] = attempts
             context.update(ai_blocked_domains=domains, ai_blacklisted_site=blacklisted_site(value, domains),
                            ai_attempt_url=value, ai_last_attempt=BookmarkAIAttempt.objects.filter(owner=request.user, url=attempt_url).first() if attempt_url else None)
         return context
@@ -230,7 +251,26 @@ class BookmarkEditorUI(View):
             patch_cache_control(response, private=True, no_store=True)
             return response
         form = BookmarkEditorForm(request.POST, instance=instance, owner=owner_for(request))
-        if form.is_valid():
+        new = not instance.pk
+        enrich = new and 'enrich_content' in request.POST
+        download = new and ('download_content' in request.POST or enrich)
+        if download:
+            form.fields['title'].required = False
+        valid = form.is_valid()
+        if download:
+            from .ai_credentials import AIError, require_demo_owner
+            from .job_client import connection
+            try:
+                require_demo_owner(request.user)
+                if not service_mode:
+                    raise AIError('Enable the job service before downloading or enriching a new bookmark.')
+                connection()
+                if len(request.POST.get('ai_instructions', '')) > 4000:
+                    raise AIError('Analysis instructions must be at most 4,000 characters.')
+            except AIError as exc:
+                form.add_error(None, str(exc)); valid = False
+        attempt = None
+        if valid:
             try:
                 with transaction.atomic():
                     bookmark = form.save(commit=False)
@@ -240,10 +280,18 @@ class BookmarkEditorUI(View):
                     BookmarkTag.objects.filter(owner=bookmark.owner, bookmark=bookmark).exclude(tag__in=tags).delete()
                     for tag in tags:
                         BookmarkTag.objects.get_or_create(owner=bookmark.owner, bookmark=bookmark, tag=tag)
+                    if download:
+                        from .ai_views import snapshot
+                        from .enrichment import start
+                        original = snapshot(bookmark)
+                        attempt = start(request.user, bookmark, {'persisted': original, 'draft': original}, bookmark.url,
+                                        mode='analyze' if enrich else 'download', auto_apply=enrich, instructions=request.POST.get('ai_instructions', ''))
             except IntegrityError:
                 form.add_error(None, 'Could not save this bookmark. Its URL may already exist. Your changes are still here.')
             else:
-                messages.success(request, 'Bookmark saved.')
+                messages.success(request, 'Bookmark saved. Enrichment will run in the background.' if attempt else 'Bookmark saved.')
+                if attempt:
+                    return HttpResponseRedirect(reverse('demos:bookmarks:enrichment', args=[attempt.pk]))
                 return HttpResponseRedirect(return_url(request))
         return render(request, ROOT + 'bookmark.html', self.context(request, form))
 

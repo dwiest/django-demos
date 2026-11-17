@@ -429,3 +429,71 @@ Historical failed jobs retain their original diagnostics; new worker executions
 produce the richer error metadata. Deploy the companion service change to persist
 the bucket-scoped ListBucket permission and enable those diagnostics. No existing
 jobs are automatically replayed and uncertain provider calls remain protected.
+
+
+## PR 4 draft: new bookmarks and local history
+
+**Migration prerequisite:** this draft adds additive preference migration 0013, but
+must not be deployed to the existing server until its missing historical migration
+files and applied merge through 0045 are restored and the graph is joined. Do not
+run makemigrations --merge on each install, remove applied migrations, or fake the
+new preferences. The server's original migration archive is needed to resolve
+this prerequisite; migration names and dependencies must remain intact.
+
+For new bookmarks in job-service mode, Download content saves a capture after the
+bookmark is saved. AI enrichment implies downloading and explicitly authorizes
+automatic application for that creation operation. It fills blank title,
+description and publication date, adds suggestions to existing tags, and preserves
+URL, read/visibility status, entered fields and tags. Both defaults start off and
+can be set per account in AI settings. Individual form toggles override defaults;
+ordinary manual saves, direct-AI mode, API creates and edits do not implicitly
+authorize this path. Duplicate owned URLs open the existing record without
+creating work or applying suggestions.
+
+Saving and the durable attempt are committed together without external calls.
+The existing reconciliation command or open progress page advances it. If the
+bookmark is edited while work runs, its proposal is retained for explicit review
+against the current state. Invalid or unapplicable proposals also require review.
+Automatic approval uses the same transactional, owner-scoped local save as manual
+approval. Applied attempts are terminal, and replayed checks cannot apply twice.
+Retrying a failed analysis uses the existing manual review flow; no provider call
+is automatically repeated after an uncertain result.
+
+Job history shows 25 attempts per page, with optional bookmark filtering and
+failure categories. The editor links to all attempts; bookmark listings show the
+latest local workflow outcome. Individual finished attempts can be removed, or
+Clear failed attempts previews up to 100 eligible failures. Confirmation is a
+signed, owner-bound 15-minute snapshot. Newly created or changed attempts are not
+silently included. GET requests never delete anything, and CSRF is required.
+Active leases and pending proposals are protected. Removal deletes only local
+attempt records, never remote artifacts, bookmark rows, or proposal records.
+
+Failed local history defaults to 30 days, adjustable from 1 to 36500 or indefinite.
+Schedule the following once daily alongside existing maintenance:
+
+```sh
+python manage.py cleanup_bookmark_enrichment
+```
+
+It uses each account's preference and removes eligible failures based on last
+update time. Successful captures, applied history and pending proposals are not
+aged out by this policy. Remote artifact retention remains separate (365 days by
+default). To inspect local work without changing it, use the existing
+advance_bookmark_enrichment --attempt UUID --status-only command.
+
+Remote jobs retain their one-hour processing deadlines. A local workflow also has
+a three-hour end-to-end deadline, including submissions that never obtained a
+remote ID. It is enforced when the browser or reconciler next advances the record;
+without a running reconciler, closed-browser states do not change by themselves.
+BOOKMARKS_ENRICHMENT_TIMEOUT_SECONDS can configure that local deadline. Timing out
+locally does not cancel remote work or delete content. Preserve the reconciliation
+schedule, collect static files and restart after the migration prerequisite is met.
+
+
+Per-request instructions are restored for job-service analysis. The editor's
+Custom analysis instructions box passes up to 4,000 characters as authenticated
+user guidance; retries against a saved capture preserve it. Instructions also
+participate in local and remote idempotency and effective prompt hashing. They
+cannot change the schema, enable browsing/tools or override source grounding and
+source-title preservation. Direct-AI account credentials/model settings remain
+separate. Deploy the companion service instructions PR before enabling this form.
