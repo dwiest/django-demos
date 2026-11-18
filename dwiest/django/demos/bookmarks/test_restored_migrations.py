@@ -26,8 +26,12 @@ class RestoredMigrationTests(SimpleTestCase):
         self.run_script("""
 x = MigrationExecutor(connection)
 assert not x.loader.detect_conflicts()
-assert x.loader.graph.leaf_nodes('demos') == [('demos','0048_application_catalog')]
-x.migrate([('demos','0048_application_catalog')])
+leaves = x.loader.graph.leaf_nodes('demos')
+assert len(leaves) == 1, leaves
+# Exercise the current graph tip, while requiring the catalog migration to
+# remain in its ancestry. Later additive migrations must not break this test.
+assert ('demos', '0048_application_catalog') in x.loader.graph.forwards_plan(leaves[0])
+x.migrate(leaves)
 from dwiest.django.demos.bookmark_ai_models import BookmarkAISettings
 from django.contrib.auth.models import User
 owner = User.objects.create(username='fresh')
