@@ -29,6 +29,11 @@
 .ww-app-tabs button[aria-selected="true"] { border-bottom-color: #087f83; color: #087f83; font-weight: 600; }
 .ww-app-tabs button:focus-visible { outline: 3px solid #13a4a7; outline-offset: -3px; }
 .ww-app-panel[hidden] { display: none; }
+/* Overlap the tabs' panels so the largest available category sizes the menu.
+   Inactive panels reserve space but stay invisible and outside keyboard focus. */
+.ww-tabs-ready .ww-app-panels { display: grid; }
+.ww-tabs-ready .ww-app-panels > .ww-app-panel { grid-area: 1 / 1; align-self: start; }
+.ww-tabs-ready .ww-app-panels > .ww-app-panel[hidden] { display: block; visibility: hidden; pointer-events: none; }
 .ww-app-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .ww-app-panel-heading h2 { font-size: 14px; margin: 0 10px; }
 .ww-tabs-ready .ww-app-panel:not([data-app-panel="toys"]) .ww-app-panel-heading { display: none; }
