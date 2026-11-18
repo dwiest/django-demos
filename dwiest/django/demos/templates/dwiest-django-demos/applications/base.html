@@ -13,6 +13,19 @@
     .application-empty p { color: var(--muted); }
     .toy-section { margin-top: 32px; }
     .toy-section > h2 { margin-bottom: 16px; }
+    /* Reserve empty columns so a short section cannot stretch a few cards. */
+    .toy-section .demo-catalog { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); align-items: start; }
+    .toy-section .toy-card { box-sizing: border-box; width: 100%; max-width: 340px; max-height: 420px; }
+    .toy-card > .demo-icon, .toy-card > h2, .toy-card > .button { flex-shrink: 0; }
+    .toy-card > p { min-height: 0; overflow-y: auto; overflow-wrap: anywhere; }
+    .toy-preview { display: block; flex-shrink: 0; width: 100%; aspect-ratio: 8 / 5; margin-bottom: 12px; border-radius: 6px; overflow: hidden; background: #080d18; }
+    .toy-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .toy-card-heading { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .toy-card-heading .demo-icon { width: 32px; height: 32px; flex-shrink: 0; background: transparent; }
+    .toy-card-heading img { display: block; width: 32px; height: 32px; }
+    .toy-card-heading h2 { margin: 0; }
+    .toy-card > .toy-card-heading { flex-shrink: 0; }
+    .toy-card > p { margin-block: 10px 14px; }
     .toy-card .demo-icon { font-size: 24px; }
   </style>
 </head>

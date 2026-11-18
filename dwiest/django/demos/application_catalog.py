@@ -65,7 +65,7 @@ APPLICATIONS = (
     Application('toy_fireworks', 'Pixel Fireworks', 'toys', url='fireworks/index.html', section='Ambient', description='Pixel bursts, glowing trails, and sky writing.', enforce=False),
     Application('toy_beam_riders', 'Beam Riders', 'toys', url='beam-riders/index.html', section='Arcade', description='Neon lightcycles and last-rider-standing races.', enforce=False),
     Application('toy_centipede', 'Centipede', 'toys', url='centipede/index.html', section='Arcade', description='A pixel garden with splitting centipedes and colorful explosions.', enforce=False),
-    Application('toy_defender', 'Defender', 'toys', url='defender/index.html', section='Arcade', description='Patrol a scrolling planet and rescue its inhabitants.', enforce=False),
+    Application('toy_defender', 'Abduction', 'toys', url='defender/index.html', section='Arcade', description='Rescue humans and cows from alien captors, then survive the wormhole swarm.', enforce=False),
     Application('toy_frogger', 'Frogger', 'toys', url='frogger/index.html', section='Arcade', description='Cross pixel traffic, river rides, and a railway.', enforce=False),
     Application('toy_galaga', 'Galaga', 'toys', url='galaga/index.html', section='Arcade', description='Diving attackers, captured fighters, and double fire.', enforce=False),
     Application('toy_missile_command', 'Missile Command', 'toys', url='missile-command/index.html', section='Arcade', description='Defend pixel cities with colorful chain reactions.', enforce=False),
