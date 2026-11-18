@@ -8,6 +8,7 @@
       <div class="ww-app-tabs" role="tablist" aria-label="Application categories">
         {% for group in app_menu.groups %}<button type="button" id="ww-app-tab-{{ group.key }}" role="tab" data-app-category="{{ group.key }}" aria-controls="ww-app-panel-{{ group.key }}" aria-selected="{% if group.key == app_menu.active %}true{% else %}false{% endif %}"{% if group.key != app_menu.active %} tabindex="-1"{% endif %}>{{ group.title }}</button>{% endfor %}
       </div>
+      <div class="ww-app-panels">
       {% for group in app_menu.groups %}
         <section class="ww-app-panel" id="ww-app-panel-{{ group.key }}" data-app-panel="{{ group.key }}" role="tabpanel" aria-labelledby="ww-app-tab-{{ group.key }}" tabindex="0">
           <div class="ww-app-panel-heading"><h2>{{ group.title }}</h2>{% if group.key == 'toys' %}{% url 'demos:desktop_toys' as toys_catalog_url %}{% if toys_catalog_url %}<a href="{{ toys_catalog_url }}">View all toys →</a>{% endif %}{% endif %}</div>
@@ -24,6 +25,7 @@
           {% if group.key == 'toys' %}<p class="ww-app-count">{{ group.items|length }} toy{{ group.items|length|pluralize }}</p>{% endif %}
         </section>
       {% endfor %}
+      </div>
     {% else %}<p class="ww-app-empty">No applications have been enabled for your account yet.</p>{% endif %}
   </nav>
 </details>
