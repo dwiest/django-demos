@@ -1,4 +1,5 @@
 {% extends 'dwiest-django-demos/applications/base.html' %}
+{% load static %}
 {% block title %}Desktop toys{% endblock %}
 {% block content %}
   <div class="demo-intro">
@@ -12,8 +13,12 @@
       <div class="demo-grid demo-catalog">
         {% for toy in section.items %}
           <article class="demo-card toy-card">
-            <span class="demo-icon" aria-hidden="true">{% if section.title == 'Ambient' %}✦{% else %}▦{% endif %}</span>
-            <h2>{{ toy.title }}</h2>
+            {% static 'dwiest-django-demos/toy-previews/' as preview_root %}
+            {% static 'dwiest-django-demos/toy-icons/' as icon_root %}
+            <a class="toy-preview" href="{{ toy.url }}" aria-label="Open {{ toy.title }}">
+              <img src="{{ preview_root }}{{ toy.key }}.webp" alt="{{ toy.title }} gameplay" width="640" height="400" loading="lazy" decoding="async">
+            </a>
+            <div class="toy-card-heading"><span class="demo-icon" aria-hidden="true"><img src="{{ icon_root }}{{ toy.key }}.svg" alt="" width="32" height="32"></span><h2>{{ toy.title }}</h2></div>
             <p>{{ toy.description }}</p>
             <a class="button primary" href="{{ toy.url }}">Open {{ toy.title }} <span aria-hidden="true">→</span></a>
           </article>
