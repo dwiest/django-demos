@@ -2,7 +2,7 @@
 
 The catalog uses a 640 × 400 WebP preview and a 32 × 32 SVG icon for each stable application key. Keep the existing toy_defender identity for Abduction so grants and URLs remain valid.
 
-Previews were captured from actual running toys in dwiest/wiest-desktop-toys on November 18, 2026, using Chromium at a 1100 × 800 viewport after about ten seconds of playback. Capture the canvas (the stage for the layered Spinning Sticks canvases), preserve its aspect ratio, and pad to 640 × 400 with #080d18. Fireworks uses the Festival preset and a launched volley. Convert to WebP at quality 84. The 13 previews total about 156 KB.
+Previews were captured from actual running toys in dwiest/wiest-desktop-toys on November 18, 2026, using Chromium at a 1100 × 800 viewport after an initial warm-up. Abduction uses a frame at 120 seconds, Missile Command at 90 seconds, and Ms. Pac-Man and Pixel Fireworks at 45 seconds; these replace their early captures. The remaining toys use about ten seconds of playback. Capture the canvas (the stage for the layered Spinning Sticks canvases), preserve its aspect ratio, and pad to 640 × 400 with #080d18. Fireworks uses the Festival preset with 18 launches per minute and three shells per launch. Convert to WebP at quality 84. 
 
 Existing header marks are reused for Spinning Sticks, Tidal, Plinko, Pixel Fireworks, and Abduction. Arcade icons use their gameplay bitmap sprites where available; Ms. Pac-Man and Missile Command have matching vector symbols.
 
