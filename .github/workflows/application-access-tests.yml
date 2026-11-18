@@ -17,6 +17,9 @@ on:
       - 'dwiest/django/demos/news/consumers.py'
       - 'dwiest/django/demos/restapi/views.py'
       - 'tests/*navigation*'
+      - 'tests/application-menu-layout.test.cjs'
+      - 'dwiest/django/demos/static/dwiest-django-demos/bookmarks/ui.css'
+      - 'dwiest/django/demos/static/dwiest-django-demos/demo_ui.css'
       - '.github/workflows/application-access-tests.yml'
   workflow_dispatch:
 permissions:
@@ -46,9 +49,14 @@ jobs:
         with:
           node-version: '24'
       - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3
-      - run: npm install --prefix "$RUNNER_TEMP/navigation-tests" jsdom@31.0.1 --ignore-scripts --no-audit --no-fund
+      - run: npm install --prefix "$RUNNER_TEMP/navigation-tests" jsdom@31.0.1 playwright@1.56.1 --ignore-scripts --no-audit --no-fund
       - run: python tests/render_navigation_fixture.py "$RUNNER_TEMP/navigation.html"
       - run: node --test tests/application-navigation.test.cjs
+        env:
+          APPLICATION_NAVIGATION_FIXTURE: ${{ runner.temp }}/navigation.html
+          NODE_PATH: ${{ runner.temp }}/navigation-tests/node_modules
+      - run: node "$RUNNER_TEMP/navigation-tests/node_modules/playwright/cli.js" install --with-deps chromium
+      - run: node --test tests/application-menu-layout.test.cjs
         env:
           APPLICATION_NAVIGATION_FIXTURE: ${{ runner.temp }}/navigation.html
           NODE_PATH: ${{ runner.temp }}/navigation-tests/node_modules
