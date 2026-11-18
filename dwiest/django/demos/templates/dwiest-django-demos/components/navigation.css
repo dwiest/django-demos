@@ -11,8 +11,8 @@
 .ww-nav-menu > summary::after { content: '▾'; font-size: 11px; }
 .ww-nav-menu[open] > summary, .ww-nav-menu > summary:hover { background: #e3f2f1; color: #087f83; }
 .ww-nav-menu > summary:focus-visible, .ww-nav-menu a:focus-visible, .ww-site-header a:focus-visible { outline: 3px solid #13a4a7; outline-offset: 2px; }
-.ww-nav-menu > nav { position: absolute; top: calc(100% + 6px); z-index: 110; padding: 12px; background: #fff; border: 1px solid #dce2e9; border-radius: 8px; box-shadow: 0 8px 24px #15253c20; max-height: calc(100vh - 76px); max-height: calc(100dvh - 76px); overflow-y: auto; }
-.ww-nav-menu > nav a { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 10px; border-radius: 5px; color: #172234; text-decoration: none; font-weight: 400; }
+.ww-nav-menu > nav { position: absolute; top: calc(100% + 6px); z-index: 110; padding: 8px; font-size: 13px; background: #fff; border: 1px solid #dce2e9; border-radius: 8px; box-shadow: 0 8px 24px #15253c20; max-height: calc(100vh - 76px); max-height: calc(100dvh - 76px); overflow-y: auto; }
+.ww-nav-menu > nav a { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 8px; white-space: nowrap; border-radius: 5px; color: #172234; text-decoration: none; font-weight: 400; }
 .ww-nav-menu > nav a:hover { color: #087f83; background: #f0f7f7; text-decoration: none; }
 .ww-nav-menu > nav a[aria-current] { background: #e3f2f1; color: #087f83; font-weight: 600; }
 .ww-nav-menu > nav a[aria-current]::after { content: '✓'; margin-left: auto; }
@@ -25,7 +25,7 @@
 .ww-apps-grid { display: grid; grid-template-rows: repeat(var(--app-rows, 6), auto); grid-auto-flow: column; grid-template-columns: repeat(2, max-content); column-gap: 16px; }
 .ww-app-tabs { display: none; border-top: 1px solid #dce2e9; border-bottom: 1px solid #dce2e9; margin-bottom: 12px; }
 .ww-tabs-ready .ww-app-tabs { display: flex; }
-.ww-app-tabs button { flex: 1; min-width: 0; min-height: 44px; padding: 8px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #172234; font: inherit; cursor: pointer; }
+.ww-app-tabs button { flex: 1 0 auto; min-width: max-content; min-height: 36px; padding: 6px 8px; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #172234; font: inherit; cursor: pointer; }
 .ww-app-tabs button[aria-selected="true"] { border-bottom-color: #087f83; color: #087f83; font-weight: 600; }
 .ww-app-tabs button:focus-visible { outline: 3px solid #13a4a7; outline-offset: -3px; }
 .ww-app-panel[hidden] { display: none; }
@@ -72,7 +72,7 @@
   .ww-apps-services { flex: auto; border-left: 0; border-top: 1px solid #dce2e9; padding: 10px 0 0; }
   .ww-nav-menu .ww-apps-services a { display: inline-flex; }
   .ww-apps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 4px; }
-  .ww-apps-panel a { font-size: 14px; }
+  .ww-apps-panel a { font-size: inherit; }
   .ww-toy-sections { grid-template-columns: 1fr; }
   .ww-toy-sections .ww-app-section + .ww-app-section { border-left: 0; border-top: 1px solid #dce2e9; padding: 10px 0 0; }
   .ww-toy-sections [data-toy-section="Ambient"] .ww-apps-grid { display: grid; }
@@ -83,7 +83,8 @@
   .bookmarks-header .nav-link { font-size: 14px; }
 }
 @media (max-width: 480px) {
-  .ww-app-tabs button { font-size: 13px; padding-inline: 4px; }
+  .ww-nav-menu > nav { font-size: 12px; }
+  .ww-app-tabs button { font-size: inherit; padding-inline: 6px; }
   .bookmarks-header .brand span { display: none; }
   .bookmarks-header .app-navigation { gap: 10px; }
   .bookmarks-tabs { gap: 12px; }
