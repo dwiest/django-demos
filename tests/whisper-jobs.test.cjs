@@ -2,12 +2,13 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-function setup(responses) {
+function setup(responses, started) {
   const timers=[], nodes={};
   for (const id of ['#job-state','#job-stage','#job-poll-error']) {
     nodes[id]={textContent:''};
     Object.defineProperty(nodes[id], 'innerHTML', {set() {throw new Error('unsafe rendering');}});
   }
+  if (started) nodes['#job-elapsed']={dataset:{started:String(started)},textContent:''};
   const panel={dataset:{jobPoll:'/jobs/id/status/'}};
   let reloads=0, onhide;
   const context={document:{querySelector:key=>key==='[data-job-poll]'?panel:nodes[key]},
@@ -33,4 +34,12 @@ test('poll failures keep a recoverable status message and navigation stops polli
   await run.step();
   assert.equal(run.timers.length,0);
   assert.equal(run.reloads(),0);
+});
+
+test('running elapsed time renders hours minutes seconds and stops on navigation', async()=>{
+  const run=setup([], Date.now()/1000-3661);
+  assert.match(run.nodes['#job-elapsed'].textContent, /1 hour, 1 minute, [12] seconds?/);
+  run.hide();
+  while(run.timers.length) await run.step();
+  assert.equal(run.timers.length,0);
 });

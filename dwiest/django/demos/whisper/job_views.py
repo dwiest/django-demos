@@ -16,6 +16,12 @@ TERMINAL = ('completed', 'failed', 'cancelled')
 
 def job_present(item):
     item = dict(item)
+    start = item.get('started_at')
+    end = item.get('completed_at') or datetime.now(timezone.utc).timestamp()
+    item['elapsed_seconds'] = max(0, end - start) if start is not None else None
+    item['queue_seconds'] = max(0, (start or end) - item['created_at'])
+    summary = item.get('summary') or {}
+    item['recording_seconds'] = summary.get('audio_duration_seconds')
     item['terminal'] = item['status'] in TERMINAL
     item['cancellable'] = item['status'] in ('queued', 'running')
     item['can_delete'] = item['terminal']
