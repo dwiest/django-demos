@@ -42,6 +42,8 @@
 .ww-nav-menu .ww-app-panel-heading > a { font-size: 13px; min-height: 32px; padding: 4px 10px; color: #087f83; }
 .ww-app-section { min-width: 0; }
 .ww-app-section h3 { color: #65738a; font-size: 13px; font-weight: 600; margin: 4px 10px; }
+.ww-app-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+.ww-nav-menu .ww-app-section-heading > a { min-height: 32px; padding: 4px 8px; color: #087f83; }
 .ww-toy-sections { display: grid; grid-template-columns: max-content max-content; gap: 12px; }
 .ww-toy-sections .ww-app-section + .ww-app-section { border-left: 1px solid #dce2e9; padding-left: 12px; }
 .ww-toy-sections [data-toy-section="Ambient"] .ww-apps-grid { display: flex; flex-direction: column; }
