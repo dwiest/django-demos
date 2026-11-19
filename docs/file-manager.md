@@ -16,36 +16,22 @@ import. Anonymous access is no longer supported.
 
 ## Provision and configure
 
-Deploy from this repository (replace the role and exact browser origin):
+AWS infrastructure is maintained in
+[`wiest-aws-serverless/apps/file-manager`](https://github.com/dwiest/wiest-aws-serverless/tree/main/apps/file-manager).
+Follow its [deployment instructions](https://github.com/dwiest/wiest-aws-serverless/blob/main/apps/file-manager/README.md)
+to provision the private versioned S3 bucket, DynamoDB metadata table, HTTPS bucket
+policy, and scoped permissions on the existing Django EC2 role. Run infrastructure
+deployment commands from that repository; Django code, migration/cleanup commands,
+and application tests remain here.
 
-```sh
-aws cloudformation deploy \
-  --stack-name file-manager \
-  --template-file deploy/file-manager.yaml \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --parameter-overrides \
-    DjangoRoleName=YOUR_EXISTING_EC2_ROLE \
-    DjangoOrigin=https://apps.wiest.world
+If already deployed from the former `deploy/file-manager.yaml` path, reuse the
+existing stack name, region, and parameters. The moved template has unchanged
+resource definitions and logical IDs, so the source-file move does not require a
+new stack or data migration. Infrastructure deployment does not install Django,
+import files, or schedule cleanup.
 
-aws cloudformation describe-stacks --stack-name file-manager \
-  --query 'Stacks[0].Outputs'
-```
-
-Use the actual browser origin (for example `https://staging.wiest.world` if that's
-where Django is served), without a path or trailing slash. The template provisions:
-
-- A private, encrypted, versioned S3 bucket with exact-origin upload CORS and HTTPS-only access.
-- An on-demand DynamoDB table with point-in-time recovery and deletion protection.
-- An inline policy attached to the supplied EC2 role for this table and bucket prefix.
-
-Both data resources are retained if the stack is removed. Creating the stack and
-attaching its role policy requires CloudFormation/IAM deployment permissions. If
-instance-role permissions are managed elsewhere, incorporate the policy there.
-Existing restrictive VPC endpoint policies must also permit the new resources;
-DynamoDB and S3 gateway endpoints must be available from the EC2 subnet if it has
-no internet egress. The user's browser must reach the regional S3 upload endpoint.
-
-Add the stack outputs to Django settings or its service environment:
+Use CloudFormation outputs `FileManagerBucket`, `FileManagerTable`, and
+`FileManagerRegion` for the corresponding Django settings or service environment:
 
 ```python
 FILE_MANAGER_BUCKET = 'OUTPUT_BUCKET_NAME'
