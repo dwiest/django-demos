@@ -22,3 +22,8 @@ def elapsed(value):
         parts.append('{} minute{}'.format(minutes, '' if minutes == 1 else 's'))
     parts.append('{} second{}'.format(seconds, '' if seconds == 1 else 's'))
     return ', '.join(parts)
+
+
+@register.filter
+def human_label(value):
+    return str(value).replace('_',' ').capitalize()

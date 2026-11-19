@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views, job_views, ai_views
+from . import views, job_views, ai_views, analysis_views
 
 app_name = 'whisper'
 urlpatterns = [
+    path('jobs/<slug:job_id>/analyze/',analysis_views.submit,name='analyze'),
+    path('jobs/<slug:job_id>/review/',analysis_views.review,name='analysis_review'),
     path('ai/settings/', ai_views.settings, name='ai_settings'),
     path('jobs/', job_views.history, name='jobs'),
     path('jobs/<slug:job_id>/', job_views.detail, name='job'),

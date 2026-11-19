@@ -1,4 +1,6 @@
 from django import forms
+from django.conf import settings
+import os
 
 
 class FileForm(forms.Form):
@@ -71,8 +73,9 @@ class TranscriptionForm(forms.Form):
 
 
 class AISettingsForm(forms.Form):
+    model_choice = forms.ChoiceField(required=False, label='Suggested model')
     model = forms.RegexField(regex=r'^[A-Za-z0-9._:-]{1,128}$', required=False, max_length=128,
-        label='OpenAI analysis model', help_text='Use a model available to your API account.')
+        label='Custom model (optional)', help_text='Overrides the dropdown. Enter an exact model ID available to your API account.')
     instructions = forms.CharField(required=False, max_length=8000, label='Default analysis instructions',
         widget=forms.Textarea(attrs={'rows': 7}))
     api_key = forms.CharField(required=False, max_length=512, strip=True,
@@ -82,12 +85,53 @@ class AISettingsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        models = getattr(settings, 'WHISPER_AI_MODELS', os.environ.get('WHISPER_AI_MODELS',
+            getattr(settings, 'BOOKMARKS_AI_MODELS', os.environ.get('BOOKMARKS_AI_MODELS',
+            ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-luna', 'gpt-5.4-mini']))))
+        if isinstance(models,str): models=[m.strip() for m in models.split(',') if m.strip()]
+        self.fields['model_choice'].choices=[('', 'Choose a model')] + [(m,m) for m in dict.fromkeys(models)]
+        saved=self.initial.get('model','')
+        if not self.is_bound and saved in models:
+            self.initial['model_choice']=saved
+            self.initial['model']=''
         for field in self.fields.values():
             if not isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs['class'] = 'control'
 
     def clean(self):
         data = super().clean()
+        data['model'] = data.get('model') or data.get('model_choice','')
         if data.get('api_key') and data.get('remove_api_key'):
             self.add_error('api_key', 'Replace or remove the key, not both.')
+        return data
+
+
+class AnalysisForm(forms.Form):
+    operation_key = forms.RegexField(regex=r'^[a-f0-9]{32}$',widget=forms.HiddenInput)
+    instructions = forms.CharField(required=False,max_length=4000,label='Instructions for this analysis',
+        widget=forms.Textarea(attrs={'class':'control','rows':4}))
+    retention_days = forms.IntegerField(min_value=1,max_value=36500,initial=365,label='Days to keep the analysis',widget=forms.NumberInput(attrs={'class':'control'}))
+
+
+class AnalysisReviewForm(forms.Form):
+    title=forms.CharField(max_length=255)
+    summary=forms.CharField(max_length=20000,required=False,widget=forms.Textarea(attrs={'rows':6}))
+    key_points=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':4}))
+    decisions=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':4}))
+    action_items=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':4}))
+    open_questions=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':4}))
+    warnings=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':4}))
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        for name,field in self.fields.items():
+            field.widget.attrs['class']='control'
+            if name not in ('title','summary'):field.help_text='One item per line; up to 30 items, 2000 characters each.'
+
+    def clean(self):
+        data=super().clean()
+        for name in ('key_points','decisions','action_items','open_questions','warnings'):
+            lines=[line.strip() for line in data.get(name,'').splitlines() if line.strip()]
+            if len(lines)>30 or any(len(line)>2000 for line in lines):self.add_error(name,'Use at most 30 items of 2000 characters each.')
+            else:data[name]=lines
         return data
