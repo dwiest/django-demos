@@ -40,7 +40,7 @@ class WhisperClient:
         self.user_reference = str(user.pk)
 
     def request(self, method, path, payload=None, key=None):
-        if not path.startswith('/files') or '://' in path or '#' in path or '\r' in path or '\n' in path:
+        if not (path == '/files' or path.startswith(('/files/', '/files?', '/jobs/', '/jobs?')) or path == '/jobs') or '://' in path or '#' in path or '\r' in path or '\n' in path:
             raise ServiceError('Invalid media service path.', 400)
         data = json.dumps(payload).encode('utf-8') if payload is not None else None
         headers = {'X-User-Reference': self.user_reference, 'Content-Type': 'application/json'}

@@ -32,8 +32,9 @@ def present(item):
     for field in ('created_at', 'ready_at', 'expires_at'):
         if item.get(field) is not None:
             item[field + '_date'] = datetime.fromtimestamp(item[field], timezone.utc)
-    item['expired'] = item['status'] == 'ready' and item.get('expires_at') is not None and item['expires_at'] <= datetime.now(timezone.utc).timestamp()
-    item['ready'] = item['status'] == 'ready' and (item.get('expires_at') is None or item['expires_at'] > datetime.now(timezone.utc).timestamp())
+    item['protected'] = int(item.get('dependent_count', 0)) > 0
+    item['expired'] = not item['protected'] and item['status'] == 'ready' and item.get('expires_at') is not None and item['expires_at'] <= datetime.now(timezone.utc).timestamp()
+    item['ready'] = item['status'] == 'ready' and (item['protected'] or item.get('expires_at') is None or item['expires_at'] > datetime.now(timezone.utc).timestamp())
     return item
 
 

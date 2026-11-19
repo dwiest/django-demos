@@ -1,9 +1,10 @@
-# Whisper: phase 1 media library
+# Whisper: media library and transcription
 
-Whisper is a separate Django application at `/django/demos/whisper/`. Phase 1
+Whisper is a separate Django application at `/django/demos/whisper/`. The file library
 supports owner-scoped audio/video uploads, file details and history, display names,
-original-file downloads, retention, and deletion. It does not transcribe files or
-call OpenAI. There is no worker, API-key screen, AMI, or container requirement yet.
+original-file downloads, retention, and deletion. Phase 2 adds explicit queued local transcription and transcript review. It does
+not call OpenAI; API-key settings and analysis remain phase 3. The existing EC2
+Whisper installation runs the daemon; no AMI/container image is required.
 
 ## Deploy the companion AWS application first
 
@@ -55,8 +56,8 @@ partial uploads must be restarted from Upload file. Expired registrations and
 abandoned objects are removed by cleanup/lifecycle rules.
 
 The phase 1 checks establish registered size/type/metadata and a stable S3 version,
-not that bytes actually decode as valid media. A future worker must validate and
-bound media decoding. No processing is triggered by uploading or verification.
+not that bytes actually decode as valid media. The phase 2 worker validates and
+bounds media decoding before invoking Whisper. No processing is triggered by uploading or verification.
 
 Retention starts when upload verification succeeds. Changing days remains relative
 to that completion date; shortening it can expire a file immediately. Expired files
@@ -87,16 +88,83 @@ stored versions disappear after the cleanup grace period. AWS notes that newly
 enabled S3 versioning can take up to 15 minutes to propagate; allow that before
 initial upload writes on a new stack.
 
-## Subsequent phases
+## Phase 2: queue and review transcriptions
 
-Phase 2 adds versioned transcription jobs, SQS dispatch, job review, and a daemon
-on the user's already-configured Whisper EC2 instance. The worker renews its SQS
-visibility and DynamoDB lease; no image build is required initially. It reads the
-source object version stored in the file record. File deletion must be extended
-with atomic dependency checks before accepting transcription jobs.
+Deploy the companion backend update first, preserving the existing stack and its
+application ID/role/origin. It adds a Jobs table, SQS queues, stream dispatch and
+job maintenance; uploaded phase 1 media remains usable. Configure/start the
+existing EC2 Whisper host using `apps/whisper/worker/README.md` in the serverless
+repository. The supplied service is a Python daemon plus systemd unit; it invokes
+the installed Whisper executable, so no new engine installation or image is
+required. The host needs a Python 3.9+ environment for boto3/shared worker code;
+Whisper may remain in a separate existing virtualenv.
+
+Install this Django update, collect static files and restart web workers. There
+is no new Django migration for phase 2. Existing WHISPER_SERVICE_URL/REGION and
+Can access Whisper grants apply. Keep backend deployment first: the new UI calls
+job routes absent from phase 1. The existing Django invoke policy covers those
+paths if it uses the backend's ServiceInvokeResource output.
+
+Open a ready recording and choose **Transcribe**. Set the model (base by default),
+language (blank means detect), task (original-language transcription or translation
+to English), optional word timestamps, temperature, beam size, previous-text
+context and optional vocabulary/initial context. Whisper context is vocabulary
+support, not the later AI analysis instructions. Translation rejects turbo and
+English-only models. Retention defaults to 365 days after the job finishes, or
+choose indefinite. Host configuration controls CPU/CUDA, model cache and runtime
+limits; users cannot submit arbitrary executable paths/flags.
+
+Choose **Queue transcription**. The job persists after the browser closes. Its
+page polls while active and shows stage, timestamps, attempts and the eventual
+transcript or safe failure reason. Jobs lists account history; file details links
+to that recording's history. All routes use the same account/app-grant enforcement
+as uploads. Each job preserves its exact source object version and normalized
+options, independently of later file renames or other transcription runs.
+
+A repeated POST using the same hidden operation key and options reuses its job.
+Uncertain network submissions preserve that key and the form. **Run another
+transcription** opens a fresh form/key and deliberately creates a new run. New
+options with an already-used key are rejected rather than silently modifying an
+existing job. Expected engine failures require an explicit new run; infrastructure
+failures can retry automatically within bounded attempts.
+
+Completed jobs show a safely escaped text preview and TXT/JSON/SRT/VTT/TSV
+downloads. Previews are limited to 200000 bytes with an explicit notice; downloads
+contain complete outputs. Links expire in five minutes; refresh to renew. Whisper
+output is automatic and should be checked against the source. No analysis or
+transcript editing/version replacement is performed in this phase.
+
+**Cancel job** shows a confirmation page. Queued work cancels immediately; running
+work stops at its next worker heartbeat. Offline-worker cancellation is settled
+by backend maintenance after lease expiry. **Delete job** also requires a POST
+confirmation and only accepts terminal jobs. It removes all attempt outputs and
+then releases the source dependency. A source recording cannot be deleted while
+any retained completed/failed/cancelled/active job references it. That source stays
+readable beyond nominal retention until those jobs are cleaned up. This prevents
+deleting audio needed by queued jobs or by retained transcript provenance.
+
+## Phase 2 verification
+
+```sh
+python -m django test dwiest.django.demos.whisper.tests \
+  dwiest.django.demos.whisper.test_jobs \
+  dwiest.django.demos.test_application_access \
+  --settings=dwiest.django.demos.test_application_settings -v 2
+node --test tests/whisper-upload.test.cjs tests/whisper-jobs.test.cjs
+```
+
+Tests cover forms/options, stable submission keys, history and owner-scoped
+transport, grants/CSRF, polling, safe transcript rendering, downloads and cancel/
+delete confirmations. The companion backend suite exercises real local queue/
+storage simulations and subprocess lifecycle, with a simulated Whisper engine;
+a real FFmpeg decode is checked where the tools are installed. Live AWS IAM/CORS,
+actual Whisper model output, and GPU/CPU behavior require the worker README's
+smoke test on your instance. Nothing is deployed automatically by these tests.
+
+## Next phase
 
 Phase 3 adds per-user OpenAI keys in Parameter Store SecureString, model and saved
 instructions, per-job instructions, versioned transcript analysis, and review/edit/
 approve screens. The worker resolves credentials from authenticated ownership;
-queue messages contain references only. This phase can provide the credential
-lookup pattern for the existing Jobs application to adopt later.
+queue messages contain references only. This can provide the credential lookup
+pattern for the existing Jobs application to adopt later.
