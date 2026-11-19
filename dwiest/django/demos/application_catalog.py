@@ -45,6 +45,7 @@ class Application:
 
 
 APPLICATIONS = (
+    Application('whisper', 'Whisper', namespace='whisper', route='demos:whisper:home', description='Manage recordings for transcription and analysis.'),
     Application('bookmarks', 'Bookmarks', namespace='bookmarks', route='demos:bookmarks:home'),
     Application('invoicer', 'Invoicer', namespace='invoicer', route='demos:invoicer:home'),
     Application('journal', 'Journal', namespace='journal', route='demos:journal:home'),

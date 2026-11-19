@@ -41,6 +41,7 @@ for key in ['bookmarks', 'invoicer', 'journal', 'qrcode', 'otp', 'expenses',
     if key == 'inventory':
         routes += [path('api/items/', ItemListAPI.as_view(), name='api_items')]
     demos.append(path(key + '/', include((routes, key), namespace=key)))
+demos.append(path('whisper/', include('dwiest.django.demos.whisper.urls', namespace='whisper')))
 demos.append(path('new-app/', include(([path('', page, name='home')], 'new_app'), namespace='new_app')))
 demos.append(path('restapi/', include(([
     path('users/', UserViewSet.as_view({'get': 'list', 'post': 'create'}), name='user-list'),

@@ -1,0 +1,11 @@
+{% extends 'dwiest-django-demos/whisper/base.html' %}
+{% block title %}Upload file{% endblock %}
+{% block content %}<div class="page-heading"><h1>Upload a recording</h1></div><p>Choose an audio or video file up to 1 GiB. Uploading stores the file; processing starts only when you request it in a later phase.</p>
+<form class="media-panel" id="media-upload" data-register="{% url 'demos:whisper:register' %}" data-complete-template="{% url 'demos:whisper:complete' 'FILE_ID' %}">{% csrf_token %}
+<div class="field"><label for="media-file">Audio or video file</label><input class="control" type="file" id="media-file" required accept=".mp3,.wav,.m4a,.flac,.ogg,.opus,.aac,.mp4,.mov,.webm,.mkv"></div>
+<div class="field"><label for="media-name">Display name (optional)</label><input class="control" id="media-name" maxlength="255"></div>
+<div class="field"><label for="media-days">Days to keep from upload completion</label><input class="control" type="number" id="media-days" value="365" min="1" max="36500"></div>
+<div class="field"><label><input type="checkbox" id="media-forever">Keep indefinitely</label></div>
+<button class="button primary" type="submit" id="upload-submit">Upload file</button>
+<progress id="upload-progress" max="100" value="0" aria-label="Upload progress" hidden></progress><p id="upload-status" role="status" aria-live="polite"></p><p id="upload-error" role="alert" class="error" hidden></p><a id="upload-review" hidden>Review file</a>
+<noscript><p class="error">Enable JavaScript for direct uploads and progress reporting.</p></noscript></form>{% endblock %}
