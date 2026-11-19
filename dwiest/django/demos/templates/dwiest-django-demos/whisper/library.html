@@ -1,6 +1,6 @@
 {% extends 'dwiest-django-demos/whisper/base.html' %}
 {% block content %}<div class="page-heading"><div><h1>Your files</h1><p class="muted">Audio and video, ready for the next step.</p></div><a class="button secondary" href="{% url 'demos:whisper:home' %}">Refresh</a></div>
-<p class="notice">File management is available now. Transcription and transcript analysis are coming in the next phases.</p>
+<p class="notice">Upload a recording, open its details, and choose Transcribe. Transcript analysis will follow in phase 3.</p>
 {% if service_error %}<div class="notice error" role="alert">{{ service_error }}</div>{% else %}
 <div class="file-list">{% for file in files %}<article class="file-row"><div><h2><a href="{% url 'demos:whisper:detail' file.file_id %}">{{ file.display_name }}</a></h2><p class="muted">{{ file.original_name }} · {{ file.size|filesizeformat }} · {{ file.created_at_date|date:'M j, Y, g:i a' }}</p></div><span class="file-status">{% if file.expired %}Expired{% else %}{{ file.status|capfirst }}{% endif %}</span></article>{% empty %}<div class="empty"><h2>No files yet</h2><p>Upload a recording to start your library.</p><a class="button primary" href="{% url 'demos:whisper:upload' %}">Upload your first file</a></div>{% endfor %}</div>
 {% if next_cursor %}<p class="pagination"><a class="button secondary" href="?cursor={{ next_cursor|urlencode }}">Older files</a></p>{% endif %}{% endif %}{% endblock %}
