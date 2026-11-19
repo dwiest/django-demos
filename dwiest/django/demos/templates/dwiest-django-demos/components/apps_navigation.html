@@ -11,11 +11,11 @@
       <div class="ww-app-panels">
       {% for group in app_menu.groups %}
         <section class="ww-app-panel" id="ww-app-panel-{{ group.key }}" data-app-panel="{{ group.key }}" role="tabpanel" aria-labelledby="ww-app-tab-{{ group.key }}" tabindex="0">
-          <div class="ww-app-panel-heading"><h2>{{ group.title }}</h2>{% if group.key == 'toys' %}{% url 'demos:desktop_toys' as toys_catalog_url %}{% if toys_catalog_url %}<a href="{{ toys_catalog_url }}">View all toys →</a>{% endif %}{% endif %}</div>
+          {% if group.key != 'toys' %}<div class="ww-app-panel-heading"><h2>{{ group.title }}</h2></div>{% endif %}
           <div class="ww-app-sections{% if group.key == 'toys' %} ww-toy-sections{% endif %}">
             {% for section in group.sections %}
               <section class="ww-app-section" data-toy-section="{{ section.title }}">
-                {% if section.title %}<h3>{{ section.title }}</h3>{% endif %}
+                {% if section.title %}<div class="ww-app-section-heading"><h3>{{ section.title }}</h3>{% if group.key == 'toys' and forloop.last %}{% url 'demos:desktop_toys' as toys_catalog_url %}{% if toys_catalog_url %}<a href="{{ toys_catalog_url }}">View all toys →</a>{% endif %}{% endif %}</div>{% endif %}
                 <div class="ww-apps-grid" style="--app-rows: {{ section.rows }}">
                   {% for app in section.items %}<a href="{{ app.url }}"{% if app.current %} aria-current="true"{% endif %}>{{ app.title }}</a>{% endfor %}
                 </div>

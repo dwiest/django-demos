@@ -35,6 +35,17 @@ test('shared page styles cannot resize the Apps panel when switching tabs', asyn
         assert.ok(box.x >= 0 && box.x + box.width <= width + 1);
         assert.ok(box.y + box.height <= height + 1);
         assert.equal(await page.getByRole('tabpanel').count(), 1);
+        if (category === 'toys') {
+          const panel = page.getByRole('tabpanel');
+          assert.equal(await panel.getByRole('heading', { name: 'Desktop toys', exact: true }).count(), 0);
+          const link = await panel.getByRole('link', { name: 'View all toys →' }).boundingBox();
+          const arcade = await panel.getByRole('heading', { name: 'Arcade', exact: true }).boundingBox();
+          assert.ok(Math.abs(link.y + link.height / 2 - arcade.y - arcade.height / 2) < 1);
+          if (width > 650) {
+            const ambient = await panel.getByRole('heading', { name: 'Ambient', exact: true }).boundingBox();
+            assert.ok(Math.abs(link.y + link.height / 2 - ambient.y - ambient.height / 2) < 1);
+          }
+        }
         for (const link of await page.locator('.ww-app-panel[hidden] a').all()) {
           await link.evaluate(element => element.focus());
           assert.equal(await link.evaluate(element => element === document.activeElement), false);
