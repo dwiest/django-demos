@@ -1,5 +1,5 @@
 {% extends 'dwiest-django-demos/file/base.html' %}
-{% load dwiest_django_demos.file.filters %}
+{% load dwiest_django_demos.file.filters static %}
 {% block content %}
 <div class="page-heading">
   <div><h1>Your files</h1><p class="muted file-subtitle">Upload files, review their details, and keep them within reach.</p></div>
@@ -7,24 +7,25 @@
 <div class="file-overview">
   <section class="file-panel" id="upload" aria-labelledby="upload-heading">
     <h2 id="upload-heading">Upload a file</h2>
-    <form method="post" enctype="multipart/form-data" action="{% url 'demos:file:index' %}">
+    <form id="file-upload" data-register="{% url 'demos:file:register' %}" data-complete-template="{% url 'demos:file:complete' 'FILE_ID' %}">
       {% csrf_token %}
-      {{ form.non_field_errors }}
-      <div class="field">
-        <label for="{{ form.file.id_for_label }}">Choose file</label>
-        {{ form.file }}
-        {{ form.file.errors }}
-      </div>
-      <button class="button primary" type="submit">Upload file</button>
+      <div class="field"><label for="upload-file">Choose file</label><input id="upload-file" type="file" required></div>
+      <p class="muted">Files up to 1 GiB. Your storage quota may set a lower limit.</p>
+      <button id="upload-submit" class="button primary" type="submit">Upload file</button>
+      <progress id="upload-progress" max="100" value="0" hidden aria-label="Upload progress"></progress>
+      <p id="upload-status" role="status" aria-live="polite"></p>
+      <p id="upload-error" role="alert" hidden></p>
+      <a id="upload-review" hidden>Review file</a>
+      <noscript><p>Enable JavaScript to upload files directly to storage.</p></noscript>
     </form>
   </section>
   <section class="file-panel" aria-labelledby="storage-heading">
     <h2 id="storage-heading">Storage overview</h2>
     <dl class="file-details">
-      <div><dt>Files</dt><dd>{{ summary.files }} / {{ quota.max_files }}</dd></div>
-      <div><dt>Storage used</dt><dd>{{ summary.size|format_bytes:2 }} / {{ quota.max_total_filesize|format_bytes:2 }}</dd></div>
-      <div><dt>Maximum file size</dt><dd>{{ quota.max_filesize|format_bytes:2 }}</dd></div>
-    </dl>
+      <div><dt>Files</dt><dd>{{ summary.files }} / {% if quota.max_files > 0 %}{{ quota.max_files }}{% else %}unlimited{% endif %}</dd></div>
+      <div><dt>Storage used</dt><dd>{{ summary.size|format_bytes:2 }} / {% if quota.max_total_filesize > 0 %}{{ quota.max_total_filesize|format_bytes:2 }}{% else %}unlimited{% endif %}</dd></div>
+      <div><dt>Maximum file size</dt><dd>{% if quota.max_filesize > 0 and quota.max_filesize < 1073741824 %}{{ quota.max_filesize|format_bytes:2 }}{% else %}1 GiB{% endif %}</dd></div>
+    </dl><p class="muted">Includes reserved space for uploads awaiting verification.</p>
   </section>
 </div>
 <section class="file-panel" aria-labelledby="files-heading">
@@ -32,7 +33,7 @@
   {% if files %}
   <div class="file-table-scroll" role="region" aria-label="Uploaded files" tabindex="0">
     <table class="file-table">
-      <thead><tr><th scope="col">Filename</th><th scope="col">Content type</th><th scope="col">Size</th><th scope="col">Uploaded</th><th scope="col">Actions</th></tr></thead>
+      <thead><tr><th scope="col">Filename</th><th scope="col">Content type</th><th scope="col">Size</th><th scope="col">Uploaded</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
       <tbody>
         {% for file in files %}
         <tr>
@@ -40,9 +41,12 @@
           <td>{{ file.content_type }}</td>
           <td class="file-size">{{ file.size|format_bytes:2 }}</td>
           <td><time datetime="{{ file.created_at|date:'c' }}" title="{{ file.created_at|date:'M j, Y, H:i:s T' }}">{{ file.created_at|date:'M j, Y' }}</time></td>
+          <td>{{ file.status|capfirst }}</td>
           <td><div class="file-actions">
+            {% if file.ready %}
             <a class="button secondary" href="{% url 'demos:file:open' %}?path={{ file.path|urlencode }}" target="_blank" rel="noopener">Open<span class="sr-only"> {{ file.name }} in a new tab</span></a>
             <a class="button secondary" href="{% url 'demos:file:download' %}?path={{ file.path|urlencode }}">Download<span class="sr-only"> {{ file.name }}</span></a>
+            {% else %}<a class="button secondary" href="{% url 'demos:file:details' %}?path={{ file.path|urlencode }}">Verify upload</a>{% endif %}
             <a class="button file-danger" href="{% url 'demos:file:delete' %}?path={{ file.path|urlencode }}">Delete<span class="sr-only"> {{ file.name }}</span></a>
           </div></td>
         </tr>
@@ -54,4 +58,6 @@
   <div class="empty"><h3>No files yet</h3><p class="muted">Choose a file above to upload your first one.</p><a class="button secondary" href="#upload">Upload a file</a></div>
   {% endif %}
 </section>
+{% if next_cursor %}<a class="button secondary" href="?cursor={{ next_cursor|urlencode }}">Next page</a>{% endif %}
+<script src="{% static 'dwiest-django-demos/file/upload.js' %}" defer></script>
 {% endblock %}

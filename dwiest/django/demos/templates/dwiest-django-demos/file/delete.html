@@ -1,0 +1,11 @@
+{% extends 'dwiest-django-demos/file/base.html' %}
+{% block content %}
+<section class="file-panel">
+  <h1>Delete file?</h1>
+  <p>Delete {{ file.name }}? The file will become unavailable immediately.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="path" value="{{ file.path }}">
+    <button class="button file-danger" type="submit">Delete file</button>
+    <a class="button secondary" href="{% url 'demos:file:details' %}?path={{ file.path|urlencode }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,2 @@
+{% extends 'dwiest-django-demos/file/base.html' %}
+{% block content %}<div class="notice" role="alert">{{ storage_error }}</div><a href="{% url 'demos:file:index' %}">All files</a>{% endblock %}
