@@ -19,6 +19,12 @@
       <p>Save what you find, keep track of your work, and make room for your ideas. Explore the applications below.</p>
     </div>
     <section class="demo-grid demo-catalog" aria-label="Featured applications">
+      {% if app_catalog.by_key.whisper %}<article class="demo-card">
+        <span class="demo-icon" aria-hidden="true">♫</span><h2>Whisper</h2>
+        <p>Manage recordings for transcription and analysis.</p>
+        <ul><li>Upload audio and video files</li><li>Review file details and downloads</li><li>Manage names and retention</li></ul>
+        <a class="button primary" href="{% url 'demos:whisper:home' %}">Open Whisper</a>
+      </article>{% endif %}
       {% if app_catalog.by_key.bookmarks %}
       <article class="demo-card">
         <span class="demo-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4Z"/></svg></span>

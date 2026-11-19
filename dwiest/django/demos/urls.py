@@ -24,6 +24,7 @@ urlpatterns = [
     TemplateView.as_view(
       template_name="dwiest-django-demos/demo_landing.html"), name='home'
     ),
+  path('whisper/', include('dwiest.django.demos.whisper.urls', namespace='whisper')),
   path('store/', include('dwiest.django.demos.store.urls', namespace='store')),
   path('bookmarks/',
     include('dwiest.django.demos.bookmarks.urls', namespace='bookmarks')),

@@ -1,0 +1,31 @@
+name: Whisper Django tests
+on:
+  pull_request:
+    paths:
+      - 'tests/whisper-upload.test.cjs'
+      - 'dwiest/django/demos/whisper/**'
+      - 'dwiest/django/demos/templates/dwiest-django-demos/whisper/**'
+      - 'dwiest/django/demos/static/dwiest-django-demos/whisper/**'
+      - 'dwiest/django/demos/application_catalog.py'
+      - 'dwiest/django/demos/migrations/**'
+      - 'dwiest/django/demos/urls.py'
+      - 'dwiest/django/demos/test_application_urls.py'
+      - '.github/workflows/whisper-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python: ['3.7', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3 'channels>=3,<4'
+      - run: python -m django test dwiest.django.demos.whisper.tests dwiest.django.demos.test_application_access --settings=dwiest.django.demos.test_application_settings -v 2
+      - run: node --check dwiest/django/demos/static/dwiest-django-demos/whisper/upload.js
+      - run: node --test tests/whisper-upload.test.cjs
