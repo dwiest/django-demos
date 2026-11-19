@@ -18,6 +18,8 @@
     window.setTimeout(tick, 1000);
   }
   if (started) tick();
+  const restore=document.querySelector('#restore-ai-defaults');
+  if(restore) restore.addEventListener('click',()=>{ document.querySelector('#id_instructions').value=JSON.parse(document.querySelector('#ai-default-instructions').textContent); });
   const panel = document.querySelector('[data-job-poll]');
   if (!panel) return;
   const status = document.querySelector('#job-state');

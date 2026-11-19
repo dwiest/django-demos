@@ -192,3 +192,58 @@ instructions and review/approval remains the next phase 3 milestone. The existin
 Jobs application's shared-key behavior is unchanged. Standard Whisper has no
 speaker diarization flag; adding local speaker labels requires another engine or
 pipeline such as WhisperX. Speaker labels alone do not establish a person's name.
+
+## Phase 3: analysis workflow, models and connection test
+
+Deploy the companion backend update first; it adds an independent SQS analysis
+queue and Lambda consumer, without changing the EC2 transcription daemon. Existing
+personal keys/instructions are preserved. Install this Django change, collect
+static and restart. No Django migration or new app grant is required.
+
+AI settings now offers a suggested-model dropdown and a custom model text field.
+The custom ID overrides the dropdown. WHISPER_AI_MODELS (a list or comma-separated
+environment value) controls suggestions; when absent, BOOKMARKS_AI_MODELS supplies
+the same list used by Bookmarks. Bookmarks itself does not hardcode a deployed
+model list. Built-in suggestions are used when neither setting exists. Existing
+custom model IDs remain editable. Suggestions are not a promise of account access;
+choose a model available to your OpenAI account that supports Responses structured
+output. **Test connection** checks typed/saved credentials and selected model
+metadata without generating text or saving settings. With JavaScript it preserves
+the typed key in the current form, so you can test then save. Without JavaScript,
+a test re-renders the password field blank; re-enter an unsaved key before saving.
+This test does not prove analysis endpoint/schema support or billing availability.
+
+Default instructions request a concise factual summary, key points, explicit
+decisions, action items, open questions and transcription caveats. Owners and
+deadlines are included only when stated; absent details stay unspecified. No
+invented speakers, identities, dates or timestamps. Existing custom instructions
+are preserved. Blank saved guidance uses the application default; **Restore default
+instructions** changes only the textarea until you save.
+
+A completed transcription offers **Analyze transcript**. Enter optional per-job
+instructions and retention, then explicitly queue the analysis. The form explains
+that the saved transcript goes to OpenAI and usage may be charged to your API
+account. Saved model/default guidance and per-job guidance are snapshotted for
+that run. Repeating an uncertain submission preserves its operation key; a fresh
+form deliberately creates another analysis. The worker uses the latest saved
+personal key when processing starts; removed/revoked keys fail safely.
+
+The existing Jobs screens show queued/running/completed/failed analysis states and
+results. Completed analysis shows structured fields, JSON download and source
+provenance. **Review and approve** opens an editable form. Approve saves reviewed
+fields separately from the original proposal; reject records rejection. Neither
+changes the transcript nor invokes OpenAI again. A proposal can be reviewed once;
+repeat/stale review submissions are rejected. Existing approved edits remain
+visible while original JSON downloads retain the original model output.
+
+Analysis jobs protect their exact source transcription and original file from
+retention/deletion until their own outputs are cleaned. Delete dependent analyses
+before deleting a transcription, then delete transcription jobs before deleting
+the original recording. Failed/cancelled analyses also retain their dependencies
+until cleanup. Cancellation cannot guarantee aborting an in-flight provider call.
+
+For uncertain billable outcomes, the worker does not automatically repeat the
+provider POST. It recovers a stored checkpoint or marks the job failed; explicitly
+creating another analysis can incur another charge. Inputs exceeding configured
+byte/character bounds fail rather than being silently truncated. No live model
+requests, deployment or account charges are made by the automated tests.

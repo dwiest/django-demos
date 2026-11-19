@@ -22,6 +22,9 @@ def job_present(item):
     item['queue_seconds'] = max(0, (start or end) - item['created_at'])
     summary = item.get('summary') or {}
     item['recording_seconds'] = summary.get('audio_duration_seconds')
+    item['is_analysis'] = item.get('type')=='transcript.analyze'
+    item['can_analyze'] = item['status']=='completed' and not item['is_analysis']
+    item['can_review'] = item['is_analysis'] and item.get('review_status')=='pending' and item['status']=='completed'
     item['terminal'] = item['status'] in TERMINAL
     item['cancellable'] = item['status'] in ('queued', 'running')
     item['can_delete'] = item['terminal']
@@ -86,7 +89,7 @@ def detail(request, job_id):
         client = WhisperClient(request.user)
         job = job_present(client.request('GET', '/jobs/' + job_id)['job'])
         result = client.request('GET', '/jobs/' + job_id + '/result') if job['status'] == 'completed' else None
-        return render(request, 'dwiest-django-demos/whisper/job.html', {'job': job, 'result': result})
+        return render(request, 'dwiest-django-demos/whisper/job.html', {'job': job, 'result': result, 'analysis_display':job.get('approved_proposal') or (result or {}).get('proposal')})
     except ServiceError as exc:
         return error(request, exc)
 

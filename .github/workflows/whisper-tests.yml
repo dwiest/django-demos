@@ -4,6 +4,7 @@ on:
     paths:
       - 'tests/whisper-upload.test.cjs'
       - 'tests/whisper-jobs.test.cjs'
+      - 'tests/whisper-ai.test.cjs'
       - 'dwiest/django/demos/whisper/**'
       - 'dwiest/django/demos/templates/dwiest-django-demos/whisper/**'
       - 'dwiest/django/demos/static/dwiest-django-demos/whisper/**'
@@ -27,7 +28,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install 'Django>=3.2,<3.3' 'djangorestframework>=3.14,<3.15' 'cryptography>=3.4.8' django-appconf qrcode boto3 'channels>=3,<4'
-      - run: python -m django test dwiest.django.demos.whisper.tests dwiest.django.demos.whisper.test_jobs dwiest.django.demos.whisper.test_time_ai dwiest.django.demos.test_application_access --settings=dwiest.django.demos.test_application_settings -v 2
+      - run: python -m django test dwiest.django.demos.whisper.tests dwiest.django.demos.whisper.test_jobs dwiest.django.demos.whisper.test_time_ai dwiest.django.demos.whisper.test_analysis dwiest.django.demos.test_application_access --settings=dwiest.django.demos.test_application_settings -v 2
       - run: node --check dwiest/django/demos/static/dwiest-django-demos/whisper/upload.js
       - run: node --test tests/whisper-upload.test.cjs
       - run: node --test tests/whisper-jobs.test.cjs
+      - run: node --test tests/whisper-ai.test.cjs
