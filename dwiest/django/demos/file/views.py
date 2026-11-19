@@ -1,253 +1,131 @@
+import json
+from datetime import datetime, timezone
+from functools import wraps
+from urllib.parse import urlencode
+
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import FileResponse, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.core import signing
+from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.views.generic import FormView, TemplateView
-from enum import Enum
-import os
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from ..conf import settings
-from .forms import FileUploadForm, FileDetailsForm
-from .models import File, FileQuota, FileSummary
-from .signals import *
-
-class FileIndexView(TemplateView):
-
-  class ResponseDict(str, Enum):
-    FILES = 'files'
-    FORM = 'form'
-    QUOTA = 'quota'
-    SUMMARY = 'summary'
-
-  template_name = settings.DEMOS_FILE_INDEX_TEMPLATE
-  form_class = FileUploadForm
-  success_page = 'demos:file:index'
-  error_page = success_page
-
-  def __init__(self, *args, **kwargs):
-    self.response_dict = {}
-
-  def get(self, request, *args, **kwargs):
-    form = self.form_class(request.user)
-    self.response_dict[self.ResponseDict.FORM] = form
-
-    if request.user.id:
-      summaries = FileSummary.objects.filter(owner=request.user)
-    else:
-      summaries = FileSummary.objects.filter(owner=None)
-
-    if len(summaries) < 1: # first time uploader
-      self.response_dict[self.ResponseDict.SUMMARY] = FileSummary(files=0, size=0)
-    elif len(summaries) == 1:
-      self.response_dict[self.ResponseDict.SUMMARY] = summaries[0]
-    else:
-      print("Too many summaries for {}, found {}.  Using first result.".format(request.user, len(summaries)))
-      self.response_dict[self.ResponseDict.SUMMARY] = summaries[0]
-
-    if request.user.id:
-      files = File.objects.filter(owner=request.user)
-    else:
-      files = File.objects.filter(owner=None)
-
-    self.response_dict[self.ResponseDict.FILES] = files
-
-    quotas = FileQuota.objects.filter(id=1)
-    if len(quotas) == 1:
-      self.response_dict[self.ResponseDict.QUOTA] = quotas[0]
-    else:
-      self.response_dict[self.ResponseDict.QUOTA] = {
-        max_files: 'n/a',
-        max_filesize: 'n/a',
-        max_total_filesize: 'n/a'
-        }
-
-    return render(request, self.template_name, self.response_dict)
-
-  def post(self, request, *args, **kwargs):
-    form = self.form_class(request.user, data=request.POST, files=request.FILES)
-    self.response_dict[self.ResponseDict.FORM] = form
-    if form.is_valid():
-      try:
-        form.save()
-        messages.info(request, "{} was successfully uploaded.".format(form.cleaned_data['file'].name))
-        file_uploaded.send(sender=request.user.__class__, request=request, id=form.file.id, name=form.file.name)
-        return HttpResponseRedirect(reverse(self.success_page))
-      except Exception as e:
-        print(str(e))
-        messages.error(request, str(e))
-        return HttpResponseRedirect(reverse(self.error_page))
-    else:
-      messages.error(request, "{} could not be uploaded.".format(form.cleaned_data['file'].name))
-      for error in form.errors[forms.form.NON_FIELD_ERRORS]:
-        messages.error(request, error)
-      return HttpResponseRedirect(reverse(self.error_page))
+from ..application_access import for_request
+from .forms import FileDetailsForm
+from .storage import FileStore, StorageError
+from .signals import file_updated, file_deleted
 
 
-class FileDetailView(TemplateView):
-  '''
-    Display the details of an uploaded file
-  '''
-
-  class ResponseDict(str, Enum):
-    FILE = 'file'
-    FORM = 'form'
-
-  template_name = settings.DEMOS_FILE_DETAILS_TEMPLATE
-  success_page = 'demos:file:details'
-  error_page = 'demos:file:index'
-
-  def __init__(self, *args, **kwargs):
-    self.response_dict = {}
-
-
-  def get(self, request, *args, **kwargs):
-    path = request.GET.get('path')
-
-    if path:
-      try:
-        if request.user and request.user.id:
-          file = File.objects.get(owner=request.user, path=path)
-        else:
-          file = File.objects.get(owner=None, path=path)
-        form = FileDetailsForm(instance=file)
-        self.response_dict[self.ResponseDict.FILE] = file
-        self.response_dict[self.ResponseDict.FORM] = form
-      except Exception as e:
-        print(str(e))
-        messages.error(request, str(e))
-        return HttpResponseRedirect(reverse(self.error_page))
-    else:
-      messages.error(request, 'A file path was not specified.')
-      return HttpResponseRedirect(reverse(self.error_page))
-
-    return render(request, self.template_name, self.response_dict)
-
-  def post(self, request, *args, **kwargs):
-    if request.user and request.user.id:
-      file = File.objects.get(owner=request.user, path=request.POST['path'])
-    else:
-      file = File.objects.get(owner=None, path=request.POST['path'])
-
-    self.response_dict[self.ResponseDict.FILE] = file
-    form = FileDetailsForm(instance=file, data=request.POST)
-    self.response_dict[self.ResponseDict.FORM] = form
-    if form.is_valid():
-      form.save()
-      messages.info(request, "{} was successfully updated.".format(file.name))
-      query_string = "?path={}".format(file.path)
-      file_updated.send(sender=request.user.__class__, request=request, id=file.id, name=file.name)
-      return HttpResponseRedirect(reverse(self.success_page) + query_string)
-    else:
-      return render(request, self.template_name, self.response_dict)
+def access(view):
+    @login_required
+    @never_cache
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not for_request(request).allows('file'):
+            return render(request, 'dwiest-django-demos/applications/denied.html', status=403)
+        try:
+            return view(request, *args, **kwargs)
+        except StorageError as exc:
+            if request.resolver_match.url_name in ('register', 'complete'):
+                return JsonResponse({'message': str(exc)}, status=exc.status)
+            if exc.status == 404:
+                raise Http404('File not found.')
+            return render(request, 'dwiest-django-demos/file/error.html', {'storage_error': str(exc)}, status=exc.status)
+    return wrapped
 
 
-class FileDeleteView(TemplateView):
-  '''
-    Deletes an uploaded file
-  '''
-
-  success_page = 'demos:file:index'
-  error_page = 'demos:file:details'
+def present(item):
+    return dict(item, path=item['file_id'], ready=item['status'] == 'ready',
+                created_at=datetime.fromtimestamp(int(item['created_at']), timezone.utc))
 
 
-  def __init__(self, *args, **kwargs):
-    self.response_dict = {}
+def details_url(file_id):
+    return reverse('demos:file:details') + '?' + urlencode({'path': file_id})
 
 
-  def get(self, request, *args, **kwargs):
-    path = request.GET.get('path')
-
-    if path:
-      try:
-        if request.user and request.user.id:
-          file = File.objects.get(owner=request.user, path=path)
-        else:
-          file = File.objects.get(owner=None, path=path)
-        # update summary
-        if request.user and request.user.id:
-          summaries = FileSummary.objects.filter(owner=request.user)
-        else:
-          summaries = FileSummary.objects.filter(owner=None)
-        if len(summaries) == 1:
-          summary = summaries[0]
-          summary.files -= 1
-          summary.size -= file.size
-          summary.save()
-        else:
-          pass # shouldn't happen!
-        # remove from filesystem
-        os.remove(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path)
-        # remove file record
-        id = file.id # set to None after delete
-        file.delete()
-        file_deleted.send(sender=request.user.__class__, request=request, id=id, name=file.name)
-      except Exception as e:
-        print(str(e))
-        messages.error(request, str(e))
-        return HttpResponseRedirect(reverse(self.error_page))
-    else:
-      messages.error(request, 'A file path was not specified.')
-      return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
-
-    messages.warning(request, "{} was deleted".format(file.name))
-    return HttpResponseRedirect(reverse(self.success_page), self.response_dict)
+@access
+@require_GET
+def index(request):
+    store = FileStore(request.user.pk)
+    cursor = None
+    if request.GET.get('cursor'):
+        try:
+            data = signing.loads(request.GET['cursor'], salt='file-manager-cursor', max_age=86400)
+            if data['owner'] != request.user.pk:
+                raise ValueError()
+            cursor = data['file_id']
+        except (signing.BadSignature, KeyError, ValueError, TypeError):
+            raise StorageError('Invalid file list page. Return to All files.', 400)
+    files, next_id = store.listing(cursor)
+    next_cursor = signing.dumps({'owner': request.user.pk, 'file_id': next_id}, salt='file-manager-cursor') if next_id else None
+    return render(request, 'dwiest-django-demos/file/index.html', {
+        'files': [present(item) for item in files], 'summary': store.summary(), 'quota': store.quota(),
+        'next_cursor': next_cursor})
 
 
-class FileDownloadView(TemplateView):
-  '''
-    Downloads an uploaded file
-  '''
-
-  success_page = 'demos:file:index'
-  error_page = success_page
-
-  def get(self, request, *args, **kwargs):
-    path = request.GET.get('path')
-
-    if path:
-      try:
-        file = File.objects.get(owner=request.user, path=path)
-      except Exception as e:
-        print(str(e))
-        messages.error(request, str(e))
-        return HttpResponseRedirect(reverse(self.error_page))
-    else:
-      messages.error(request, 'A file path was not specified.')
-      return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
-
-    content = open(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path, 'rb')
-    response = FileResponse(content)
-    response['Content-Type'] = file.content_type
-    response['Content-Length'] = file.size
-    response['Content-Disposition'] = 'attachment; filename={}'.format(file.name)
-    return response
+@access
+@require_POST
+def register(request):
+    try:
+        if len(request.body) > 16384:
+            raise ValueError()
+        payload = json.loads(request.body.decode('utf-8'))
+        if not isinstance(payload, dict):
+            raise ValueError()
+    except (ValueError, UnicodeError):
+        raise StorageError('Supply valid upload details.', 400)
+    result = FileStore(request.user.pk).register(payload, request.META.get('HTTP_IDEMPOTENCY_KEY'))
+    response = {'file': {'file_id': result['file']['file_id']}}
+    if 'upload' in result:
+        response['upload'] = result['upload']
+    return JsonResponse(response)
 
 
-class FileOpenView(TemplateView):
-  '''
-    Opens an uploaded file
-  '''
+@access
+@require_POST
+def complete(request, file_id):
+    item = FileStore(request.user.pk).complete(file_id)
+    return JsonResponse({'detail_url': details_url(item['file_id'])})
 
-  success_page = 'demos:file:index'
-  error_page = success_page
 
-  def get(self, request, *args, **kwargs):
-    path = request.GET.get('path')
+@access
+@require_http_methods(['GET', 'POST'])
+def details(request):
+    file_id = request.POST.get('path') if request.method == 'POST' else request.GET.get('path')
+    store = FileStore(request.user.pk)
+    item = store.get(file_id)
+    form = FileDetailsForm(request.POST if request.method == 'POST' else None, initial=item)
+    if request.method == 'POST' and form.is_valid():
+        store.update(file_id, **form.cleaned_data)
+        file_updated.send(sender=request.user.__class__, request=request, id=file_id, name=form.cleaned_data['name'])
+        messages.success(request, 'File details saved.')
+        return redirect(details_url(file_id))
+    return render(request, 'dwiest-django-demos/file/details.html', {'file': present(item), 'form': form})
 
-    if path:
-      try:
-        file = File.objects.get(owner=request.user, path=path)
-      except Exception as e:
-        print(str(e))
-        messages.error(request, str(e))
-        return HttpResponseRedirect(reverse(self.error_page))
-    else:
-      messages.error(request, 'A file path was not specified.')
-      return HttpResponseRedirect(reverse(self.error_page), self.response_dict)
 
-    content = open(settings.DEMOS_FILE_UPLOAD_DIR + '/' + file.path, "rb")
-    response = FileResponse(content, filename=file.name)
-    response['Content-Type'] = file.content_type
-    response['Content-Length'] = file.size
-    return response
+@access
+@require_http_methods(['GET', 'POST'])
+def delete(request):
+    file_id = request.POST.get('path') if request.method == 'POST' else request.GET.get('path')
+    store = FileStore(request.user.pk)
+    item = store.get(file_id)
+    if request.method == 'POST':
+        store.delete(file_id)
+        file_deleted.send(sender=request.user.__class__, request=request, id=file_id, name=item['name'])
+        messages.success(request, 'File deleted. Stored copies will be removed by scheduled cleanup.')
+        return redirect('demos:file:index')
+    return render(request, 'dwiest-django-demos/file/delete.html', {'file': present(item)})
+
+
+@access
+@require_GET
+def download(request):
+    return HttpResponseRedirect(FileStore(request.user.pk).download(request.GET.get('path')))
+
+
+@access
+@require_GET
+def open_file(request):
+    return HttpResponseRedirect(FileStore(request.user.pk).download(request.GET.get('path'), inline=True))

@@ -69,9 +69,10 @@ independently for each list.
 
 ### File Manager
 
-A basic file-management application for uploading, describing, opening,
-downloading, renaming, and deleting files. It also reports storage usage and
-demonstrates Django's file handling features.
+A file-management application with direct browser uploads to private S3,
+DynamoDB metadata and storage quotas, progress and retry, and owner-scoped
+downloads, editing, and deletion. See [File Manager setup and migration](docs/file-manager.md)
+before deploying; existing local files require a one-time import.
 
 ### WebSockets
 

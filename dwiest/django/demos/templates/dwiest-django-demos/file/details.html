@@ -1,5 +1,5 @@
 {% extends 'dwiest-django-demos/file/base.html' %}
-{% load dwiest_django_demos.file.filters %}
+{% load dwiest_django_demos.file.filters static %}
 {% block title %}File details | File Manager{% endblock %}
 {% block content %}
 <a class="back" href="{% url 'demos:file:index' %}">← All files</a>
@@ -13,7 +13,7 @@
       {{ form.non_field_errors }}
       <div class="field"><label for="{{ form.name.id_for_label }}">Filename</label>{{ form.name }}{{ form.name.errors }}</div>
       <div class="field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{{ form.description.errors }}</div>
-      <div class="field"><label for="{{ form.versioned.id_for_label }}">{{ form.versioned }} Versioning enabled</label>{{ form.versioned.errors }}</div>
+
       <div class="save-actions"><button class="button primary" type="submit">Save changes</button><a class="button secondary" href="{% url 'demos:file:index' %}">Cancel</a></div>
     </form>
   </section>
@@ -24,15 +24,21 @@
       <div><dt>Size</dt><dd>{{ file.size|format_bytes:2 }}</dd></div>
       <div><dt>Uploaded</dt><dd>{{ file.created_at|date:'M j, Y, H:i:s T' }}</dd></div>
       <div><dt>Antivirus scan</dt><dd>Not available</dd></div>
-      <div><dt>File version</dt><dd>1</dd></div>
-      <div><dt>MD5 checksum</dt><dd><code>{{ file.md5_checksum }}</code></dd></div>
-      <div><dt>SHA256 checksum</dt><dd><code>{{ file.sha256_checksum }}</code></dd></div>
+      <div><dt>Status</dt><dd>{{ file.status|capfirst }}</dd></div>
+      <div><dt>Storage protection</dt><dd>S3 versioning enabled</dd></div>
+      <div><dt>MD5 checksum</dt><dd><code>{{ file.md5_checksum|default:"Not calculated" }}</code></dd></div>
+      <div><dt>SHA256 checksum</dt><dd><code>{{ file.sha256_checksum|default:"Not calculated" }}</code></dd></div>
     </dl>
-    <div class="file-actions">
+    {% if not file.ready %}
+    <form data-complete="{% url 'demos:file:complete' file.path %}">{% csrf_token %}<button class="button primary" type="submit">Verify upload</button><p data-status role="status"></p></form>
+    <p class="muted">If the upload was interrupted before the file finished sending, start a new upload from All files. Delete this entry to release its reserved space.</p>
+    {% endif %}
+    <div class="file-actions">{% if file.ready %}
       <a class="button secondary" href="{% url 'demos:file:open' %}?path={{ file.path|urlencode }}" target="_blank" rel="noopener">Open<span class="sr-only"> in a new tab</span></a>
       <a class="button secondary" href="{% url 'demos:file:download' %}?path={{ file.path|urlencode }}">Download</a>
-      <a class="button file-danger" href="{% url 'demos:file:delete' %}?path={{ file.path|urlencode }}">Delete file</a>
+      {% endif %}<a class="button file-danger" href="{% url 'demos:file:delete' %}?path={{ file.path|urlencode }}">Delete file</a>
     </div>
   </section>
 </div>
+<script src="{% static 'dwiest-django-demos/file/upload.js' %}" defer></script>
 {% endblock %}

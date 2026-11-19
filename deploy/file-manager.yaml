@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private File Manager S3 storage, DynamoDB metadata, and EC2 role permissions
+Parameters:
+  DjangoRoleName:
+    Type: String
+    Description: Existing EC2 instance-profile role name (not ARN or instance profile name)
+  DjangoOrigin:
+    Type: String
+    Description: Exact HTTPS browser origin serving Django, with no path or trailing slash
+    AllowedPattern: '^https://[A-Za-z0-9.-]+(:[0-9]+)?$'
+Resources:
+  FilesTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      DeletionProtectionEnabled: true
+  FilesBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref DjangoOrigin]
+            AllowedMethods: [POST]
+            AllowedHeaders: ['*']
+            MaxAge: 300
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FilesBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: [!GetAtt FilesBucket.Arn, !Sub '${FilesBucket.Arn}/*']
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+  DjangoPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-file-manager'
+      Roles: [!Ref DjangoRoleName]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Query', 'dynamodb:Scan']
+            Resource: !GetAtt FilesTable.Arn
+          - Effect: Allow
+            Action: ['s3:ListBucket', 's3:ListBucketVersions', 's3:ListBucketMultipartUploads']
+            Resource: !GetAtt FilesBucket.Arn
+            Condition:
+              StringLike:
+                's3:prefix': ['files/*']
+          - Effect: Allow
+            Action: ['s3:PutObject', 's3:GetObject', 's3:GetObjectVersion', 's3:DeleteObject', 's3:DeleteObjectVersion', 's3:AbortMultipartUpload']
+            Resource: !Sub '${FilesBucket.Arn}/files/*'
+Outputs:
+  FileManagerBucket:
+    Description: FILE_MANAGER_BUCKET
+    Value: !Ref FilesBucket
+  FileManagerTable:
+    Description: FILE_MANAGER_TABLE
+    Value: !Ref FilesTable
+  FileManagerRegion:
+    Description: FILE_MANAGER_REGION
+    Value: !Ref AWS::Region
