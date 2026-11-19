@@ -10,6 +10,7 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.exceptions import BotoCoreError, ClientError
 from django.conf import settings
+from django.views.decorators.debug import sensitive_variables
 
 
 class ServiceError(Exception):
@@ -39,8 +40,9 @@ class WhisperClient:
             raise ServiceError('Configure WHISPER_SERVICE_URL (HTTPS, ending /service) and WHISPER_SERVICE_REGION on the server.')
         self.user_reference = str(user.pk)
 
+    @sensitive_variables()
     def request(self, method, path, payload=None, key=None):
-        if not (path == '/files' or path.startswith(('/files/', '/files?', '/jobs/', '/jobs?')) or path == '/jobs') or '://' in path or '#' in path or '\r' in path or '\n' in path:
+        if not (path == '/files' or path.startswith(('/files/', '/files?', '/jobs/', '/jobs?')) or path in ('/jobs', '/ai/settings')) or '://' in path or '#' in path or '\r' in path or '\n' in path:
             raise ServiceError('Invalid media service path.', 400)
         data = json.dumps(payload).encode('utf-8') if payload is not None else None
         headers = {'X-User-Reference': self.user_reference, 'Content-Type': 'application/json'}

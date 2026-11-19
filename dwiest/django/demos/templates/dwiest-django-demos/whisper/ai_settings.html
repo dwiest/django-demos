@@ -1,0 +1,6 @@
+{% extends 'dwiest-django-demos/whisper/base.html' %}{% block title %}AI settings{% endblock %}
+{% block content %}<h1>AI analysis settings</h1><p>Save your personal OpenAI key, model and default analysis instructions.</p>
+<p class="notice">Phase 3 setup is available. Queued transcript analysis and approval screens are the next step; saving these settings does not call OpenAI.</p>
+{% if service_error %}<div class="notice error" role="alert">{{ service_error }}</div>{% endif %}
+<section class="media-panel"><p>API key: <strong>{% if has_api_key %}Saved{% else %}Not configured{% endif %}</strong></p>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<div class="field">{{ field.label_tag }}{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="button primary" type="submit">Save AI settings</button></form></section>{% endblock %}

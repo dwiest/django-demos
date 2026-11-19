@@ -168,3 +168,27 @@ instructions, per-job instructions, versioned transcript analysis, and review/ed
 approve screens. The worker resolves credentials from authenticated ownership;
 queue messages contain references only. This can provide the credential lookup
 pattern for the existing Jobs application to adopt later.
+
+## Timing and phase 3 settings foundation
+
+Job review now shows processing elapsed time from the first worker start through
+terminal completion, separately from queue wait. Running elapsed time updates
+every second in the browser; completed values use stored timestamps. This is wall
+clock elapsed time, including retry gaps, not CPU time. Recording length in the
+transcript header uses hours, minutes and seconds. Older jobs without a start
+timestamp display Not started rather than an invented duration.
+
+Phase 3's first milestone adds **AI settings** for each permitted account: model,
+saved analysis instructions and a personal API key. Deploy the companion backend
+first, then collect static and restart Django. No new Django migration is needed.
+Keys are stored as Parameter Store SecureString values, with a server-derived
+account path. Blank key preserves the saved credential; Remove deletes it. The
+page returns only configured/not configured, never the key. Credential fields
+are excluded from Django debug reports; do not log credential-entry request bodies.
+
+This milestone saves configuration only. It does not validate model access, call
+OpenAI, queue an analysis, or modify transcripts. Queued analysis with per-job
+instructions and review/approval remains the next phase 3 milestone. The existing
+Jobs application's shared-key behavior is unchanged. Standard Whisper has no
+speaker diarization flag; adding local speaker labels requires another engine or
+pipeline such as WhisperX. Speaker labels alone do not establish a person's name.

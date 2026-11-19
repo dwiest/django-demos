@@ -68,3 +68,26 @@ class TranscriptionForm(forms.Form):
                  'condition_on_previous_text', 'initial_prompt')
         return {'file_id': file_id, 'options': {name: self.cleaned_data[name] for name in names},
                 'retention_days': self.cleaned_data['retention_days']}
+
+
+class AISettingsForm(forms.Form):
+    model = forms.RegexField(regex=r'^[A-Za-z0-9._:-]{1,128}$', required=False, max_length=128,
+        label='OpenAI analysis model', help_text='Use a model available to your API account.')
+    instructions = forms.CharField(required=False, max_length=8000, label='Default analysis instructions',
+        widget=forms.Textarea(attrs={'rows': 7}))
+    api_key = forms.CharField(required=False, max_length=512, strip=True,
+        label='OpenAI API key', widget=forms.PasswordInput(attrs={'autocomplete': 'off'}),
+        help_text='Leave blank to keep the saved key. Saved keys are never displayed.')
+    remove_api_key = forms.BooleanField(required=False, label='Remove my saved API key')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'control'
+
+    def clean(self):
+        data = super().clean()
+        if data.get('api_key') and data.get('remove_api_key'):
+            self.add_error('api_key', 'Replace or remove the key, not both.')
+        return data

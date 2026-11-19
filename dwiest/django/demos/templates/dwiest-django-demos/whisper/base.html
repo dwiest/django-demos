@@ -8,6 +8,6 @@
 <script defer src="{% static 'dwiest-django-demos/whisper/jobs.js' %}"></script>
 </head><body><a class="skip" href="#main">Skip to content</a>
 {% include 'dwiest-django-demos/components/demo_navigation.html' %}
-<header class="site-header"><nav class="container nav" aria-label="Whisper"><a class="brand" href="{% url 'demos:whisper:home' %}">Whisper</a><a href="{% url 'demos:whisper:home' %}">Files</a><a href="{% url 'demos:whisper:jobs' %}">Jobs</a><a class="button primary nav-actions" href="{% url 'demos:whisper:upload' %}">Upload file</a></nav></header>
+<header class="site-header"><nav class="container nav" aria-label="Whisper"><a class="brand" href="{% url 'demos:whisper:home' %}">Whisper</a><a href="{% url 'demos:whisper:home' %}">Files</a><a href="{% url 'demos:whisper:jobs' %}">Jobs</a><a href="{% url 'demos:whisper:ai_settings' %}">AI settings</a><a class="button primary nav-actions" href="{% url 'demos:whisper:upload' %}">Upload file</a></nav></header>
 <main id="main" class="container">{% for message in messages %}<div class="notice" role="status">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main>
 {% include 'dwiest-django-demos/components/site_footer.html' %}</body></html>
