@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 from .client import ServiceError
 from .tests import FILE, FILE_ID
 
-ROOT = '/django/demos/whisper/'
+ROOT = '/apps/demos/whisper/'
 JOB_ID = 'b' * 32
 JOB = {'job_id':JOB_ID, 'file_id':FILE_ID, 'display_name':'Meeting', 'status':'queued', 'stage':'waiting',
     'created_at':1800000000, 'updated_at':1800000000, 'attempts':0, 'active':True, 'retention_days':365,

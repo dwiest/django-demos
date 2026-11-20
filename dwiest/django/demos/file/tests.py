@@ -18,7 +18,7 @@ from django.test import Client, TestCase, override_settings
 from .storage import FileStore, StorageError
 from .models import File
 
-ROOT = '/django/demos/file/'
+ROOT = '/apps/demos/file/'
 
 
 @override_settings(FILE_MANAGER_BUCKET='file-manager-tests', FILE_MANAGER_TABLE='file-manager-tests',

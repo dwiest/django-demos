@@ -73,8 +73,8 @@ APPLICATIONS = (
     Application('toy_ms_pac_man', 'Ms. Pac-Man', 'toys', url='ms-pac-man/index.html', section='Arcade', description='A glowing maze with ghost chases and bonus fruit.', enforce=False),
     Application('toy_rally_x', 'Rally-X', 'toys', url='rally-x/index.html', section='Arcade', description='Collect flags, evade pursuers, and watch the radar.', enforce=False),
     Application('toy_space_invaders', 'Space Invaders', 'toys', url='space-invaders/index.html', section='Arcade', description='Marching formations, bunkers, and mystery saucers.', enforce=False),
-    Application('local_services', 'Local services', 'services', url='/django/home/#services', view_names=('captcha', 'web3', 'quicknode', 'ws', 'ws2')),
-    Application('environment_status', 'Environment status', 'services', url='/django/status/', view_names=('status',)),
+    Application('local_services', 'Local services', 'services', url='/apps/home/#services', view_names=('captcha', 'web3', 'quicknode', 'ws', 'ws2')),
+    Application('environment_status', 'Environment status', 'services', url='/apps/status/', view_names=('status',)),
     Application('voicemail', 'Voicemail', 'services', url='https://wiest.world/voicemail/', enforce=False),
     Application('messages', 'Messages', 'services', url='https://wiest.world/messages/', enforce=False),
 )

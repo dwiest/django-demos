@@ -9,7 +9,7 @@ from botocore.credentials import Credentials
 from .client import WhisperClient, ServiceError
 
 FILE_ID = 'a' * 32
-ROOT = '/django/demos/whisper/'
+ROOT = '/apps/demos/whisper/'
 FILE = {'file_id': FILE_ID, 'display_name': 'Meeting', 'original_name': 'meeting.mp3', 'size': 3,
         'content_type': 'audio/mpeg', 'status': 'ready', 'created_at': 1800000000, 'ready_at': 1800000001,
         'updated_at': 1800000001, 'retention_days': None, 'expires_at': None}
@@ -46,7 +46,7 @@ class WhisperViewsTests(TestCase):
         self.assertContains(response, '&lt;script&gt;bad()&lt;/script&gt;')
         self.assertNotContains(response, '<script>bad()</script>')
         self.mock.assert_called_with(self.user)
-        self.assertContains(self.client.get('/django/demos/'), 'Open Whisper')
+        self.assertContains(self.client.get('/apps/demos/'), 'Open Whisper')
         response = self.client.get(ROOT + 'upload/')
         self.assertContains(response, 'media-upload')
         self.assertContains(response, 'csrfmiddlewaretoken')

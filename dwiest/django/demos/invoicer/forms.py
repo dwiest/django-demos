@@ -4,7 +4,8 @@ from django import forms
 #from django.db import connection, IntegrityError
 #from django.db.models import Q
 from django.forms import widgets
-from django.utils.translation import ugettext, ugettext_lazy as _
+#from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import gettext as ugettext, gettext_lazy as _
 from enum import Enum, auto
 #from ..conf import settings
 from .models import BillTo, Invoice, LineItem

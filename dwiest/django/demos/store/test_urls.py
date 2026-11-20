@@ -9,4 +9,4 @@ for name in ['bookmarks', 'invoicer', 'journal', 'qrcode', 'otp', 'expenses',
              'inventory', 'file', 'news', 'selenium', 'grecaptcha']:
     routes.append(path(name+'/', include(([path('', lambda request: HttpResponse(''), name='home'),
                                          path('index/', lambda request: HttpResponse(''), name='index')], name), namespace=name)))
-urlpatterns = [path('django/demos/', include((routes, 'demos'), namespace='demos'))]
+urlpatterns = [path('apps/demos/', include((routes, 'demos'), namespace='demos'))]

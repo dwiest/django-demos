@@ -50,9 +50,9 @@ demos.append(path('restapi/', include(([
 ], 'restapi'), namespace='restapi')))
 
 urlpatterns = [
-    path('django/demos/', include((demos, 'demos'), namespace='demos')),
+    path('apps/demos/', include((demos, 'demos'), namespace='demos')),
     path('login/', page, name='login'),
-    path('django/status/', page, name='status'),
+    path('apps/status/', page, name='status'),
     path('desktop-toys/fireworks/index.html', page, name='toy_external'),
     path('admin/', admin.site.urls),
 ]

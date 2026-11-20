@@ -17,13 +17,13 @@ from django.urls import resolve
 
 call_command('migrate', verbosity=0)
 user = get_user_model().objects.create_superuser(username='menu-fixture')
-request = RequestFactory().get('/django/demos/')
+request = RequestFactory().get('/apps/demos/')
 request.user = user
 request.resolver_match = resolve(request.path)
 menu = engines['django'].engine.get_template(
     'dwiest-django-demos/components/apps_navigation.html').render(
         RequestContext(request, {'request': request, 'apps_services': True,
-                                 'apps_home_url': '/django/home/'}))
+                                 'apps_home_url': '/apps/home/'}))
 Path(sys.argv[1]).write_text('<!doctype html><body>' + menu +
     '<details data-nav-menu id="account"><summary>Account</summary><a href="/logout/">Sign out</a></details>'
     '<details id="filters" open><summary>Filters</summary><input></details>'

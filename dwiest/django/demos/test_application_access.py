@@ -30,7 +30,7 @@ class ApplicationAccessTests(TestCase):
         target.add(*permissions)
         return get_user_model().objects.get(pk=(user or self.user).pk)
 
-    def request(self, user=None, url='/django/demos/'):
+    def request(self, user=None, url='/apps/demos/'):
         request = RequestFactory().get(url)
         request.user = user or self.user
         request.resolver_match = resolve(url)
@@ -40,7 +40,7 @@ class ApplicationAccessTests(TestCase):
         return engines['django'].engine.get_template(
             'dwiest-django-demos/components/apps_navigation.html').render(
                 RequestContext(request, {'request': request, 'apps_services': services,
-                                         'apps_home_url': '/django/home/'}))
+                                         'apps_home_url': '/apps/home/'}))
 
     def test_migration_seeds_complete_catalog_and_native_permissions(self):
         self.assertEqual(set(Application.objects.values_list('key', flat=True)), set(BY_KEY))
@@ -52,7 +52,7 @@ class ApplicationAccessTests(TestCase):
 
     def test_new_user_gets_home_and_no_application_links(self):
         menu = self.render_menu(self.request())
-        self.assertIn('href="/django/home/"', menu)
+        self.assertIn('href="/apps/home/"', menu)
         self.assertIn('No applications have been enabled', menu)
         self.assertNotIn('role="tab"', menu)
         self.assertNotIn('>Bookmarks</a>', menu)
@@ -78,7 +78,7 @@ class ApplicationAccessTests(TestCase):
         Application.objects.filter(key='bookmarks').update(enabled=False)
         self.assertFalse(ApplicationAccess(self.admin).allows('bookmarks'))
         self.client.force_login(self.admin)
-        self.assertEqual(self.client.get('/django/demos/bookmarks/').status_code, 403)
+        self.assertEqual(self.client.get('/apps/demos/bookmarks/').status_code, 403)
 
     def test_inactive_and_anonymous_users_have_no_grants(self):
         self.user.is_active = False
@@ -87,16 +87,16 @@ class ApplicationAccessTests(TestCase):
 
     def test_browser_guard_covers_nested_urls_and_unknown_namespaces(self):
         self.client.force_login(self.user)
-        denied = self.client.get('/django/demos/bookmarks/child/')
+        denied = self.client.get('/apps/demos/bookmarks/child/')
         self.assertEqual(denied.status_code, 403)
         self.assertContains(denied, 'Application unavailable', status_code=403)
         self.grant('bookmarks')
-        self.assertEqual(self.client.get('/django/demos/bookmarks/child/').status_code, 200)
+        self.assertEqual(self.client.get('/apps/demos/bookmarks/child/').status_code, 200)
         self.client.force_login(self.admin)
-        self.assertEqual(self.client.get('/django/demos/new-app/').status_code, 403)
+        self.assertEqual(self.client.get('/apps/demos/new-app/').status_code, 403)
 
     def test_anonymous_browser_redirect_preserves_destination(self):
-        response = self.client.get('/django/demos/journal/child/?page=2')
+        response = self.client.get('/apps/demos/journal/child/?page=2')
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/?next=', response.url)
         self.assertIn('page%3D2', response.url)
@@ -104,7 +104,7 @@ class ApplicationAccessTests(TestCase):
     def test_api_checks_basic_identity_after_authentication(self):
         token = base64.b64encode(b'viewer:password').decode('ascii')
         headers = {'HTTP_AUTHORIZATION': 'Basic ' + token}
-        url = '/django/demos/bookmarks/api/'
+        url = '/apps/demos/bookmarks/api/'
         self.assertEqual(self.client.get(url, **headers).status_code, 403)
         self.grant('bookmarks')
         response = self.client.get(url, **headers)
@@ -117,7 +117,7 @@ class ApplicationAccessTests(TestCase):
         InventoryItem.objects.create(owner=self.user, name='Mine', description='')
         InventoryItem.objects.create(owner=self.other, name='Other', description='')
         self.client.force_login(self.user)
-        url = '/django/demos/inventory/api/items/'
+        url = '/apps/demos/inventory/api/items/'
         self.assertEqual(self.client.get(url).status_code, 403)
         self.grant('inventory')
         response = self.client.get(url)
@@ -128,7 +128,7 @@ class ApplicationAccessTests(TestCase):
         import json
         self.client.force_login(self.user)
         body = json.dumps({'items': [{'client_ref': 'one', 'url': 'https://example.com/'}]})
-        url = '/django/demos/bookmarks/bulk/'
+        url = '/apps/demos/bookmarks/bulk/'
         self.assertEqual(self.client.post(url, body, content_type='application/json').status_code, 403)
         self.grant('bookmarks')
         self.assertEqual(self.client.post(url, body, content_type='application/json').status_code, 200)
@@ -138,7 +138,7 @@ class ApplicationAccessTests(TestCase):
         self.grant('bookmarks')
         self.client.force_login(self.user)
         Bookmark.objects.create(owner=self.other, url='https://example.com/private', title='Private')
-        url = '/django/demos/bookmarks/lookup/?url=https://example.com/private'
+        url = '/apps/demos/bookmarks/lookup/?url=https://example.com/private'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()['exists'])
@@ -150,18 +150,18 @@ class ApplicationAccessTests(TestCase):
     def test_api_marker_alone_does_not_bypass_permission_check(self):
         self.grant('bookmarks')
         callback = SimpleNamespace(cls=SimpleNamespace(application_key='bookmarks', permission_classes=[]))
-        response = application_response(self.request(url='/django/demos/bookmarks/'), callback)
+        response = application_response(self.request(url='/apps/demos/bookmarks/'), callback)
         self.assertEqual(response.status_code, 403)
 
     def test_public_storefront_and_external_toy_urls_keep_existing_behavior(self):
-        self.assertEqual(self.client.get('/django/demos/store/').status_code, 200)
+        self.assertEqual(self.client.get('/apps/demos/store/').status_code, 200)
         self.assertEqual(self.client.get('/desktop-toys/fireworks/index.html').status_code, 200)
         self.assertNotIn('store', navigation(self.request())['by_key'])
 
     def test_filtered_toy_gallery_and_configurable_base_url(self):
         self.grant('toy_fireworks', 'toy_galaga')
         self.client.force_login(self.user)
-        response = self.client.get('/django/demos/toys/')
+        response = self.client.get('/apps/demos/toys/')
         self.assertContains(response, '2 toys available')
         self.assertContains(response, 'https://toys.example.test/desktop-toys/fireworks/index.html')
         self.assertContains(response, 'https://toys.example.test/desktop-toys/galaga/index.html')
@@ -171,14 +171,14 @@ class ApplicationAccessTests(TestCase):
 
     def test_services_and_current_application_follow_grants(self):
         user = self.grant('environment_status', 'bookmarks')
-        request = self.request(user, '/django/demos/bookmarks/child/')
+        request = self.request(user, '/apps/demos/bookmarks/child/')
         catalog = navigation(request, services=True)
         self.assertTrue(catalog['by_key']['bookmarks']['current'])
         self.assertEqual([group['key'] for group in catalog['groups']], ['applications', 'services'])
         self.client.force_login(self.other)
-        self.assertEqual(self.client.get('/django/status/').status_code, 403)
+        self.assertEqual(self.client.get('/apps/status/').status_code, 403)
         self.client.force_login(user)
-        self.assertEqual(self.client.get('/django/status/').status_code, 200)
+        self.assertEqual(self.client.get('/apps/status/').status_code, 200)
 
     def test_legacy_rest_administration_requires_staff_and_explicit_grant(self):
         user = self.grant('restapi')
@@ -191,20 +191,20 @@ class ApplicationAccessTests(TestCase):
         user.is_staff = True
         user.save()
         self.client.force_login(user)
-        self.assertEqual(self.client.get('/django/demos/restapi/users/').status_code, 403)
+        self.assertEqual(self.client.get('/apps/demos/restapi/users/').status_code, 403)
         user.user_permissions.add(Permission.objects.get(
             content_type__app_label='auth', codename='view_user'))
-        self.assertEqual(self.client.get('/django/demos/restapi/users/').status_code, 200)
-        self.assertEqual(self.client.post('/django/demos/restapi/users/', {}).status_code, 403)
+        self.assertEqual(self.client.get('/apss/demos/restapi/users/').status_code, 200)
+        self.assertEqual(self.client.post('/apps/demos/restapi/users/', {}).status_code, 403)
 
     def test_revoking_a_group_grant_takes_effect_on_the_next_request(self):
         group = Group.objects.create(name='Temporary access')
         user = self.grant('bookmarks', group=group)
         user.groups.add(group)
         self.client.force_login(user)
-        self.assertEqual(self.client.get('/django/demos/bookmarks/').status_code, 200)
+        self.assertEqual(self.client.get('/apps/demos/bookmarks/').status_code, 200)
         user.groups.remove(group)
-        self.assertEqual(self.client.get('/django/demos/bookmarks/').status_code, 403)
+        self.assertEqual(self.client.get('/apps/demos/bookmarks/').status_code, 403)
 
     def test_enabled_rows_are_loaded_once_for_a_complete_menu(self):
         user = self.grant('bookmarks', 'inventory', 'toy_fireworks')
@@ -216,11 +216,11 @@ class ApplicationAccessTests(TestCase):
         self.grant('bookmarks')
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.user)
-        self.assertEqual(client.post('/django/demos/bookmarks/api/', {}).status_code, 403)
+        self.assertEqual(client.post('/apps/demos/bookmarks/api/', {}).status_code, 403)
 
     def test_personalized_pages_are_private_and_vary_by_cookie(self):
         self.client.force_login(self.user)
-        response = self.client.get('/django/demos/')
+        response = self.client.get('/apss/demos/')
         self.assertIn('private', response['Cache-Control'])
         self.assertIn('Cookie', response['Vary'])
 

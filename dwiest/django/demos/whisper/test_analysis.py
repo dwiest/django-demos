@@ -9,7 +9,7 @@ from .analysis_defaults import DEFAULT_INSTRUCTIONS
 
 PROPOSAL={'title':'Meeting','summary':'Summary','key_points':['Point'],'decisions':[],
           'action_items':['Prepare draft'],'open_questions':[],'warnings':[]}
-ROOT='/django/demos/whisper/'
+ROOT='/apps/demos/whisper/'
 ANALYSIS='d'*32
 
 class ModelFormTests(SimpleTestCase):
