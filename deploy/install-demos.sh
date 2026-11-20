@@ -13,7 +13,7 @@ shopt -s nullglob
 wheels=("$release"/*.whl)
 [[ ${#wheels[@]} == 1 ]] || exit 2
 cd "$PROJECT_DIR"
-"$python" -c 'import sys, django; assert sys.version_info[:2] == (3, 7); assert django.VERSION[:2] == (3, 2)'
+"$python" -c 'import sys, django; assert sys.version_info[:2] == (5, 2); assert django.VERSION[:2] == (3, 12)'
 # Validate the replacement application only after installation so broken URLs
 # in the installed release cannot block their own repair.
 if sudo -n /usr/bin/systemctl is-active --quiet django.service; then
