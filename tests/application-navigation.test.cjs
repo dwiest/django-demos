@@ -66,7 +66,7 @@ test('Escape restores focus, outside click and focus exit dismiss menus, unrelat
 test('without JavaScript, Home and links from every available category remain accessible', () => {
   const dom = new JSDOM(fixture);
   const d = dom.window.document;
-  assert.equal(d.querySelector('.ww-apps-home').getAttribute('href'), '/django/home/');
+  assert.equal(d.querySelector('.ww-apps-home').getAttribute('href'), '/apps/home/');
   assert.equal(d.querySelectorAll('[data-app-panel][hidden]').length, 0);
   for (const title of ['Bookmarks', 'Pixel Fireworks', 'Voicemail']) {
     assert.ok([...d.querySelectorAll('nav a')].some(a => a.textContent === title));
