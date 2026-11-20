@@ -28,7 +28,7 @@ class AISettingsViewTests(TestCase):
         self.mock.return_value.request.return_value={'has_api_key':True,'model':'test-model','instructions':'Summarize'}
 
     def test_saved_key_is_not_rendered_and_error_never_repopulates_password(self):
-        path='/django/demos/whisper/ai/settings/'
+        path='/apps/demos/whisper/ai/settings/'
         self.assertContains(self.client.get(path),'API key: <strong>Saved</strong>')
         key='test-user-secret-key'
         response=self.client.post(path,{'api_key':key,'remove_api_key':'on'})
@@ -38,7 +38,7 @@ class AISettingsViewTests(TestCase):
         self.assertEqual(client.post(path,{'api_key':key}).status_code,403)
 
     def test_owner_and_settings_save_and_access_guard(self):
-        path='/django/demos/whisper/ai/settings/'
+        path='/apps/demos/whisper/ai/settings/'
         self.assertEqual(self.client.post(path,{'model':'test-model','instructions':'Custom','api_key':'test-user-secret-key'}).status_code,302)
         self.mock.assert_called_with(self.user)
         self.user.user_permissions.clear()

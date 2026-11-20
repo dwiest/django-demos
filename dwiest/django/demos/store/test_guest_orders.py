@@ -76,7 +76,7 @@ class GuestOrderTests(TestCase):
 
     def test_configured_public_https_origin_is_used(self):
         from .models import StoreBranding
-        StoreBranding.objects.create(email_shop_url='https://rotten.world/django/demos/store/')
+        StoreBranding.objects.create(email_shop_url='https://rotten.world/apps/demos/store/')
         order = self.place()
         self.client.post(self.url('guest_order_lookup'), {'order_number': order.number, 'email': order.email})
         self.assertIn('https://rotten.world' + self.url('guest_order_lookup'), mail.outbox[-1].body)
