@@ -194,7 +194,7 @@ class ApplicationAccessTests(TestCase):
         self.assertEqual(self.client.get('/apps/demos/restapi/users/').status_code, 403)
         user.user_permissions.add(Permission.objects.get(
             content_type__app_label='auth', codename='view_user'))
-        self.assertEqual(self.client.get('/apss/demos/restapi/users/').status_code, 200)
+        self.assertEqual(self.client.get('/apps/demos/restapi/users/').status_code, 200)
         self.assertEqual(self.client.post('/apps/demos/restapi/users/', {}).status_code, 403)
 
     def test_revoking_a_group_grant_takes_effect_on_the_next_request(self):
@@ -220,7 +220,7 @@ class ApplicationAccessTests(TestCase):
 
     def test_personalized_pages_are_private_and_vary_by_cookie(self):
         self.client.force_login(self.user)
-        response = self.client.get('/apss/demos/')
+        response = self.client.get('/apps/demos/')
         self.assertIn('private', response['Cache-Control'])
         self.assertIn('Cookie', response['Vary'])
 
