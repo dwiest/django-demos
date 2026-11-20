@@ -46,7 +46,7 @@ jobs:
         env:
           AWS_REGION: us-east-1
           ARTIFACT_BUCKET: dwiest-artifacts
-          INSTANCE_ID: i-0169208b66edd709c
+          INSTANCE_ID: i-00d87f3330bbba59e
         run: |
           python -m pip install boto3==1.35.99
           python deploy/ssm-deploy.py
